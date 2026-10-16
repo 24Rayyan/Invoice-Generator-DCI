@@ -5,103 +5,118 @@
     <title>Laporan Keuangan - {{ $reportData['formatted_start_date'] }} s/d {{ $reportData['formatted_end_date'] }}</title>
     <style>
         @page {
-            margin: 20px 25px;
+            size: A4 landscape;
+            margin: 24px 30px 28px;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #1e293b;
         }
         body {
-            font-size: 10px;
-            line-height: 1.35;
+            font-size: 9px;
+            line-height: 1.4;
+            color: #1e293b;
         }
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #0f172a;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            border-collapse: collapse;
+            border-bottom: 3px solid #17365d;
+            padding-bottom: 9px;
+            margin-bottom: 15px;
         }
         .company-name {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: bold;
-            color: #0f172a;
+            color: #17365d;
             text-transform: uppercase;
         }
         .company-info {
-            font-size: 9px;
-            color: #475569;
+            font-size: 8.5px;
+            color: #586579;
+            line-height: 1.5;
         }
         .report-header {
             text-align: center;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
         .report-header h2 {
             margin: 0;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: bold;
-            color: #0f172a;
+            color: #17365d;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
         .report-header p {
-            margin: 2px 0 0 0;
-            font-size: 9.5px;
-            color: #64748b;
+            margin: 4px 0 0;
+            font-size: 9px;
+            color: #586579;
         }
         .section-title {
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: bold;
-            color: #0f172a;
-            margin: 12px 0 6px 0;
+            color: #17365d;
+            margin: 15px 0 7px;
             text-transform: uppercase;
-            border-bottom: 1px solid #cbd5e1;
-            padding-bottom: 3px;
+            border-left: 3px solid #2f75b5;
+            border-bottom: 1px solid #d8e0ea;
+            padding: 0 0 5px 7px;
         }
         .table-data {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
+        .table-data thead { display: table-header-group; }
+        .table-data tr { page-break-inside: avoid; }
         .table-data th {
-            background-color: #f1f5f9;
-            border: 1px solid #94a3b8;
-            padding: 5px 6px;
-            font-size: 8.5px;
+            background-color: #eaf0f6;
+            border: 1px solid #c4ceda;
+            padding: 6px 7px;
+            font-size: 8px;
             font-weight: bold;
-            text-align: center;
+            color: #334155;
+            text-align: left;
             text-transform: uppercase;
         }
         .table-data td {
-            border: 1px solid #cbd5e1;
-            padding: 4px 6px;
-            font-size: 8.5px;
+            border: 1px solid #d8e0e8;
+            padding: 5px 7px;
+            font-size: 8px;
+            vertical-align: top;
         }
         .summary-box {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 7px 0;
             margin-bottom: 12px;
         }
         .summary-box td {
-            border: 1px solid #cbd5e1;
-            padding: 6px 8px;
+            border: 1px solid #d8e0e8;
+            border-top: 3px solid #2f75b5;
+            padding: 9px 11px;
             width: 25%;
             vertical-align: top;
         }
         .summary-label {
-            font-size: 8px;
+            font-size: 7.5px;
             font-weight: bold;
             text-transform: uppercase;
             color: #64748b;
+            letter-spacing: 0.3px;
         }
         .summary-value {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
-            margin-top: 2px;
+            margin-top: 4px;
+            white-space: nowrap;
         }
         .coa-header-row {
-            background-color: #e2e8f0;
+            background-color: #edf2f7;
             font-weight: bold;
-            color: #0f172a;
+            color: #17365d;
+            page-break-after: avoid;
         }
         .coa-subtotal-row {
-            background-color: #f8fafc;
+            background-color: #f4f7fa;
             font-weight: bold;
         }
         .text-success { color: #166534; }
@@ -115,7 +130,7 @@
         .font-mono { font-family: monospace; }
         .total-row {
             font-weight: bold;
-            background-color: #f8fafc;
+            background-color: #edf2f7;
         }
         .signatures {
             width: 100%;
@@ -125,8 +140,25 @@
         .signatures td {
             width: 33.33%;
             text-align: center;
-            font-size: 9px;
+            font-size: 8.5px;
             vertical-align: top;
+            padding: 0 12px;
+        }
+        .amount {
+            text-align: right;
+            white-space: nowrap;
+            font-family: 'DejaVu Sans Mono', monospace;
+            font-size: 7.7px !important;
+        }
+        .reference {
+            font-family: 'DejaVu Sans Mono', monospace;
+            font-size: 7.2px !important;
+            overflow-wrap: anywhere;
+        }
+        .report-meta {
+            font-size: 8px;
+            color: #64748b;
+            text-align: right;
         }
     </style>
 </head>
@@ -139,14 +171,14 @@
                 <div class="company-name">{{ $setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA' }}</div>
                 <div class="company-info">
                     {{ $setting->company_address ?? 'Jakarta, Indonesia' }}<br>
-                    NPWP: <strong>{{ $setting->company_npwp ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}
+                    NPWP 16 Digit: <strong>{{ $setting->company_npwp16 ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}
                 </div>
             </td>
             <td style="width: 40%; text-align: right; vertical-align: top;">
-                <div style="font-size: 11px; font-weight: bold; color: #1e40af;">EXECUTIVE FINANCIAL STATEMENT</div>
-                <div style="font-size: 8.5px; color: #64748b;">
-                    Tanggal Cetak: {{ date('d/m/Y H:i') }}<br>
-                    Status: Resmi (Internal & Audit)
+                <div style="font-size: 9px; font-weight: bold; color: #2f75b5; letter-spacing: 0.4px;">LAPORAN KEUANGAN</div>
+                <div class="report-meta">
+                Dicetak: {{ date('d/m/Y H:i') }}<br>
+                Mata uang: {{ $setting->currency_code ?? 'IDR' }} ({{ $setting->currency_symbol ?? 'Rp' }})
                 </div>
             </td>
         </tr>
@@ -154,42 +186,43 @@
 
     <!-- Judul Laporan -->
     <div class="report-header">
-        <h2>LAPORAN ARUS KAS & PENAGIHAN KEUANGAN</h2>
-        <p>Periode: <strong>{{ $reportData['formatted_start_date'] }}</strong> s/d <strong>{{ $reportData['formatted_end_date'] }}</strong> (Mata Uang: IDR)</p>
+        <h2>Laporan Arus Kas & Rekapitulasi Keuangan</h2>
+        <p>Periode <strong>{{ $reportData['formatted_start_date'] }}</strong> s.d. <strong>{{ $reportData['formatted_end_date'] }}</strong>
+            &nbsp; | &nbsp; {{ number_format($reportData['total_transactions_count']) }} transaksi tercatat</p>
     </div>
 
-    <!-- 1. Executive Summary Box -->
-    <div class="section-title">1. Ringkasan Eksekutif (Executive Summary)</div>
+    <!-- 1. Cashflow Summary -->
+    <div class="section-title">1. Ikhtisar Arus Kas</div>
     <table class="summary-box">
         <tr>
             <td style="background-color: #f0fdf4;">
                 <div class="summary-label">Total Pemasukan Kas</div>
-                <div class="summary-value text-success">Rp {{ number_format($reportData['total_income'], 0, ',', '.') }}</div>
+                <div class="summary-value text-success">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['total_income'], 0, ',', '.') }}</div>
                 <div style="font-size: 7.5px; color: #166534; margin-top: 2px;">
-                    Paid Inv: Rp {{ number_format($reportData['paid_invoices_income'], 0, ',', '.') }}
+                    Pelunasan invoice: {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['paid_invoices_income'], 0, ',', '.') }}
                 </div>
             </td>
             <td style="background-color: #fef2f2;">
                 <div class="summary-label">Total Pengeluaran Kas</div>
-                <div class="summary-value text-danger">Rp {{ number_format($reportData['total_expense'], 0, ',', '.') }}</div>
+                <div class="summary-value text-danger">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['total_expense'], 0, ',', '.') }}</div>
                 <div style="font-size: 7.5px; color: #991b1b; margin-top: 2px;">
-                    Fiskal: Rp {{ number_format($reportData['deductible_expense'], 0, ',', '.') }}
+                    Deductible: {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['deductible_expense'], 0, ',', '.') }}
                 </div>
             </td>
             <td style="background-color: #eff6ff;">
-                <div class="summary-label">Laba / Rugi Bersih</div>
+                <div class="summary-label">Surplus / (Defisit) Kas</div>
                 <div class="summary-value {{ $reportData['net_profit'] >= 0 ? 'text-primary' : 'text-danger' }}">
-                    Rp {{ number_format($reportData['net_profit'], 0, ',', '.') }}
+                    {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['net_profit'], 0, ',', '.') }}
                 </div>
                 <div style="font-size: 7.5px; color: #1e40af; margin-top: 2px;">
-                    Net Cashflow Periode Ini
+                    Pemasukan dikurangi pengeluaran
                 </div>
             </td>
             <td style="background-color: #fefce8;">
                 <div class="summary-label">Piutang Belum Terbayar</div>
-                <div class="summary-value text-warning">Rp {{ number_format($reportData['invoicing_summary']['unpaid_amount'], 0, ',', '.') }}</div>
+                <div class="summary-value text-warning">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['invoicing_summary']['unpaid_amount'], 0, ',', '.') }}</div>
                 <div style="font-size: 7.5px; color: #854d0e; margin-top: 2px;">
-                    {{ $reportData['invoicing_summary']['sent_count'] }} Invoice Sent pending
+                    {{ $reportData['invoicing_summary']['sent_count'] }} invoice belum lunas
                 </div>
             </td>
         </tr>
@@ -203,14 +236,14 @@
     @endphp
 
     <!-- 2. Rekapitulasi per Chart Of Accounts (Group By) -->
-    <div class="section-title">2. Rekapitulasi per Akun (Chart of Accounts)</div>
+    <div class="section-title">2. Ringkasan Mutasi per Akun</div>
     <table class="table-data">
         <thead>
             <tr>
-                <th style="width: 50%;" class="text-start">Kode & Nama Akun (Chart of Account)</th>
-                <th style="width: 10%;">Jumlah Mutasi</th>
-                <th style="width: 20%;" class="text-end">Total Masuk (Rp)</th>
-                <th style="width: 20%;" class="text-end">Total Keluar (Rp)</th>
+                <th style="width: 46%;">Kode & Nama Akun</th>
+                <th style="width: 10%;" class="text-center">Transaksi</th>
+                <th style="width: 22%;" class="text-end">Pemasukan ({{ $setting->currency_symbol ?? 'Rp' }})</th>
+                <th style="width: 22%;" class="text-end">Pengeluaran ({{ $setting->currency_symbol ?? 'Rp' }})</th>
             </tr>
         </thead>
         <tbody>
@@ -222,8 +255,8 @@
                 <tr>
                     <td class="text-start"><strong>{{ $coaTitle }}</strong></td>
                     <td class="text-center">{{ $entries->count() }}</td>
-                    <td class="text-end text-success">{{ $sumIn > 0 ? number_format($sumIn, 0, ',', '.') : '-' }}</td>
-                    <td class="text-end text-danger">{{ $sumOut > 0 ? number_format($sumOut, 0, ',', '.') : '-' }}</td>
+                    <td class="amount text-success">{{ $sumIn > 0 ? number_format($sumIn, 0, ',', '.') : '-' }}</td>
+                    <td class="amount text-danger">{{ $sumOut > 0 ? number_format($sumOut, 0, ',', '.') : '-' }}</td>
                 </tr>
             @empty
                 <tr>
@@ -232,23 +265,23 @@
             @endforelse
             <tr class="total-row">
                 <td colspan="2" class="text-end">TOTAL KESELURUHAN REKAPITULASI:</td>
-                <td class="text-end text-success">Rp {{ number_format($reportData['total_income'], 0, ',', '.') }}</td>
-                <td class="text-end text-danger">Rp {{ number_format($reportData['total_expense'], 0, ',', '.') }}</td>
+                <td class="amount text-success">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['total_income'], 0, ',', '.') }}</td>
+                <td class="amount text-danger">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['total_expense'], 0, ',', '.') }}</td>
             </tr>
         </tbody>
     </table>
 
     <!-- 3. Rincian Buku Kas & Mutasi Transaksi dikategorikan per Chart of Account -->
-    <div class="section-title">3. Rincian Buku Kas & Mutasi Transaksi per Akun</div>
+    <div class="section-title">3. Rincian Buku Kas</div>
     <table class="table-data">
         <thead>
             <tr>
-                <th style="width: 12%;">TANGGAL</th>
-                <th style="width: 18%;">NO. REF</th>
-                <th style="width: 32%;" class="text-start">URAIAN / RELASI</th>
-                <th style="width: 12%;">METODE</th>
-                <th style="width: 13%;" class="text-end">MASUK (RP)</th>
-                <th style="width: 13%;" class="text-end">KELUAR (RP)</th>
+                <th style="width: 9%;">Tanggal</th>
+                <th style="width: 15%;">No. Referensi</th>
+                <th style="width: 38%;">Uraian / Relasi</th>
+                <th style="width: 11%;">Metode</th>
+                <th style="width: 13%;" class="text-end">Masuk ({{ $setting->currency_symbol ?? 'Rp' }})</th>
+                <th style="width: 14%;" class="text-end">Keluar ({{ $setting->currency_symbol ?? 'Rp' }})</th>
             </tr>
         </thead>
         <tbody>
@@ -263,18 +296,18 @@
                 @foreach($entries as $item)
                 <tr>
                     <td class="text-center">{{ $item['formatted_date'] }}</td>
-                    <td class="text-center font-mono" style="font-size: 7.5px;">{{ $item['reference_number'] }}</td>
+                    <td class="text-center reference">{{ $item['reference_number'] }}</td>
                     <td class="text-start">
                         {{ $item['description'] }}
                         @if($item['party_name'] && $item['party_name'] !== '-')
-                            <span style="font-size: 7.5px; color: #64748b; display: block;">Relasi: {{ $item['party_name'] }}</span>
+                            <span style="font-size: 7.5px; color: #64748b; display: block; margin-top: 2px;">Relasi: {{ $item['party_name'] }}</span>
                         @endif
                     </td>
                     <td class="text-center" style="font-size: 7.5px;">{{ $item['payment_method'] }}</td>
-                    <td class="text-end text-success">
+                    <td class="amount text-success">
                         {{ $item['amount_in'] > 0 ? number_format($item['amount_in'], 0, ',', '.') : '-' }}
                     </td>
-                    <td class="text-end text-danger">
+                    <td class="amount text-danger">
                         {{ $item['amount_out'] > 0 ? number_format($item['amount_out'], 0, ',', '.') : '-' }}
                     </td>
                 </tr>
@@ -286,12 +319,12 @@
                     $subtotalOut = $entries->sum('amount_out');
                 @endphp
                 <tr class="coa-subtotal-row">
-                    <td colspan="4" class="text-end" style="font-size: 8px;">SUBTOTAL {{ $coaTitle }}:</td>
-                    <td class="text-end text-success" style="font-size: 8px;">
-                        {{ $subtotalIn > 0 ? 'Rp ' . number_format($subtotalIn, 0, ',', '.') : '-' }}
+                    <td colspan="4" class="text-end">Subtotal {{ $coaTitle }}:</td>
+                    <td class="amount text-success">
+                        {{ $subtotalIn > 0 ? ($setting->currency_symbol ?? 'Rp') . ' ' . number_format($subtotalIn, 0, ',', '.') : '-' }}
                     </td>
-                    <td class="text-end text-danger" style="font-size: 8px;">
-                        {{ $subtotalOut > 0 ? 'Rp ' . number_format($subtotalOut, 0, ',', '.') : '-' }}
+                    <td class="amount text-danger">
+                        {{ $subtotalOut > 0 ? ($setting->currency_symbol ?? 'Rp') . ' ' . number_format($subtotalOut, 0, ',', '.') : '-' }}
                     </td>
                 </tr>
             @empty
@@ -302,14 +335,14 @@
 
             <!-- Total Akhir Mutasi -->
             <tr class="total-row" style="border-top: 2px solid #0f172a;">
-                <td colspan="4" class="text-end">TOTAL MUTASI ARUS KAS:</td>
-                <td class="text-end text-success">Rp {{ number_format($reportData['total_income'], 0, ',', '.') }}</td>
-                <td class="text-end text-danger">Rp {{ number_format($reportData['total_expense'], 0, ',', '.') }}</td>
+                <td colspan="4" class="text-end">Total Mutasi Kas:</td>
+                <td class="amount text-success">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['total_income'], 0, ',', '.') }}</td>
+                <td class="amount text-danger">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['total_expense'], 0, ',', '.') }}</td>
             </tr>
             <tr style="background-color: #0f172a; color: #ffffff; font-weight: bold;">
-                <td colspan="4" class="text-end">SALDO SURPLUS / DEFISIT BERSIH (NET CASHFLOW):</td>
-                <td colspan="2" class="text-end" style="color: #ffffff; font-size: 10px;">
-                    Rp {{ number_format($reportData['net_profit'], 0, ',', '.') }}
+                <td colspan="4" class="text-end">Surplus / (Defisit) Kas:</td>
+                <td colspan="2" class="amount" style="color: #ffffff; font-size: 9px !important;">
+                    {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['net_profit'], 0, ',', '.') }}
                 </td>
             </tr>
         </tbody>

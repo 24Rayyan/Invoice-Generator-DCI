@@ -116,6 +116,11 @@
                             <input type="file" name="receipt_file" class="form-control" accept="image/*,.pdf">
                             <small class="text-muted font-xs d-block mt-1">Format: JPG, PNG, PDF (Maks. 5 MB)</small>
                         </div>
+
+                        @include('transactions.partials.invoice-select', [
+                            'invoices' => $invoices,
+                            'selectedInvoiceId' => old('invoice_id'),
+                        ])
                     </div>
                 </div>
             </div>
@@ -233,6 +238,12 @@
     $(document).ready(function() {
         onTypeChange();
         onCategoryChange();
+        $('.select2-invoice').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Umum / Operasional (tidak terikat invoice) --',
+            allowClear: true
+        });
     });
 </script>
 @endpush

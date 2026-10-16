@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TransactionRequest;
 use App\Models\Category;
 use App\Models\Document;
 use App\Models\Transaction;
@@ -24,57 +25,77 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'period'         => ['nullable', 'regex:/^\d{4}-(0[1-9]|1[0-2])$/'],
+            'type'           => ['nullable', 'in:income,expense'],
+            'category_id'    => ['nullable', 'integer', 'exists:categories,id'],
+            'payment_method' => ['nullable', 'string', 'max:100'],
+            'search'         => ['nullable', 'string', 'max:150'],
+            'per_page'       => ['nullable', 'integer', 'in:10,25,50,100'],
+        ]);
+
         $query = Transaction::with(['category', 'document.customer', 'entertainmentDetail'])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc');
 
-        // Filter Periode
-        $selectedYear = $request->filled('year') ? (int)$request->year : date('Y');
-        $selectedMonth = $request->filled('month') ? (int)$request->month : null;
+        $period = $validated['period'] ?? '';
+        $selectedYear = null;
+        $selectedMonth = null;
 
-        if ($request->filled('period')) {
-            [$selectedYear, $selectedMonth] = explode('-', $request->period);
-        }
-
-        $query->whereYear('transaction_date', $selectedYear);
-        if ($selectedMonth) {
-            $query->whereMonth('transaction_date', $selectedMonth);
+        if ($request->exists('period')) {
+            if ($period !== null && $period !== '') {
+                [$selectedYear, $selectedMonth] = explode('-', $period);
+                $query->whereYear('transaction_date', $selectedYear)
+                    ->whereMonth('transaction_date', $selectedMonth);
+            }
+        } elseif ($request->filled('year') || $request->filled('month')) {
+            $selectedYear = $request->filled('year') ? (int) $request->year : (int) date('Y');
+            $selectedMonth = $request->filled('month') ? (int) $request->month : null;
+            $query->whereYear('transaction_date', $selectedYear);
+            if ($selectedMonth) {
+                $query->whereMonth('transaction_date', $selectedMonth);
+            }
         }
 
         // Filter Tipe (income / expense)
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
+        if (! empty($validated['type'])) {
+            $query->where('type', $validated['type']);
         }
 
         // Filter Kategori
-        if ($request->filled('category_id')) {
-            $query->where('category_id', $request->category_id);
+        if (! empty($validated['category_id'])) {
+            $query->where('category_id', $validated['category_id']);
         }
 
         // Filter Metode Pembayaran
-        if ($request->filled('payment_method')) {
-            $query->where('payment_method', $request->payment_method);
+        if (! empty($validated['payment_method'])) {
+            $query->where('payment_method', $validated['payment_method']);
         }
 
         // Search text
-        if ($request->filled('search')) {
-            $search = $request->search;
+        if (! empty($validated['search'])) {
+            $search = $validated['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('transaction_number', 'LIKE', "%{$search}%")
                   ->orWhere('description', 'LIKE', "%{$search}%")
                   ->orWhereHas('category', function ($catQ) use ($search) {
                       $catQ->where('name', 'LIKE', "%{$search}%")
                            ->orWhere('code', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('document', function ($documentQuery) use ($search) {
+                      $documentQuery->where('document_number', 'LIKE', "%{$search}%");
                   });
             });
         }
 
-        $transactions = $query->get();
-
-        // Summary Cards
-        $totalIncome = $transactions->where('type', 'income')->sum('amount');
-        $totalExpense = $transactions->where('type', 'expense')->sum('amount');
+        $totalIncome = (clone $query)->where('type', 'income')->sum('amount');
+        $totalExpense = (clone $query)->where('type', 'expense')->sum('amount');
+        $incomeCount = (clone $query)->where('type', 'income')->count();
+        $expenseCount = (clone $query)->where('type', 'expense')->count();
+        $totalTransactions = (clone $query)->count();
         $netCashflow = $totalIncome - $totalExpense;
+        $perPage = (int) ($validated['per_page'] ?? 10);
+        $transactions = $query->paginate($perPage)->withQueryString();
 
         $categories = Category::orderBy('code', 'asc')->get();
 
@@ -100,8 +121,13 @@ class TransactionController extends Controller
             'totalIncome',
             'totalExpense',
             'netCashflow',
+            'incomeCount',
+            'expenseCount',
+            'totalTransactions',
             'selectedYear',
             'selectedMonth',
+            'period',
+            'perPage',
             'availableMonths'
         ));
     }
@@ -114,32 +140,17 @@ class TransactionController extends Controller
         $defaultType = $request->get('type', 'expense');
         $categories = Category::orderBy('code', 'asc')->get();
         $autoNumber = Transaction::generateTransactionNumber($defaultType, date('Y-m-d'));
+        $invoices = Document::linkableInvoices();
 
-        return view('transactions.create', compact('categories', 'defaultType', 'autoNumber'));
+        return view('transactions.create', compact('categories', 'defaultType', 'autoNumber', 'invoices'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TransactionRequest $request)
     {
-        $request->validate([
-            'type'              => 'required|in:income,expense',
-            'category_id'       => 'required|exists:categories,id',
-            'amount'            => 'required|numeric|min:1',
-            'transaction_date'  => 'required|date',
-            'payment_method'    => 'required|string',
-            'description'       => 'nullable|string',
-            'receipt_file'      => 'nullable|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',
-            
-            // Validasi Lampiran Nominatif Entertainment jika diisi
-            'event_date'        => 'nullable|date',
-            'location'          => 'nullable|string|max:255',
-            'attendee_name'     => 'nullable|string|max:255',
-            'attendee_company'  => 'nullable|string|max:255',
-            'attendee_position' => 'nullable|string|max:255',
-            'purpose'           => 'nullable|string',
-        ]);
+        $invoiceId = $request->validated('invoice_id');
 
         $category = Category::findOrFail($request->category_id);
 
@@ -165,6 +176,7 @@ class TransactionController extends Controller
         $transactionData = [
             'type'             => $request->type,
             'category_id'      => $request->category_id,
+            'invoice_id'       => $invoiceId,
             'amount'           => $request->amount,
             'transaction_date' => $request->transaction_date,
             'payment_method'   => $request->payment_method,
@@ -187,31 +199,17 @@ class TransactionController extends Controller
     {
         $transaction->load(['category', 'entertainmentDetail', 'document']);
         $categories = Category::orderBy('code', 'asc')->get();
+        $invoices = Document::linkableInvoices($transaction->invoice_id);
 
-        return view('transactions.edit', compact('transaction', 'categories'));
+        return view('transactions.edit', compact('transaction', 'categories', 'invoices'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Transaction $transaction)
+    public function update(TransactionRequest $request, Transaction $transaction)
     {
-        $request->validate([
-            'category_id'       => 'required|exists:categories,id',
-            'amount'            => 'required|numeric|min:1',
-            'transaction_date'  => 'required|date',
-            'payment_method'    => 'required|string',
-            'description'       => 'nullable|string',
-            'receipt_file'      => 'nullable|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',
-            
-            // Validasi Lampiran Nominatif Entertainment jika diisi
-            'event_date'        => 'nullable|date',
-            'location'          => 'nullable|string|max:255',
-            'attendee_name'     => 'nullable|string|max:255',
-            'attendee_company'  => 'nullable|string|max:255',
-            'attendee_position' => 'nullable|string|max:255',
-            'purpose'           => 'nullable|string',
-        ]);
+        $invoiceId = $request->validated('invoice_id');
 
         $category = Category::findOrFail($request->category_id);
 
@@ -236,6 +234,7 @@ class TransactionController extends Controller
         $transactionData = [
             'type'             => $category->type,
             'category_id'      => $request->category_id,
+            'invoice_id'       => $invoiceId,
             'amount'           => $request->amount,
             'transaction_date' => $request->transaction_date,
             'payment_method'   => $request->payment_method,
@@ -273,4 +272,5 @@ class TransactionController extends Controller
 
         return Storage::disk('public')->response($transaction->receipt_file_path);
     }
+
 }

@@ -102,7 +102,7 @@
                 <div class="company-name">{{ $setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA' }}</div>
                 <div class="company-info">
                     {{ $setting->company_address ?? 'Jakarta, Indonesia' }}<br>
-                    NPWP: <strong>{{ $setting->company_npwp ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}
+                    NPWP 16 Digit: <strong>{{ $setting->company_npwp16 ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}
                 </div>
             </td>
             <td style="width: 40%; text-align: right; vertical-align: top;">

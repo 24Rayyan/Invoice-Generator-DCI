@@ -203,6 +203,16 @@
             margin-bottom: 6px;
         }
 
+        .stamp-space {
+            height: 55px;
+        }
+
+        .company-stamp {
+            max-width: 95px;
+            max-height: 52px;
+            object-fit: contain;
+        }
+
         .signer-name {
             font-weight: 700;
             font-size: 9.5pt;
@@ -290,8 +300,8 @@
             <div class="company-details">
                 {{ $setting->company_address ?? 'Alamat Perusahaan Belum Diset' }}<br>
                 <span>Email: {{ $setting->company_email ?? '-' }}</span> | <span>Telp: {{ $setting->company_phone ?? '-' }}</span>
-                @if(!empty($setting->company_npwp))
-                    <br><span>NPWP: {{ $setting->company_npwp }}</span>
+                @if(!empty($setting->company_npwp16))
+                    <br><span>NPWP 16 Digit: {{ $setting->company_npwp16 }}</span>
                 @endif
             </div>
         </div>
@@ -390,7 +400,11 @@
             <!-- Kolom Tanda Tangan -->
             <td class="col-signature">
                 <div class="signature-title">{{ $setting->signatory_city ?? 'Bandung' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Ditandatangani oleh,</div>
-                <br><br><br><br>
+                <div class="stamp-space">
+                    @if($setting->stamp_invoice_enabled && $setting->company_stamp && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->company_stamp))
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->path($setting->company_stamp) }}" class="company-stamp" alt="Stempel perusahaan">
+                    @endif
+                </div>
                 <div class="signer-name">{{ strtoupper($setting->signatory_name ?? 'ADMIN / FINANCE') }}</div>
                 <div class="signer-title">{{ $setting->signatory_position ?? 'Direktur Utama' }}</div>
             </td>

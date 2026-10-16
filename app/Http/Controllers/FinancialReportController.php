@@ -7,19 +7,21 @@ use App\Models\Category;
 use App\Models\Setting;
 use App\Models\Transaction;
 use App\Services\FinancialReportService;
+use App\Services\ProjectMarginService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
 
 class FinancialReportController extends Controller
 {
     protected FinancialReportService $reportService;
+    protected ProjectMarginService $marginService;
 
-    public function __construct(FinancialReportService $reportService)
+    public function __construct(FinancialReportService $reportService, ProjectMarginService $marginService)
     {
         $this->reportService = $reportService;
+        $this->marginService = $marginService;
     }
 
     /**
@@ -62,7 +64,7 @@ class FinancialReportController extends Controller
         $setting = Setting::first();
 
         $pdf = Pdf::loadView('exports.financial_statement_pdf', compact('reportData', 'setting'))
-            ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'landscape');
 
         $fileName = "Laporan_Keuangan_DCI_{$startDate}_sd_{$endDate}.pdf";
 
@@ -171,6 +173,30 @@ class FinancialReportController extends Controller
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
             'Expires'             => '0',
         ]);
+    }
+
+    /**
+     * Laporan ringkas margin proyek per invoice.
+     */
+    public function projectMargin(Request $request)
+    {
+        $search = $request->get('search');
+        $status = $request->filled('status') ? $request->status : null;
+        $sort = $request->get('sort', 'date_desc');
+
+        $rows = $this->marginService->overview($search, $status, $sort);
+        $setting = Setting::getSetting();
+
+        $totals = [
+            'revenue'        => $rows->sum('revenue'),
+            'direct_expense' => $rows->sum('direct_expense'),
+            'net_profit'     => $rows->sum('net_profit'),
+        ];
+        $totals['net_margin'] = $totals['revenue'] > 0
+            ? round(($totals['net_profit'] / $totals['revenue']) * 100, 2)
+            : 0.0;
+
+        return view('reports.project_margin', compact('rows', 'setting', 'search', 'status', 'sort', 'totals'));
     }
 
 }

@@ -10,6 +10,8 @@ use App\Http\Controllers\FinancialReportController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\InvoiceCostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
             'reports'         => 'reports.financial_statement',
             'user_management' => 'management.users.index',
             'settings'        => 'settings.index', // <-- Ditambahkan ke smart redirector
+            'activity_logs'   => 'activity_logs.index',
         ];
 
         // 3. Iterasi modul milik role user & redirect ke modul pertama yang cocok
@@ -80,14 +83,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/documents/{id}/delivery-note', [DocumentController::class, 'downloadDeliveryNote'])->name('documents.delivery_note');
         Route::get('/documents/{id}/kwitansi', [DocumentController::class, 'downloadKwitansi'])->name('documents.kwitansi');
         Route::post('/documents/{id}/duplicate', [DocumentController::class, 'duplicate'])->name('documents.duplicate');
+        Route::post('/documents/{document}/attach-transactions', [InvoiceCostController::class, 'attach'])->name('documents.attach-transactions');
+        Route::post('/documents/{document}/transactions/{transaction}/detach', [InvoiceCostController::class, 'detach'])->name('documents.detach-transaction');
 
         // Master Data Customer (Satu paket akses dengan dokumen/invoice)
-        Route::resource('customers', CustomerController::class);
+        Route::resource('customers', CustomerController::class)->except(['show']);
     });
 
     // --- TRANSAKSI KEUANGAN & PENGELUARAN (EXPENSES / ARUS KAS) ---
     Route::middleware(['module:expenses'])->group(function () {
-        Route::resource('categories', CategoryController::class);
+        Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('transactions', TransactionController::class);
         Route::get('/transactions/{transaction}/receipt', [TransactionController::class, 'downloadReceipt'])->name('transactions.receipt');
     });
@@ -101,6 +106,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profit-loss', [FinancialReportController::class, 'profitAndLoss'])->name('profit_loss');
         Route::get('/profit-loss/pdf', [FinancialReportController::class, 'exportProfitAndLossPdf'])->name('profit_loss.pdf');
         Route::get('/profit-loss/excel', [FinancialReportController::class, 'exportProfitAndLossExcel'])->name('profit_loss.excel');
+
+        Route::get('/project-margin', [FinancialReportController::class, 'projectMargin'])->name('project_margin');
     });
 
     // --- PENGATURAN PERUSAHAAN (SETTINGS) ---
@@ -122,6 +129,13 @@ Route::middleware(['auth'])->group(function () {
         // Roles
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
         Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+        Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
         Route::post('/roles/{role}/grant-modules', [RoleController::class, 'grantModules'])->name('roles.grant-modules');
+    });
+
+    // --- LOG AKTIVITAS / AUDIT TRAIL (AKSES DIATUR VIA MODUL RBAC) ---
+    Route::middleware(['module:activity_logs'])->group(function () {
+        Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity_logs.index');
+        Route::get('/activity-logs/{activityLog}', [ActivityLogController::class, 'show'])->name('activity_logs.show');
     });
 });

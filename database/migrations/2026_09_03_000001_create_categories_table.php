@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique(); // Contoh: 4-100 (Pendapatan), 5-101 (Biaya ATK)
+            $table->string('code')->unique(); 
             $table->string('name');
             $table->enum('type', ['income', 'expense'])->default('expense');
-            $table->boolean('is_tax_deductible')->default(true); // Pengurang pajak (Fiskal)
+            $table->boolean('is_tax_deductible')->default(true);
             $table->text('description')->nullable();
             $table->timestamps();
         });

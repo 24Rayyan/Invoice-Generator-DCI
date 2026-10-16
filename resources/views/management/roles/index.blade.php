@@ -36,6 +36,58 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-danger bg-opacity-25 d-flex align-items-center justify-content-center text-danger flex-shrink-0" style="width: 36px; height: 36px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <span class="small fw-medium">{{ session('error') }}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger rounded-4 p-3 mb-4 shadow-sm">
+            <div class="fw-semibold small mb-1">Periksa kembali data role:</div>
+            <ul class="small mb-0 ps-3">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card h-100 border-0 rounded-4 p-3 shadow-sm bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <div class="small text-muted">Total Role</div>
+                        <div class="h5 fw-bold text-dark mb-0">{{ $roles->count() }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card h-100 border-0 rounded-4 p-3 shadow-sm bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 bg-info bg-opacity-10 text-info d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-cubes"></i>
+                    </div>
+                    <div>
+                        <div class="small text-muted">Modul yang Dapat Dikelola</div>
+                        <div class="h5 fw-bold text-dark mb-0">{{ $modules->count() }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 2. Form Card: Tambah Role Baru -->
     <div class="card border-0 rounded-4 p-4 shadow-sm mb-4 bg-white">
         <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
@@ -59,8 +111,9 @@
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
                         Key Role <span class="text-danger">*</span>
                     </label>
-                    <input type="text" name="name" placeholder="Contoh: manager" required 
-                        class="form-control form-control-sm rounded-3 py-2 px-3">
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="Contoh: manager" required 
+                        class="form-control form-control-sm rounded-3 py-2 px-3 @error('name') is-invalid @enderror">
+                    @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <!-- Display Name Field -->
@@ -68,8 +121,9 @@
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
                         Display Name <span class="text-danger">*</span>
                     </label>
-                    <input type="text" name="display_name" placeholder="Contoh: Operational Manager" required 
-                        class="form-control form-control-sm rounded-3 py-2 px-3">
+                    <input type="text" name="display_name" value="{{ old('display_name') }}" placeholder="Contoh: Operational Manager" required 
+                        class="form-control form-control-sm rounded-3 py-2 px-3 @error('display_name') is-invalid @enderror">
+                    @error('display_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
                 <!-- Description Field -->
@@ -77,8 +131,9 @@
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
                         Deskripsi Peran
                     </label>
-                    <input type="text" name="description" placeholder="Catatan tugas/otoritas role" 
-                        class="form-control form-control-sm rounded-3 py-2 px-3">
+                    <input type="text" name="description" value="{{ old('description') }}" placeholder="Catatan tugas/otoritas role" 
+                        class="form-control form-control-sm rounded-3 py-2 px-3 @error('description') is-invalid @enderror">
+                    @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
 
             </div>
@@ -107,6 +162,7 @@
                     $assignedModuleIds = array_map('intval', $role->modules->pluck('id')->toArray());
                     $allModuleIds = array_map('intval', $modules->pluck('id')->toArray());
                     $isSuperAdmin = ($role->name === 'super_admin');
+                    $isSystemRole = in_array($role->name, ['super_admin', 'admin', 'finance'], true);
                 @endphp
 
                 <div class="card border rounded-4 shadow-sm overflow-hidden bg-white" 
@@ -140,16 +196,20 @@
                      }">
                     
                     <!-- Role Header Bar -->
-                    <div class="card-header bg-light bg-opacity-50 border-bottom p-3 p-md-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-                        <div>
-                            <div class="d-flex align-items-center gap-2">
-                                <h3 class="h6 fw-bold text-dark mb-0">{{ $role->display_name }}</h3>
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary border font-monospace" style="font-size: 0.68rem;">{{ $role->name }}</span>
+                    <div class="card-header bg-light bg-opacity-50 border-bottom p-3 p-md-4">
+                        <div class="d-flex flex-column flex-xl-row align-items-start align-items-xl-center justify-content-between gap-3">
+                            <div>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <h3 class="h6 fw-bold text-dark mb-0">{{ $role->display_name }}</h3>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border font-monospace" style="font-size: 0.68rem;">{{ $role->name }}</span>
+                                    @if($isSystemRole)
+                                        <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill" style="font-size: 0.66rem;">Role Sistem</span>
+                                    @endif
+                                </div>
+                                <p class="text-muted small mb-0 mt-1">{{ $role->description ?? 'Tidak ada deskripsi peran.' }}</p>
                             </div>
-                            <p class="text-muted small mb-0 mt-1">{{ $role->description ?? 'Tidak ada deskripsi peran.' }}</p>
-                        </div>
 
-                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
                             @if($isSuperAdmin)
                                 <span class="badge bg-dark text-white px-3 py-2 rounded-pill fw-bold" style="font-size: 0.72rem;">
                                     Full Access Guaranteed
@@ -167,6 +227,29 @@
                                     <span x-text="selectedModules.length === allModules.length ? 'Batal Pilih Semua' : 'Pilih Semua'"></span>
                                 </button>
                             @endif
+
+                                <span class="badge bg-white border text-secondary rounded-pill px-3 py-2" title="Jumlah user dengan role ini">
+                                    <i class="fa-solid fa-users me-1"></i>{{ $role->users_count }} User
+                                </span>
+
+                                @if(!$isSystemRole)
+                                    @if($role->users_count > 0)
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2" disabled
+                                                title="Pindahkan user yang menggunakan role ini sebelum menghapusnya">
+                                            <i class="fa-solid fa-lock me-1"></i>Role Digunakan
+                                        </button>
+                                    @else
+                                        <form action="{{ route('management.roles.destroy', $role) }}" method="POST"
+                                              onsubmit="return confirm('Hapus role ini secara permanen? Hak akses modul yang terkait juga akan dihapus.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2">
+                                                <i class="fa-solid fa-trash-can me-1"></i>Hapus Role
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
 

@@ -2,15 +2,37 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    protected $guarded = [];
+    use LogsActivity;
+
+    protected $fillable = [
+        'name',
+        'tax_id_type',
+        'tax_id_number',
+        'nitku',
+        'default_tax_transaction_code',
+        'email',
+        'phone',
+        'address',
+    ];
 
     public function documents()
     {
         return $this->hasMany(Document::class);
+    }
+
+    public function activityModuleName(): string
+    {
+        return 'Invoicing & PO';
+    }
+
+    public function activitySubjectName(): string
+    {
+        return 'Customer';
     }
 
     /**

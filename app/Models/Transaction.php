@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 class Transaction extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'transaction_number',
@@ -37,19 +37,22 @@ class Transaction extends Model
     }
 
     /**
-     * Relasi: Transaksi terhubung ke 1 Invoice / Dokumen (Opsional)
+     * Relasi: Transaksi terhubung ke 1 Invoice / Dokumen (Opsional).
+     * Satu transaksi kas hanya boleh terikat ke satu invoice; NULL = biaya operasional umum.
      */
     public function document()
     {
         return $this->belongsTo(Document::class, 'invoice_id');
     }
 
-    /**
-     * Alias relasi invoice
-     */
     public function invoice()
     {
-        return $this->belongsTo(Document::class, 'invoice_id');
+        return $this->document();
+    }
+
+    public function scopeUnallocated($query)
+    {
+        return $query->whereNull('invoice_id');
     }
 
     /**
@@ -58,6 +61,21 @@ class Transaction extends Model
     public function entertainmentDetail()
     {
         return $this->hasOne(EntertainmentDetail::class);
+    }
+
+    public function activityModuleName(): string
+    {
+        return 'Buku Kas & Transaksi';
+    }
+
+    public function activitySubjectName(): string
+    {
+        return $this->type === 'income' ? 'Transaksi Pemasukan' : 'Transaksi Pengeluaran';
+    }
+
+    public function activityLabel(): string
+    {
+        return $this->transaction_number ?: ('#' . $this->getKey());
     }
 
     /**
@@ -113,17 +131,5 @@ class Transaction extends Model
         }
 
         return "{$prefix}/{$year}/{$month}/{$nextNumber}";
-    }
-
-    /**
-     * URL Bukti Struk/Nota
-     */
-    public function getReceiptUrlAttribute(): ?string
-    {
-        if (!$this->receipt_file_path) {
-            return null;
-        }
-
-        return Storage::url($this->receipt_file_path);
     }
 }

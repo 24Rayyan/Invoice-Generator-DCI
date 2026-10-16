@@ -92,11 +92,6 @@
                             <small class="text-muted font-xs">Nama entitas bisnis resmi yang akan dicetak di Kop Surat & Laporan.</small>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Tagline / Slogan Bisnis</label>
-                            <input type="text" name="company_tagline" class="form-control" value="{{ old('company_tagline', $setting->company_tagline ?? 'Business & IT Solutions') }}" placeholder="Contoh: Business & IT Solutions">
-                        </div>
-
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-primary small">
                                 <i class="fa-solid fa-file-invoice me-1"></i> NPWP 16 Digit Penjual (Coretax DJP)
@@ -135,14 +130,6 @@
                             <small class="text-muted font-xs">Digunakan otomatis sebagai kota penanggalan kwitansi dan surat resmi.</small>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Website Perusahaan</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-globe"></i></span>
-                                <input type="text" name="company_website" class="form-control" value="{{ old('company_website', $setting->company_website ?? '') }}" placeholder="www.perusahaan.com">
-                            </div>
-                        </div>
-
                         <div class="col-12">
                             <label class="form-label fw-semibold text-dark small">Alamat Lengkap Kantor & Operasional</label>
                             <textarea name="company_address" class="form-control" rows="3" placeholder="Masukkan alamat lengkap kantor, jalan, nomor, kecamatan, kota, dan kode pos...">{{ old('company_address', $setting->company_address ?? '') }}</textarea>
@@ -155,7 +142,7 @@
                         </div>
                         <div>
                             <h5 class="fw-bold text-dark mb-0">Logo & Cap Stempel Resmi</h5>
-                            <small class="text-muted">File grafis transparan untuk dicetak otomatis pada PDF Invoice, PO, Surat Jalan, dan Kwitansi.</small>
+                            <small class="text-muted">Logo perusahaan yang digunakan pada dokumen cetak.</small>
                         </div>
                     </div>
 
@@ -178,7 +165,6 @@
                                 @endif
                             </div>
                         </div>
-
                     </div>
                 </div>
 
@@ -244,6 +230,30 @@
                                 <div class="p-3 bg-white rounded-3 border">
                                     <span class="text-muted d-block font-xs">PO Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
                                     <strong class="text-dark fs-6 font-monospace">{{ $lastPO->document_number ?? 'Belum ada transaksi bulan ini' }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light rounded-3 p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="fw-bold text-warning"><i class="fa-solid fa-truck-fast me-1"></i> MONITORING SURAT JALAN</span>
+                                    <span class="badge bg-warning bg-opacity-10 text-dark fw-bold font-xs">Auto Sequence</span>
+                                </div>
+                                <div class="p-3 bg-white rounded-3 border">
+                                    <span class="text-muted d-block font-xs">Surat Jalan Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
+                                    <strong class="text-dark fs-6 font-monospace">{{ $lastDeliveryNote->delivery_note_number ?? 'Belum ada transaksi bulan ini' }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light rounded-3 p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="fw-bold text-secondary"><i class="fa-solid fa-receipt me-1"></i> MONITORING KWITANSI</span>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold font-xs">Auto Sequence</span>
+                                </div>
+                                <div class="p-3 bg-white rounded-3 border">
+                                    <span class="text-muted d-block font-xs">Kwitansi Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
+                                    <strong class="text-dark fs-6 font-monospace">{{ $lastReceipt->receipt_number ?? 'Belum ada transaksi bulan ini' }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -346,10 +356,45 @@
                         </div>
 
                         <div class="col-12">
-                            <div class="card bg-light border-0 rounded-3 p-4">
+                            <div class="card border rounded-3 p-4">
+                                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-stamp text-primary me-2"></i> Stempel Perusahaan pada Dokumen Cetak</h6>
+                                <p class="text-muted small">Unggah file stempel satu kali, lalu pilih pada dokumen mana stempel akan dicetak. Status awal: Invoice dan Surat Jalan aktif; Kwitansi nonaktif.</p>
+                                <div class="row g-3 align-items-center mb-3">
+                                    <div class="col-md-7">
+                                        <label class="form-label fw-semibold text-dark small">File Stempel</label>
+                                        <input type="file" name="company_stamp" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+                                        <small class="text-muted">PNG transparan disarankan; maksimal 2MB.</small>
+                                    </div>
+                                    <div class="col-md-5">
+                                        @if($setting && $setting->company_stamp)
+                                            <div class="p-2 bg-light rounded-3 d-flex align-items-center gap-3">
+                                                <img src="{{ asset('storage/' . $setting->company_stamp) }}" alt="Pratinjau stempel perusahaan" style="max-width: 90px; max-height: 65px; object-fit: contain;">
+                                                <span class="badge bg-success bg-opacity-10 text-success">Stempel tersimpan</span>
+                                            </div>
+                                        @else
+                                            <span class="text-muted small">Belum ada file stempel.</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    @foreach([
+                                        ['stamp_invoice_enabled', 'stamp-invoice', 'Invoice', true],
+                                        ['stamp_delivery_note_enabled', 'stamp-delivery-note', 'Surat Jalan', true],
+                                        ['stamp_receipt_enabled', 'stamp-receipt', 'Kwitansi', false],
+                                    ] as [$field, $id, $label, $default])
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch p-3 bg-light rounded-3 border">
+                                                <input class="form-check-input ms-0 me-2" type="checkbox" name="{{ $field }}" id="{{ $id }}" value="1" {{ old($field, $setting->{$field} ?? $default) ? 'checked' : '' }}>
+                                                <label class="form-check-label fw-semibold" for="{{ $id }}">Cetak stempel pada {{ $label }}</label>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="card bg-light border-0 rounded-3 p-4 mt-3">
                                 <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> Integrasi Tanda Tangan Otomatis</h6>
                                 <p class="text-muted small mb-0">
-                                    Ketika dokumen PDF (Invoice, Kwitansi, Surat Jalan, dan PO) diunduh, sistem secara otomatis memasukkan nama <strong>{{ $setting->signatory_name ?? 'Fauzan Septiana' }}</strong> ({{ $setting->signatory_position ?? 'Direktur Utama' }}), bertempat di <strong>{{ $setting->signatory_city ?? 'Bandung' }}</strong>, berdampingan dengan cap stempel resmi perusahaan.
+                                    PDF Invoice, Kwitansi, dan Surat Jalan menggunakan nama <strong>{{ $setting->signatory_name ?? 'Fauzan Septiana' }}</strong> ({{ $setting->signatory_position ?? 'Direktur Utama' }}), bertempat di <strong>{{ $setting->signatory_city ?? 'Bandung' }}</strong>. PO tidak menampilkan stempel perusahaan.
                                 </p>
                             </div>
                         </div>

@@ -107,6 +107,11 @@
                             <input type="file" name="receipt_file" class="form-control" accept="image/*,.pdf">
                             <small class="text-muted font-xs">Biarkan kosong jika tidak ingin mengubah berkas bukti nota.</small>
                         </div>
+
+                        @include('transactions.partials.invoice-select', [
+                            'invoices' => $invoices,
+                            'selectedInvoiceId' => old('invoice_id', $transaction->invoice_id),
+                        ])
                     </div>
                 </div>
             </div>
@@ -196,6 +201,12 @@
 
     $(document).ready(function() {
         onCategoryChange();
+        $('.select2-invoice').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Umum / Operasional (tidak terikat invoice) --',
+            allowClear: true
+        });
     });
 </script>
 @endpush

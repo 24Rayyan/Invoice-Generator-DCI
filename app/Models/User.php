@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -69,5 +70,20 @@ class User extends Authenticatable
     public function hasModuleAccess(string $moduleKey): bool
     {
         return $this->hasAccess($moduleKey);
+    }
+
+    public function activityModuleName(): string
+    {
+        return 'User Management';
+    }
+
+    public function activitySubjectName(): string
+    {
+        return 'User';
+    }
+
+    public function activityLabel(): string
+    {
+        return $this->username ?: ($this->name ?: ('#' . $this->getKey()));
     }
 }

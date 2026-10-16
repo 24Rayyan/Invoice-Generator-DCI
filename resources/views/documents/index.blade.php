@@ -218,15 +218,42 @@
                         <!-- ACTIONS (Clean Neutral Design) -->
                         <td class="text-center">
                             <div class="action-btn-group justify-content-center">
+                                <a href="{{ route('documents.show', $doc->id) }}" class="action-icon-btn text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail & Margin Proyek">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
                                 <!-- Duplicate -->
                                 <a href="{{ route('documents.duplicate', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Duplikasi">
                                     <i class="fa-solid fa-copy"></i>
                                 </a>
 
-                                <!-- Edit -->
-                                <a href="{{ route('documents.edit', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
+                                <!-- Kondisi Edit / Preview Berdasarkan Status -->
+                                @if($doc->status == 'PAID')
+                                    <!-- Status PAID: Buka Detail Modal (Terkunci) -->
+                                <button type="button" class="action-icon-btn text-info btn-show-modal" 
+                                            data-docnum="{{ $doc->document_number }}"
+                                            data-customer="{{ $doc->customer->name ?? 'Tanpa Nama' }}"
+                                            data-taxnum="{{ $doc->customer->tax_id_number ? ($doc->customer->tax_id_type ?? 'NPWP').': '.$doc->customer->tax_id_number : '-' }}"
+                                            data-total="{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($doc->total_amount, 0, ',', '.') }}"
+                                            data-items-count="{{ $doc->items ? $doc->items->count() : 0 }} Item"
+                                            data-items='@json($doc->items)'
+                                            data-pdf="{{ route('documents.pdf', $doc->id) }}"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail (Terkunci)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                @elseif($doc->status == 'SENT')
+                                    <!-- Status SENT: Edit dengan Konfirmasi Pop-up -->
+                                    <button type="button" class="action-icon-btn text-warning btn-edit-sent" 
+                                            data-url="{{ route('documents.edit', $doc->id) }}" 
+                                            data-docnum="{{ $doc->document_number }}"
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Edit (Status SENT)">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                @else
+                                    <!-- Status DRAFT: Edit Direct tanpa Warning -->
+                                    <a href="{{ route('documents.edit', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Dokumen">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                @endif
                                 
                                 <!-- Delete -->
                                 <form action="{{ route('documents.destroy', $doc->id) }}" method="POST" class="d-inline form-delete">
@@ -326,6 +353,76 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail Document (Read-Only / Terkunci) -->
+<div class="modal fade" id="detailDocumentModal" tabindex="-1" aria-labelledby="detailDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-bottom pb-3 pt-4 px-4">
+                <div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1 rounded-pill mb-1 small" id="detailDocStatus">PAID</span>
+                    <h5 class="modal-title fw-bold text-dark" id="detailDocNumber">INV/2026/001</h5>
+                    <p class="text-muted small mb-0">Detail ringkasan dokumen yang sudah terkunci (PAID).</p>
+                </div>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Info Customer & Total -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 bg-light border">
+                            <span class="text-muted small d-block fw-semibold text-uppercase tracking-wide mb-1">Customer</span>
+                            <span class="fw-bold text-dark fs-6 d-block" id="detailCustomerName">-</span>
+                            <span class="text-muted font-monospace small" id="detailCustomerTax">-</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-3 bg-light border">
+                            <span class="text-muted small d-block fw-semibold text-uppercase tracking-wide mb-1">Total Tagihan</span>
+                            <span class="fw-bold text-primary fs-5 d-block" id="detailTotalAmount">Rp 0</span>
+                            <span class="text-muted small" id="detailItemCount">0 Items</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabel List Items Invoice -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-dark small text-uppercase tracking-wide mb-2">Rincian Barang / Jasa</h6>
+                    <div class="table-responsive border rounded-3 overflow-hidden">
+                        <table class="table table-sm table-striped align-middle mb-0" id="detailItemsTable">
+                            <thead class="bg-light">
+                                <tr class="text-secondary small fw-bold">
+                                    <th class="ps-3 py-2">Nama Barang / Jasa</th>
+                                    <th class="text-center py-2">Jumlah</th>
+                                    <th class="text-center py-2">Satuan</th>
+                                    <th class="text-end py-2">Harga</th>
+                                    <th class="text-end pe-3 py-2">Total Harga</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailItemsList">
+                                <!-- Render via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-3 d-flex align-items-center gap-3 mb-0">
+                    <i class="fa-solid fa-lock fs-4 text-info"></i>
+                    <div class="small">
+                        <strong>Dokumen Terkunci:</strong> Dokumen ini telah berstatus <strong>PAID</strong> sehingga tidak dapat diubah lagi demi menjaga integritas data keuangan & perpajakan.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-light rounded-3 px-3 fw-semibold" data-bs-dismiss="modal">Tutup</button>
+                <a href="#" id="btnDetailPdf" target="_blank" class="btn btn-danger rounded-3 px-3.5 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Cetak / Open PDF</span>
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -515,7 +612,6 @@
         });
 
         // Initialize DataTables
-        // Menambahkan emptyTable agar pesan di dalam tabel tetap muncul tanpa memicu error column count
         const dataTable = $('#myTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
@@ -551,7 +647,7 @@
             }
         }
 
-        // Select All handler (Melintasi seluruh halaman DataTables)
+        // Select All handler
         $('#selectAllDocs').on('change', function() {
             let isChecked = $(this).is(':checked');
             dataTable.$('.doc-checkbox').prop('checked', isChecked);
@@ -575,57 +671,55 @@
         });
 
         // Open Coretax Modal & calculate summary
-$('#btnOpenCoretaxModal').on('click', function() {
-    let checkedBoxes = dataTable.$('.doc-checkbox:checked');
-    let count = checkedBoxes.length;
+        $('#btnOpenCoretaxModal').on('click', function() {
+            let checkedBoxes = dataTable.$('.doc-checkbox:checked');
+            let count = checkedBoxes.length;
 
-    if (count === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Pilih Dokumen',
-            text: 'Pilih minimal satu faktur / invoice untuk diekspor ke Coretax!'
+            if (count === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pilih Dokumen',
+                    text: 'Pilih minimal satu faktur / invoice untuk diekspor ke Coretax!'
+                });
+                return;
+            }
+
+            let totalDpp = 0;
+            let totalTax = 0;
+            let missingTaxId = 0;
+            let hiddenInputsHtml = '';
+
+            checkedBoxes.each(function() {
+                let id = $(this).val();
+                let dpp = parseFloat($(this).data('dpp')) || 0; 
+                let tax = parseFloat($(this).data('tax')) || 0;
+                let hasTaxId = $(this).data('has-tax-id') == '1';
+
+                totalDpp += dpp;
+                totalTax += tax;
+                if (!hasTaxId) {
+                    missingTaxId++;
+                }
+
+                hiddenInputsHtml += `<input type="hidden" name="document_ids[]" value="${id}">`;
+            });
+
+            $('#modalCount').text(count);
+            $('#modalSubtotal').text(formatRupiah(totalDpp));
+            $('#modalTax').text(formatRupiah(totalTax));
+            $('#modalHiddenIds').html(hiddenInputsHtml);
+
+            if (missingTaxId > 0) {
+                $('#missingTaxIdCount').text(missingTaxId);
+                $('#modalTaxIdWarning').removeClass('d-none');
+            } else {
+                $('#modalTaxIdWarning').addClass('d-none');
+            }
+
+            let modalEl = document.getElementById('coretaxExportModal');
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
         });
-        return;
-    }
-
-    let totalDpp = 0; // Mengumpulkan DPP murni
-    let totalTax = 0;
-    let missingTaxId = 0;
-    let hiddenInputsHtml = '';
-
-    checkedBoxes.each(function() {
-        let id = $(this).val();
-        
-        // UBAH DI SINI: Gunakan data-dpp (bukan data-subtotal)
-        let dpp = parseFloat($(this).data('dpp')) || 0; 
-        let tax = parseFloat($(this).data('tax')) || 0;
-        let hasTaxId = $(this).data('has-tax-id') == '1';
-
-        totalDpp += dpp;
-        totalTax += tax;
-        if (!hasTaxId) {
-            missingTaxId++;
-        }
-
-        hiddenInputsHtml += `<input type="hidden" name="document_ids[]" value="${id}">`;
-    });
-
-    $('#modalCount').text(count);
-    $('#modalSubtotal').text(formatRupiah(totalDpp)); // Menampilkan total DPP murni
-    $('#modalTax').text(formatRupiah(totalTax));
-    $('#modalHiddenIds').html(hiddenInputsHtml);
-
-    if (missingTaxId > 0) {
-        $('#missingTaxIdCount').text(missingTaxId);
-        $('#modalTaxIdWarning').removeClass('d-none');
-    } else {
-        $('#modalTaxIdWarning').addClass('d-none');
-    }
-
-    let modalEl = document.getElementById('coretaxExportModal');
-    let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    modal.show();
-});
 
         // Quick status update AJAX (Event Delegation)
         $('#myTable tbody').on('change', '.status-select', function() {
@@ -666,7 +760,7 @@ $('#btnOpenCoretaxModal').on('click', function() {
             });
         });
 
-        // Event Delegation untuk Tombol Hapus (Preserve Event saat Pindah Halaman DataTables)
+        // Event Delegation untuk Tombol Hapus
         $(document).on('click', '.btn-delete', function(e) {
             e.preventDefault();
             let form = $(this).closest('form');
@@ -685,6 +779,83 @@ $('#btnOpenCoretaxModal').on('click', function() {
                     form.submit();
                 }
             });
+        });
+
+        // Event Delegation untuk Tombol Open Modal Detail (Status PAID)
+        $(document).on('click', '.btn-show-modal', function() {
+            let docNum = $(this).data('docnum');
+            let customer = $(this).data('customer');
+            let taxNum = $(this).data('taxnum');
+            let total = $(this).data('total');
+            let itemsCount = $(this).data('items-count');
+            let itemsData = $(this).data('items');
+            let pdfUrl = $(this).data('pdf');
+
+            $('#detailDocNumber').text(docNum);
+            $('#detailCustomerName').text(customer);
+            $('#detailCustomerTax').text(taxNum);
+            $('#detailTotalAmount').text(total);
+            $('#detailItemCount').text(itemsCount);
+            $('#btnDetailPdf').attr('href', pdfUrl);
+
+            // Render List Items sesuai kolom DocumentItem
+            let itemsHtml = '';
+            if (itemsData && itemsData.length > 0) {
+                itemsData.forEach(function(item) {
+                    let description = item.description || '-';
+                    let qty = item.qty || 0;
+                    let unit = item.unit || 'Pcs';
+                    let price = parseFloat(item.price || 0);
+                    let subtotal = parseFloat(item.subtotal || (qty * price));
+
+                    itemsHtml += `
+                        <tr>
+                            <td class="ps-3 py-2 fw-semibold text-dark">${description}</td>
+                            <td class="text-center py-2">${qty}</td>
+                            <td class="text-center py-2"><span class="badge bg-light text-secondary border">${unit}</span></td>
+                            <td class="text-end py-2">Rp ${new Intl.NumberFormat('id-ID').format(price)}</td>
+                            <td class="text-end pe-3 py-2 fw-bold text-dark">Rp ${new Intl.NumberFormat('id-ID').format(subtotal)}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                itemsHtml = `
+                    <tr>
+                        <td colspan="5" class="text-center py-3 text-muted small">Tidak ada item dalam dokumen ini.</td>
+                    </tr>
+                `;
+            }
+
+            $('#detailItemsList').html(itemsHtml);
+
+            let modalEl = document.getElementById('detailDocumentModal');
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
+        });
+    });
+
+    // Event Handler untuk Tombol Edit Status SENT dengan SweetAlert2
+    $(document).on('click', '.btn-edit-sent', function(e) {
+        e.preventDefault();
+        let editUrl = $(this).data('url');
+        let docNum = $(this).data('docnum');
+
+        Swal.fire({
+            title: 'Edit Dokumen yang Sudah Terkirim?',
+            html: `Dokumen <strong>${docNum}</strong> memiliki status <span class="badge bg-info text-white">SENT</span>. Perubahan data mungkin mempengaruhi informasi yang sudah diterima customer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<span class="text-dark fw-bold">Ya, Lanjutkan Edit</span>',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-4 shadow-lg border-0'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = editUrl;
+            }
         });
     });
 </script>

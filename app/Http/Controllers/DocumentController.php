@@ -8,6 +8,7 @@ use App\Models\DocumentItem;
 use App\Models\Setting;
 use App\Models\Transaction;
 use App\Services\TransactionService;
+use App\Services\ProjectMarginService;
 use App\Services\CoretaxXmlService;
 use App\Exports\CoretaxFkExport;
 use Illuminate\Http\Request;
@@ -15,8 +16,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
- 
 
 class DocumentController extends Controller
 {
@@ -42,31 +41,31 @@ class DocumentController extends Controller
                                 ->where('status', 'SENT')
                                 ->sum('total_amount');
 
-        // 3. Jumlah Total Invoice
-        $countInvoice = Document::where('type', 'INVOICE')->count();
-
-        // 4. Jumlah Total Customer
-        $countCustomer = Customer::count();
-
-        // 5. Total Pengeluaran Kas (Expenses)
+        // 3. Total Pengeluaran Kas (Expenses)
         $totalExpense = Transaction::where('type', 'expense')->sum('amount');
 
-        // 6. Laba Bersih Komersial
+        // 4. Laba Bersih Komersial
         $totalIncome = Transaction::where('type', 'income')->sum('amount');
         $netProfit = $totalIncome - $totalExpense;
 
-        // 7. 5 Dokumen Terbaru untuk Quick Table
-        $recentDocuments = Document::with('customer')->latest()->take(5)->get();
+        // 5. Dokumen terbaru untuk ringkasan dashboard
+        $recentDocuments = Document::with('customer')
+            ->latest()
+            ->take(4)
+            ->get();
 
-        // 8. 5 Transaksi Keuangan Terbaru
-        $recentTransactions = Transaction::with('category')->latest('transaction_date')->take(5)->get();
+        // 6. Pengeluaran kas terbaru untuk ringkasan dashboard
+        $recentTransactions = Transaction::with('category')
+            ->where('type', 'expense')
+            ->orderByDesc('transaction_date')
+            ->orderByDesc('id')
+            ->take(5)
+            ->get();
 
         return view('dashboard', compact(
             'setting',
             'totalOmset', 
             'totalPiutang', 
-            'countInvoice', 
-            'countCustomer', 
             'totalExpense',
             'netProfit',
             'recentDocuments',
@@ -108,6 +107,22 @@ class DocumentController extends Controller
         }
 
         return "{$nextNumber}/{$prefix}/{$romanMonth}/{$currentYear}";
+    }
+
+    private function generateAuxiliaryDocumentNumber(string $column, string $prefix, string $date): string
+    {
+        $documentDate = Carbon::parse($date);
+        $romanMonth = $this->getRomanMonth($documentDate->month);
+        $searchPattern = "%/{$prefix}/{$romanMonth}/{$documentDate->year}";
+
+        $lastDocument = Document::where($column, 'LIKE', $searchPattern)
+            ->orderByDesc('id')
+            ->first([$column]);
+
+        $lastNumber = $lastDocument ? (int) explode('/', $lastDocument->{$column})[0] : 0;
+
+        return str_pad((string) ($lastNumber + 1), 3, '0', STR_PAD_LEFT)
+            . "/{$prefix}/{$romanMonth}/{$documentDate->year}";
     }
 
 public function index(Request $request)
@@ -161,6 +176,22 @@ public function index(Request $request)
             ->values();
 
         return view('documents.index', compact('documents', 'availableMonths', 'setting'));
+    }
+
+    public function show(Document $document)
+    {
+        $document->load(['customer', 'items', 'directExpenses.category']);
+        $setting = Setting::getSetting();
+        $margin = app(ProjectMarginService::class)->forInvoice($document);
+
+        $unallocatedExpenses = Transaction::with('category')
+            ->expense()
+            ->unallocated()
+            ->orderByDesc('transaction_date')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('documents.show', compact('document', 'setting', 'margin', 'unallocatedExpenses'));
     }
 
     public function create()
@@ -225,17 +256,34 @@ public function index(Request $request)
         $transactionCode = $request->tax_transaction_code 
             ?: ($customer?->default_tax_transaction_code ?: '040');
 
-        $document = Document::create([
+        $documentDate = date('Y-m-d');
+        $documentData = [
             'customer_id'          => $request->customer_id,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
-            'date'                 => date('Y-m-d'),
+            'date'                 => $documentDate,
             'total_amount'         => $total_amount_include_ppn,
             'discount'             => $discount,
             'tax_transaction_code' => $transactionCode,
             'tax_invoice_date'     => $request->tax_invoice_date ?? date('Y-m-d'),
-            'payment_note'         => $request->payment_note ?? $setting->receipt_footer_notes ?? null,
-        ]);
+            'payment_note'         => filled($request->payment_note)
+                ? $request->payment_note
+                : ($setting->receipt_footer_notes ?: null),
+        ];
+        if ($request->type === 'INVOICE') {
+            $documentData['delivery_note_number'] = $this->generateAuxiliaryDocumentNumber(
+                'delivery_note_number',
+                $setting->delivery_note_prefix ?: 'SJ-DCI',
+                $documentDate
+            );
+            $documentData['receipt_number'] = $this->generateAuxiliaryDocumentNumber(
+                'receipt_number',
+                $setting->kwitansi_prefix ?: 'KWT-DCI',
+                $documentDate
+            );
+        }
+
+        $document = Document::create($documentData);
 
         foreach ($items_data as $item) {
             DocumentItem::create(array_merge($item, ['document_id' => $document->id]));
@@ -244,13 +292,21 @@ public function index(Request $request)
         return redirect()->route('documents.index')->with('success', 'Dokumen berhasil dibuat');
     }
 
-    public function edit($id)
+    public function edit(Document $document)
     {
-        $setting = Setting::getSetting();
-        $document = Document::with(['items', 'customer'])->findOrFail($id);
-        $customers = Customer::all();
-        
-        return view('documents.edit', compact('document', 'customers', 'setting'));
+        // Jika status PAID, tolak akses edit dan redirect kembali
+        if ($document->status === 'PAID') {
+            return redirect()->route('documents.index')
+                ->with('error', 'Dokumen berstatus PAID sudah terkunci dan tidak dapat diubah.');
+        }
+
+        // Ambil data customers untuk dropdown pilihan customer
+        $customers = Customer::orderBy('name', 'asc')->get();
+
+        // Pastikan relasi items ter-load jika dibutuhkan di form edit
+        $document->load('items');
+
+        return view('documents.edit', compact('document', 'customers'));
     }
 
     public function update(Request $request, $id)
@@ -305,7 +361,7 @@ public function index(Request $request)
         $ppn = $netto * $taxRate;
         $total_amount_include_ppn = $netto + $ppn;
 
-        $document->update([
+        $documentData = [
             'customer_id'          => $request->customer_id,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
@@ -314,8 +370,17 @@ public function index(Request $request)
             'discount'             => $discount,
             'tax_transaction_code' => $request->tax_transaction_code ?? $document->tax_transaction_code ?? '040',
             'tax_invoice_date'     => $request->tax_invoice_date ?? $document->tax_invoice_date ?? $document->date,
-            'payment_note'         => $request->payment_note ?? null,
-        ]);
+            'payment_note'         => filled($request->payment_note)
+                ? $request->payment_note
+                : ($setting->receipt_footer_notes ?: null),
+        ];
+        if ($request->type === 'INVOICE') {
+            $documentData['delivery_note_number'] = $document->delivery_note_number
+                ?: $this->generateAuxiliaryDocumentNumber('delivery_note_number', $setting->delivery_note_prefix ?: 'SJ-DCI', $document->date);
+            $documentData['receipt_number'] = $document->receipt_number
+                ?: $this->generateAuxiliaryDocumentNumber('receipt_number', $setting->kwitansi_prefix ?: 'KWT-DCI', $document->date);
+        }
+        $document->update($documentData);
 
         // Auto-sync transaksi kas jika status berubah menjadi PAID atau sebaliknya
         $this->transactionService->syncInvoicePaidTransaction($document);
@@ -465,7 +530,8 @@ public function index(Request $request)
         $pdf = Pdf::loadView('exports.delivery_note_pdf', compact('document', 'setting'))
                   ->setPaper('a4', 'landscape');
         
-        $safeDocNumber = str_replace(['/', '\\'], '-', $document->document_number);
+        $pdfDocumentNumber = $document->delivery_note_number ?: $document->document_number;
+        $safeDocNumber = str_replace(['/', '\\'], '-', $pdfDocumentNumber);
         $fileName = 'SJ_' . $safeDocNumber . '.pdf';
         
         return $pdf->download($fileName);
@@ -480,7 +546,8 @@ public function index(Request $request)
         $pdf = Pdf::loadView('exports.kwitansi_pdf', compact('document', 'setting'))
                   ->setPaper('a4', 'landscape');
         
-        $safeDocNumber = str_replace(['/', '\\'], '-', $document->document_number);
+        $pdfDocumentNumber = $document->receipt_number ?: $document->document_number;
+        $safeDocNumber = str_replace(['/', '\\'], '-', $pdfDocumentNumber);
         $fileName = 'KWITANSI_' . $safeDocNumber . '.pdf';
         
         return $pdf->download($fileName);

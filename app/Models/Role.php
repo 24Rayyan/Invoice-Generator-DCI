@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = ['name', 'display_name', 'description'];
 
@@ -25,5 +26,20 @@ class Role extends Model
     public function hasModule($moduleKey): bool
     {
         return $this->modules->pluck('key')->contains($moduleKey);
+    }
+
+    public function activityModuleName(): string
+    {
+        return 'User Management';
+    }
+
+    public function activitySubjectName(): string
+    {
+        return 'Role';
+    }
+
+    public function activityLabel(): string
+    {
+        return $this->display_name ?: ($this->name ?: ('#' . $this->getKey()));
     }
 }

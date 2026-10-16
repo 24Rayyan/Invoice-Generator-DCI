@@ -42,7 +42,7 @@ class FinancialStatementExport implements FromView, ShouldAutoSize, WithStyles, 
     /**
      * Styling spreadsheet
      */
-    public function styles(Worksheet $sheet)
+    public function styles(Worksheet $sheet): ?array
     {
         return [
             // Baris Judul Perusahaan

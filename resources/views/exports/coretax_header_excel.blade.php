@@ -5,7 +5,7 @@
             <td style="background-color: #ffffff !important; color: #000000 !important; font-weight: bold; text-align: left; border: none;">NPWP Penjual</td>
             <td></td>
             <td style="background-color: #ffffff !important; color: #000000 !important; font-weight: bold; text-align: left; border: none; mso-number-format:'\@';">
-                {{ str_pad(preg_replace('/[^0-9]/', '', $setting->company_npwp16 ?? $setting->company_npwp ?? '0123456789012345'), 16, '0', STR_PAD_LEFT) }}
+                {{ str_pad(preg_replace('/[^0-9]/', '', $setting->company_npwp16 ?? '0123456789012345'), 16, '0', STR_PAD_LEFT) }}
             </td>
             <td colspan="15" style="background-color: #ffffff !important; border: none;"></td>
         </tr>

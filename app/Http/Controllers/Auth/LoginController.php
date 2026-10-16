@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,6 +40,13 @@ class LoginController extends Controller
             }
 
             $request->session()->regenerate();
+
+            ActivityLogger::log(
+                ActivityLog::ACTION_LOGIN,
+                'Autentikasi',
+                "User " . Auth::user()->username . " berhasil login ke sistem."
+            );
+
             return redirect()->intended('/dashboard');
         }
 
@@ -48,6 +57,19 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
+        if ($user) {
+            ActivityLogger::log(
+                ActivityLog::ACTION_LOGOUT,
+                'Autentikasi',
+                "User {$user->username} logout dari sistem.",
+                null,
+                $user->id,
+                $user->username
+            );
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

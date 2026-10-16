@@ -9,7 +9,6 @@ class Setting extends Model
     protected $fillable = [
         // Identitas & Legalitas Usaha
         'company_name',
-        'company_tagline',
         'company_npwp',
         'company_npwp16',
         'company_nitku',
@@ -17,16 +16,16 @@ class Setting extends Model
         'company_stamp',
         'company_email',
         'company_phone',
-        'company_website',
         'company_address',
         'company_city',
         'company_bank_account',
+        'stamp_invoice_enabled',
+        'stamp_delivery_note_enabled',
+        'stamp_receipt_enabled',
 
         // Penomoran Dokumen
         'po_prefix',
-        'po_last_number',
         'invoice_prefix',
-        'invoice_last_number',
         'delivery_note_prefix',
         'kwitansi_prefix',
 
@@ -50,6 +49,9 @@ class Setting extends Model
 
     protected $casts = [
         'enable_tax' => 'boolean',
+        'stamp_invoice_enabled' => 'boolean',
+        'stamp_delivery_note_enabled' => 'boolean',
+        'stamp_receipt_enabled' => 'boolean',
         'default_tax_rate' => 'float',
         'term_of_payment' => 'integer',
     ];
@@ -63,7 +65,6 @@ class Setting extends Model
         if (!$setting) {
             $setting = self::create([
                 'company_name' => 'PT Dwitama Cipta Internusa',
-                'company_tagline' => 'Business & IT Solutions',
                 'company_npwp16' => '0123456789012345',
                 'company_nitku' => '0000000000000000000000',
                 'company_city' => 'Bandung',
@@ -73,6 +74,9 @@ class Setting extends Model
                 'kwitansi_prefix' => 'KWT-DCI',
                 'default_tax_rate' => 11.00,
                 'enable_tax' => true,
+                'stamp_invoice_enabled' => true,
+                'stamp_delivery_note_enabled' => true,
+                'stamp_receipt_enabled' => false,
                 'currency_symbol' => 'Rp',
                 'currency_code' => 'IDR',
                 'term_of_payment' => 30,

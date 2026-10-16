@@ -14,12 +14,12 @@
         </tr>
         <tr>
             <th colspan="8" style="font-size: 11pt; text-align: center;">
-                LAPORAN ARUS KAS & REKAPITULASI KEUANGAN PERUSAHAAN
+                LAPORAN ARUS KAS &amp; REKAPITULASI KEUANGAN PERUSAHAAN
             </th>
         </tr>
         <tr>
             <th colspan="8" style="font-size: 9pt; text-align: center;">
-                Periode: {{ $reportData['formatted_start_date'] }} s/d {{ $reportData['formatted_end_date'] }} | NPWP: {{ $setting->company_npwp ?? '-' }}
+                Periode: {{ $reportData['formatted_start_date'] }} s/d {{ $reportData['formatted_end_date'] }} | NPWP 16 Digit: {{ $setting->company_npwp16 ?? '-' }}
             </th>
         </tr>
         <tr>
@@ -110,7 +110,7 @@
 
         <!-- 3. TRANSACTION LEDGER -->
         <tr style="background-color: #cbd5e1; font-weight: bold;">
-            <th colspan="8">3. BUKU KAS & MUTASI TRANSAKSI KRONOLOGIS (TRANSACTION LEDGER)</th>
+            <th colspan="8">3. BUKU KAS &amp; MUTASI TRANSAKSI KRONOLOGIS (TRANSACTION LEDGER)</th>
         </tr>
         <tr style="background-color: #f8fafc; font-weight: bold; text-align: center;">
             <th style="width: 100px;">TANGGAL</th>

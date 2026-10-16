@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'code',
@@ -27,6 +28,21 @@ class Category extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function activityModuleName(): string
+    {
+        return 'Buku Kas & Transaksi';
+    }
+
+    public function activitySubjectName(): string
+    {
+        return 'Kategori Akun';
+    }
+
+    public function activityLabel(): string
+    {
+        return trim(($this->code ? "[{$this->code}] " : '') . ($this->name ?? '#' . $this->getKey()));
     }
 
     /**
@@ -61,11 +77,4 @@ class Category extends Model
         return $query->where('is_tax_deductible', false);
     }
 
-    /**
-     * Display label format: [5-101] Biaya ATK
-     */
-    public function getFullDisplayNameAttribute(): string
-    {
-        return "[{$this->code}] {$this->name}";
-    }
 }

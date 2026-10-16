@@ -1,303 +1,420 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+    .cashflow-page {
+        --cashflow-ink: #172033;
+        --cashflow-muted: #7b8494;
+        --cashflow-line: #e9edf3;
+        color: var(--cashflow-ink);
+    }
+
+    .cashflow-page .cashflow-title {
+        font-size: clamp(1.55rem, 2.5vw, 2rem);
+        letter-spacing: -0.045em;
+    }
+
+    .cashflow-page .cashflow-subtitle,
+    .cashflow-page .cashflow-eyebrow,
+    .cashflow-page .cashflow-note {
+        color: var(--cashflow-muted);
+    }
+
+    .cashflow-page .cashflow-kpi {
+        min-height: 124px;
+        border: 1px solid #eff1f5;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(20, 34, 58, 0.035);
+    }
+
+    .cashflow-page .cashflow-kpi-value {
+        font-size: clamp(1.15rem, 2vw, 1.5rem);
+        letter-spacing: -0.04em;
+        overflow-wrap: anywhere;
+    }
+
+    .cashflow-page .cashflow-kpi-icon {
+        color: #788392;
+    }
+
+    .cashflow-page .cashflow-kpi-net {
+        background: #102446;
+        border-color: #102446;
+    }
+
+    .cashflow-page .cashflow-kpi-net .cashflow-kpi-label,
+    .cashflow-page .cashflow-kpi-net .cashflow-kpi-icon {
+        color: #c5d1e2;
+    }
+
+    .cashflow-page .cashflow-panel {
+        border: 0;
+        border-radius: 17px;
+        box-shadow: 0 5px 20px rgba(20, 34, 58, 0.04);
+    }
+
+    .cashflow-page .cashflow-table {
+        min-width: 900px;
+    }
+
+    .cashflow-page .cashflow-table thead th {
+        background: #f8f9fb;
+        color: #747e8d;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.035em;
+        padding-top: 0.78rem;
+        padding-bottom: 0.78rem;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .cashflow-page .cashflow-table tbody td {
+        border-color: var(--cashflow-line);
+        font-size: 0.76rem;
+        padding-top: 0.8rem;
+        padding-bottom: 0.8rem;
+        vertical-align: middle;
+    }
+
+    .cashflow-page .cashflow-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .cashflow-page .cashflow-transaction-icon {
+        width: 25px;
+        height: 25px;
+        flex: 0 0 auto;
+    }
+
+    .cashflow-page .cashflow-page-link {
+        min-width: 32px;
+    }
+
+    @media (max-width: 575.98px) {
+        .cashflow-page .cashflow-kpi {
+            min-height: 112px;
+        }
+
+        .cashflow-page .cashflow-panel-header {
+            padding: 1rem !important;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
-<div class="row mb-4 align-items-center">
-    <div class="col-md-7">
-        <h3 class="fw-bold text-dark mb-1">
-            Cashflow Management
-        </h3>
-    </div>
-    <div class="col-md-5 text-md-end mt-3 mt-md-0">
-        <div class="btn-group shadow-sm">
-            <a href="{{ route('transactions.create', ['type' => 'expense']) }}" class="btn btn-danger">
-                <i class="fa-solid fa-minus-circle me-1.5"></i> Catat Pengeluaran
+@php
+    $currency = $setting->currency_symbol ?? 'Rp';
+    $filters = [
+        'period' => request('period', $period),
+        'type' => request('type'),
+        'category_id' => request('category_id'),
+        'payment_method' => request('payment_method'),
+        'search' => request('search'),
+        'per_page' => $perPage,
+    ];
+@endphp
+
+<div class="cashflow-page">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="cashflow-title fw-bold mb-1">Manajemen Arus Kas</h1>
+            <p class="cashflow-subtitle small mb-0">Kelola pemasukan, pengeluaran, dan pencatatan transaksi kas.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('transactions.create', ['type' => 'expense']) }}" class="btn btn-sm btn-outline-primary bg-white shadow-sm px-3">
+                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Catat Pengeluaran
             </a>
-            <a href="{{ route('transactions.create', ['type' => 'income']) }}" class="btn btn-success">
-                <i class="fa-solid fa-plus-circle me-1.5"></i> Catat Pemasukan
+            <a href="{{ route('transactions.create', ['type' => 'income']) }}" class="btn btn-sm btn-primary shadow-sm px-3">
+                <i class="fa-solid fa-plus me-1"></i> Catat Pemasukan
             </a>
         </div>
     </div>
-</div>
 
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-    <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-@endif
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
+            <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-@endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-<!-- Executive Cashflow Cards Container -->
-<div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
-    <!-- Header Banner dengan Gradient Premium -->
-    <div class="card-header border-0 p-4 p-lg-4 text-white position-relative" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div class="cashflow-eyebrow small fw-semibold mb-2">Ringkasan Arus Kas</div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-4">
+            <div class="cashflow-kpi card h-100">
+                <div class="card-body p-3 p-lg-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="cashflow-kpi-label small text-muted">Total Pemasukan Kas</span>
+                        <i class="cashflow-kpi-icon fa-solid fa-arrow-trend-up"></i>
+                    </div>
+                    <div class="cashflow-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($totalIncome, 0, ',', '.') }}</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-success-subtle text-success">{{ $incomeCount }} transaksi masuk</span>
+                        <span class="cashflow-note small">Total akumulasi kas masuk</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-4">
+            <div class="cashflow-kpi card h-100">
+                <div class="card-body p-3 p-lg-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="cashflow-kpi-label small text-muted">Total Pengeluaran Kas</span>
+                        <i class="cashflow-kpi-icon fa-solid fa-arrow-trend-down text-danger"></i>
+                    </div>
+                    <div class="cashflow-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($totalExpense, 0, ',', '.') }}</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-danger-subtle text-danger">{{ $expenseCount }} transaksi keluar</span>
+                        <span class="cashflow-note small">Total akumulasi kas keluar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="cashflow-kpi cashflow-kpi-net card h-100 text-white">
+                <div class="card-body p-3 p-lg-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="cashflow-kpi-label small">Arus Kas Bersih</span>
+                        <i class="cashflow-kpi-icon fa-solid fa-right-left"></i>
+                    </div>
+                    <div class="cashflow-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($netCashflow, 0, ',', '.') }}</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-primary-subtle text-primary">Net Cashflow</span>
+                        <span class="small text-white-50">Kas masuk − kas keluar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="cashflow-panel card mb-4">
+        <div class="card-body p-3 p-lg-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h6 fw-bold mb-0"><i class="fa-solid fa-sliders me-2 text-primary"></i>Filter Transaksi</h2>
+                <a href="{{ route('transactions.index') }}" class="small fw-semibold text-decoration-none">Reset filter</a>
+            </div>
+            <form method="GET" action="{{ route('transactions.index') }}" class="row g-2 align-items-end">
+                <div class="col-sm-6 col-xl-3">
+                    <label for="transactionPeriod" class="form-label small text-muted mb-1">Periode</label>
+                    <select id="transactionPeriod" name="period" class="form-select form-select-sm">
+                        <option value="" {{ $period === '' ? 'selected' : '' }}>Semua periode</option>
+                        @foreach($availableMonths as $monthOption)
+                            <option value="{{ $monthOption->value }}" {{ $period === $monthOption->value ? 'selected' : '' }}>
+                                {{ $monthOption->label }}
+                            </option>
+                        @endforeach
+                        @if($period && ! $availableMonths->pluck('value')->contains($period))
+                            <option value="{{ $period }}" selected>{{ \Carbon\Carbon::createFromFormat('Y-m', $period)->translatedFormat('F Y') }}</option>
+                        @endif
+                    </select>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label for="transactionType" class="form-label small text-muted mb-1">Tipe transaksi</label>
+                    <select id="transactionType" name="type" class="form-select form-select-sm">
+                        <option value="">Semua Tipe</option>
+                        <option value="income" {{ request('type') === 'income' ? 'selected' : '' }}>Pemasukan</option>
+                        <option value="expense" {{ request('type') === 'expense' ? 'selected' : '' }}>Pengeluaran</option>
+                    </select>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label for="transactionCategory" class="form-label small text-muted mb-1">Kategori akun (COA)</label>
+                    <select id="transactionCategory" name="category_id" class="form-select form-select-sm">
+                        <option value="">Semua Kategori</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ (string) request('category_id') === (string) $category->id ? 'selected' : '' }}>
+                                [{{ $category->code }}] {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label for="transactionPaymentMethod" class="form-label small text-muted mb-1">Metode bayar</label>
+                    <select id="transactionPaymentMethod" name="payment_method" class="form-select form-select-sm">
+                        <option value="">Semua Metode</option>
+                        <option value="Bank Transfer" {{ request('payment_method') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                        <option value="Cash" {{ request('payment_method') === 'Cash' ? 'selected' : '' }}>Cash / Tunai</option>
+                        <option value="e-Wallet" {{ request('payment_method') === 'e-Wallet' ? 'selected' : '' }}>e-Wallet / QRIS</option>
+                    </select>
+                </div>
+                <input type="hidden" name="search" value="{{ request('search') }}">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
+                <div class="col-12 d-flex justify-content-end pt-1">
+                    <button type="submit" class="btn btn-sm btn-primary px-3">
+                        <i class="fa-solid fa-filter me-1"></i> Terapkan Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="cashflow-panel card">
+        <div class="cashflow-panel-header card-header bg-white border-0 px-4 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
-                <h4 class="fw-bold mb-0 text-white">Executive Cashflow Summary</h4>
+                <div class="d-flex align-items-center gap-2">
+                    <h2 class="h6 fw-bold mb-0">Riwayat Transaksi</h2>
+                    <span class="badge rounded-pill bg-light text-secondary">{{ number_format($totalTransactions, 0, ',', '.') }} transaksi</span>
+                </div>
+                <p class="cashflow-note small mb-0 mt-1">Rincian kas masuk, kas keluar, dan klasifikasi akun.</p>
             </div>
+            <form method="GET" action="{{ route('transactions.index') }}" class="d-flex gap-2">
+                @foreach($filters as $name => $value)
+                    @if($name !== 'search' && $value !== null && $value !== '')
+                        <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+                    @endif
+                @endforeach
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                    <input type="search" name="search" class="form-control border-start-0 bg-light" value="{{ request('search') }}" placeholder="Cari nomor atau keterangan">
+                    <button class="btn btn-outline-secondary" type="submit">Cari</button>
+                </div>
+            </form>
         </div>
-    </div>
 
-    <!-- Body / Content KPI Cards -->
-    <div class="card-body p-4 bg-light bg-opacity-50">
-        <div class="row g-3">
-            
-            <!-- 1. Total Pemasukan Kas -->
-            <div class="col-sm-6 col-xl-4">
-                <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden transition-all hover-shadow">
-                    <div class="position-absolute top-0 start-0 bottom-0 bg-success" style="width: 4px;"></div>
-                    <div class="card-body p-3 ps-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <span class="text-uppercase font-xs fw-bold text-muted tracking-wider d-block">Total Pemasukan Kas</span>
-                                <span class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-pill font-xs px-2 py-0.5 mt-1">
-                                    <i class="fa-solid fa-arrow-trend-up me-1"></i>{{ $transactions->where('type', 'income')->count() }} Transaksi
-                                </span>
-                            </div>
-                            <div class="bg-success bg-opacity-10 text-success rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                <i class="fa-solid fa-arrow-trend-up fs-5"></i>
-                            </div>
-                        </div>
-                        <h4 class="fw-bolder text-dark mb-1 tracking-tight">
-                            {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($totalIncome, 0, ',', '.') }}
-                        </h4>
-                        <p class="text-muted font-xs mb-0">Total akumulasi kas masuk</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Total Pengeluaran Kas -->
-            <div class="col-sm-6 col-xl-4">
-                <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden transition-all hover-shadow">
-                    <div class="position-absolute top-0 start-0 bottom-0 bg-danger" style="width: 4px;"></div>
-                    <div class="card-body p-3 ps-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <span class="text-uppercase font-xs fw-bold text-muted tracking-wider d-block">Total Pengeluaran Kas</span>
-                                <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 rounded-pill font-xs px-2 py-0.5 mt-1">
-                                    <i class="fa-solid fa-arrow-trend-down me-1"></i>{{ $transactions->where('type', 'expense')->count() }} Transaksi
-                                </span>
-                            </div>
-                            <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                <i class="fa-solid fa-arrow-trend-down fs-5"></i>
-                            </div>
-                        </div>
-                        <h4 class="fw-bolder text-dark mb-1 tracking-tight">
-                            {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($totalExpense, 0, ',', '.') }}
-                        </h4>
-                        <p class="text-muted font-xs mb-0">Total akumulasi kas keluar</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Arus Kas Bersih (Net Cashflow) -->
-            <div class="col-sm-12 col-xl-4">
-                <div class="card border-0 shadow-sm rounded-3 h-100 position-relative overflow-hidden transition-all hover-shadow">
-                    <div class="position-absolute top-0 start-0 bottom-0 {{ $netCashflow >= 0 ? 'bg-primary' : 'bg-warning' }}" style="width: 4px;"></div>
-                    <div class="card-body p-3 ps-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <span class="text-uppercase font-xs fw-bold text-muted tracking-wider d-block">Arus Kas Bersih</span>
-                                <span class="badge {{ $netCashflow >= 0 ? 'bg-primary-subtle text-primary border-primary' : 'bg-warning-subtle text-warning border-warning' }} border border-opacity-25 rounded-pill font-xs px-2 py-0.5 mt-1">
-                                    <i class="fa-solid fa-wallet me-1"></i>Net Cashflow
-                                </span>
-                            </div>
-                            <div class="{{ $netCashflow >= 0 ? 'bg-primary bg-opacity-10 text-primary' : 'bg-warning bg-opacity-10 text-warning' }} rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                <i class="fa-solid fa-wallet fs-5"></i>
-                            </div>
-                        </div>
-                        <h4 class="fw-bolder {{ $netCashflow >= 0 ? 'text-primary' : 'text-danger' }} mb-1 tracking-tight">
-                            {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($netCashflow, 0, ',', '.') }}
-                        </h4>
-                        <p class="text-muted font-xs mb-0">Kas Masuk - Kas Keluar Periode Ini</p>
-                    </div>
-                </div>
-            </div>
-
+        <div class="alert alert-primary border-0 rounded-0 py-2 px-4 mb-0 small">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Urutan transaksi dimulai dari tanggal terbaru. Gunakan filter atau pencarian untuk menemukan transaksi tertentu.
         </div>
-    </div>
-</div>
 
-<!-- Filter Bar -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-3">
-        <form method="GET" action="{{ route('transactions.index') }}" class="row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Periode Bulan/Tahun</label>
-                <select name="period" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">Semua Periode</option>
-                    @foreach($availableMonths as $monthOption)
-                        <option value="{{ $monthOption->value }}" {{ request('period') == $monthOption->value ? 'selected' : '' }}>
-                            {{ $monthOption->label }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Tipe Transaksi</label>
-                <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">Semua Tipe</option>
-                    <option value="income" {{ request('type') == 'income' ? 'selected' : '' }}>Pemasukan (Income)</option>
-                    <option value="expense" {{ request('type') == 'expense' ? 'selected' : '' }}>Pengeluaran (Expense)</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Kategori Akun (COA)</label>
-                <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">Semua Kategori</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                            [{{ $category->code }}] {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Metode Bayar</label>
-                <select name="payment_method" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">Semua Metode</option>
-                    <option value="Bank Transfer" {{ request('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                    <option value="Cash" {{ request('payment_method') == 'Cash' ? 'selected' : '' }}>Cash / Tunai</option>
-                    <option value="e-Wallet" {{ request('payment_method') == 'e-Wallet' ? 'selected' : '' }}>e-Wallet / QRIS</option>
-                </select>
-            </div>
-            <div class="col-md-2 text-end">
-                <a href="{{ route('transactions.index') }}" class="btn btn-sm btn-outline-secondary w-100">
-                    <i class="fa-solid fa-rotate-left me-1"></i> Reset Filter
-                </a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Transactions Table -->
-<div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="cashflow-table table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th class="ps-4" style="width: 140px;">No. Transaksi</th>
-                        <th style="width: 110px;">Tanggal</th>
-                        <th>Kategori & Klasifikasi</th>
+                        <th class="ps-4">No. Transaksi / Tanggal</th>
+                        <th>Kategori & Klasifikasi Fiskal</th>
                         <th>Keterangan / Relasi</th>
-                        <th style="width: 120px;">Metode</th>
-                        <th class="text-end" style="width: 160px;">Jumlah (Rp)</th>
-                        <th class="text-center" style="width: 100px;">Bukti</th>
-                        <th class="text-center" style="width: 100px;">SPT Status</th>
-                        <th class="text-end pe-4" style="width: 120px;">Aksi</th>
+                        <th>Metode</th>
+                        <th class="text-end">Jumlah ({{ $currency }})</th>
+                        <th class="text-end pe-4">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($transactions as $trx)
                     <tr>
                         <td class="ps-4">
-                            <span class="fw-bold font-mono text-dark" style="font-size: 0.8rem;">
-                                {{ $trx->transaction_number }}
-                            </span>
-                            @if($trx->invoice_id)
-                                <span class="badge bg-info-subtle text-info border border-info-subtle d-block mt-0.5" style="font-size: 0.65rem;">
-                                    <i class="fa-solid fa-link me-1"></i> Inv #{{ $trx->document?->document_number }}
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="cashflow-transaction-icon rounded-circle {{ $trx->type === 'income' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} d-inline-flex align-items-center justify-content-center">
+                                    <i class="fa-solid {{ $trx->type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up' }}" style="font-size: .65rem;"></i>
                                 </span>
-                            @endif
+                                <div>
+                                    <div class="font-monospace fw-semibold text-dark">{{ $trx->transaction_number }}</div>
+                                    <div class="cashflow-note small">{{ $trx->transaction_date?->format('d/m/Y') ?? 'Tanggal tidak tersedia' }}</div>
+                                </div>
+                            </div>
                         </td>
                         <td>
-                            <span class="text-dark fw-semibold" style="font-size: 0.825rem;">
-                                {{ \Carbon\Carbon::parse($trx->transaction_date)->format('d/m/Y') }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="fw-bold text-dark font-sm">
-                                [{{ $trx->category?->code }}] {{ $trx->category?->name }}
+                            <div class="text-truncate fw-medium" style="max-width: 240px;" title="{{ $trx->category?->name }}">
+                                [{{ $trx->category?->code ?? '-' }}] {{ $trx->category?->name ?? 'Tanpa kategori' }}
                             </div>
                             @if($trx->type === 'income')
-                                <span class="badge bg-success-subtle text-success border border-success-subtle font-xs">
-                                    Pemasukan
-                                </span>
+                                <span class="cashflow-note small">Pemasukan</span>
+                            @elseif($trx->category?->is_tax_deductible)
+                                <span class="cashflow-note small">Deductible</span>
                             @else
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-xs">
-                                    Pengeluaran
-                                </span>
+                                <span class="cashflow-note small">Koreksi fiskal</span>
                             @endif
                         </td>
                         <td>
-                            <div class="text-dark font-sm text-truncate" style="max-width: 250px;" title="{{ $trx->description }}">
+                            <div class="text-truncate" style="max-width: 270px;" title="{{ $trx->description }}">
                                 {{ $trx->description ?? '-' }}
                             </div>
-                            @if($trx->entertainmentDetail)
-                                <small class="text-warning-emphasis fw-semibold font-xs d-block">
-                                    <i class="fa-solid fa-users me-1"></i> Jamuan: {{ $trx->entertainmentDetail->attendee_name }} ({{ $trx->entertainmentDetail->attendee_company }})
-                                </small>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge bg-light text-dark border">
-                                <i class="fa-regular fa-credit-card me-1 text-muted"></i> {{ $trx->payment_method }}
-                            </span>
-                        </td>
-                        <td class="text-end">
-                            <span class="fw-bold {{ $trx->type === 'income' ? 'text-success' : 'text-danger' }}" style="font-size: 0.95rem;">
-                                {{ $trx->type === 'income' ? '+' : '-' }} Rp {{ number_format($trx->amount, 0, ',', '.') }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            @if($trx->receipt_file_path)
-                                <a href="{{ route('transactions.receipt', $trx->id) }}" target="_blank" class="btn btn-sm btn-outline-info py-0.5 px-2 font-xs rounded-pill" title="Lihat Bukti Nota">
-                                    <i class="fa-solid fa-receipt me-1"></i> Nota
+                            @if($trx->document)
+                                <a href="{{ route('documents.show', $trx->document) }}" class="small text-decoration-none">
+                                    <i class="fa-solid fa-link me-1"></i>{{ $trx->document->document_number }}
                                 </a>
+                            @elseif($trx->entertainmentDetail)
+                                <div class="cashflow-note small">{{ $trx->entertainmentDetail->attendee_name }} · {{ $trx->entertainmentDetail->attendee_company }}</div>
                             @else
-                                <span class="text-muted font-xs">-</span>
+                                <div class="cashflow-note small">Tidak terhubung ke invoice</div>
                             @endif
                         </td>
-                        <td class="text-center">
-                            @if($trx->type === 'income')
-                                <span class="badge bg-success-subtle text-success font-xs">Income</span>
-                            @elseif($trx->category?->is_tax_deductible)
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-xs" title="Dapat menjadi pengurang pajak SPT">
-                                    Deductible
+                        <td class="text-nowrap">{{ $trx->payment_method ?: '—' }}</td>
+                        <td class="text-end fw-semibold {{ $trx->type === 'income' ? 'text-success' : 'text-danger' }} text-nowrap">
+                            {{ $trx->type === 'income' ? '+' : '−' }} {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}
+                        </td>
+                        <td class="text-end pe-4 text-nowrap">
+                            @if($trx->receipt_file_path)
+                                <a href="{{ route('transactions.receipt', $trx) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Lihat bukti nota">
+                                    <i class="fa-solid fa-receipt"></i>
+                                </a>
+                            @endif
+                            @if($trx->type === 'income' && $trx->invoice_id)
+                                <span class="badge bg-light text-muted border" title="Transaksi pelunasan otomatis dari invoice">
+                                    <i class="fa-solid fa-lock me-1"></i> Auto
                                 </span>
                             @else
-                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle font-xs" title="Koreksi Positif Fiskal SPT">
-                                    Koreksi
-                                </span>
-                            @endif
-                        </td>
-                        <td class="text-end pe-4">
-                            @if(!$trx->invoice_id)
-                                <a href="{{ route('transactions.edit', $trx->id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                <a href="{{ route('transactions.edit', $trx) }}" class="btn btn-sm btn-outline-primary" title="Edit transaksi">
                                     <i class="fa-solid fa-pencil"></i>
                                 </a>
-                                <form action="{{ route('transactions.destroy', $trx->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini?')">
+                                <form action="{{ route('transactions.destroy', $trx) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus transaksi">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
-                            @else
-                                <span class="badge bg-light text-muted border font-xs" title="Transaksi otomatis dikunci oleh sistem invoice">
-                                    <i class="fa-solid fa-lock me-1"></i> Auto
-                                </span>
                             @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-receipt fs-2 mb-2 d-block text-secondary"></i>
-                            Belum ada transaksi kas untuk filter yang dipilih.
+                            Tidak ada transaksi kas yang cocok dengan filter yang dipilih.
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
+
+        @if($transactions->total() > 0)
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3 px-4 py-3 border-top">
+                <form method="GET" action="{{ route('transactions.index') }}" class="d-flex align-items-center gap-2 small">
+                    @foreach($filters as $name => $value)
+                        @if($name !== 'per_page' && $value !== null && $value !== '')
+                            <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+                        @endif
+                    @endforeach
+                    <label for="transactionsPerPage" class="cashflow-note text-nowrap">Baris per halaman</label>
+                    <select id="transactionsPerPage" name="per_page" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 75px;">
+                        @foreach([10, 25, 50, 100] as $pageSize)
+                            <option value="{{ $pageSize }}" {{ $perPage === $pageSize ? 'selected' : '' }}>{{ $pageSize }}</option>
+                        @endforeach
+                    </select>
+                </form>
+
+                <span class="cashflow-note small text-center">
+                    Rentang halaman {{ $transactions->firstItem() }}–{{ $transactions->lastItem() }}
+                    dari {{ number_format($transactions->total(), 0, ',', '.') }} transaksi
+                </span>
+
+                @if($transactions->lastPage() > 1)
+                    <nav aria-label="Navigasi halaman transaksi">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item {{ $transactions->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $transactions->previousPageUrl() ?? '#' }}" aria-label="Sebelumnya">‹ Sebelumnya</a>
+                            </li>
+                            @for($page = max(1, $transactions->currentPage() - 2); $page <= min($transactions->lastPage(), $transactions->currentPage() + 2); $page++)
+                                <li class="page-item {{ $page === $transactions->currentPage() ? 'active' : '' }}">
+                                    <a class="page-link cashflow-page-link" href="{{ $transactions->url($page) }}">{{ $page }}</a>
+                                </li>
+                            @endfor
+                            <li class="page-item {{ $transactions->hasMorePages() ? '' : 'disabled' }}">
+                                <a class="page-link" href="{{ $transactions->nextPageUrl() ?? '#' }}" aria-label="Berikutnya">Berikutnya ›</a>
+                            </li>
+                        </ul>
+                    </nav>
+                @endif
+            </div>
+        @endif
+    </section>
 </div>
 @endsection

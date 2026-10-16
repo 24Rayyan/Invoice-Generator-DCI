@@ -18,7 +18,7 @@
         </tr>
         <tr>
             <th colspan="4" style="font-size: 9pt; text-align: center;">
-                Periode: {{ $reportData['month_name'] }} {{ $reportData['year'] }} | NPWP: {{ $setting->company_npwp ?? '-' }}
+                Periode: {{ $reportData['month_name'] }} {{ $reportData['year'] }} | NPWP 16 Digit: {{ $setting->company_npwp16 ?? '-' }}
             </th>
         </tr>
         <tr>

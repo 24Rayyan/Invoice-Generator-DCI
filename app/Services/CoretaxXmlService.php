@@ -91,7 +91,7 @@ class CoretaxXmlService
         $dom->appendChild($root);
 
         // 3. Data Penjual (Seller)
-        $sellerNpwp16 = $this->sanitizeDigits($setting->company_npwp16 ?? $setting->company_npwp ?? Setting::get('company_tin') ?? '0123456789012345');
+        $sellerNpwp16 = $this->sanitizeDigits($setting->company_npwp16 ?? Setting::get('company_tin') ?? '0123456789012345');
         $sellerTin = str_pad(substr($sellerNpwp16, 0, 16), 16, '0', STR_PAD_LEFT);
 
         $sellerRawNitku = $this->sanitizeDigits($setting->company_nitku ?? Setting::get('company_nitku') ?? '000000');

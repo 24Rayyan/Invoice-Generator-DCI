@@ -150,11 +150,9 @@ class FinancialErpTest extends TestCase
 
         $postData = [
             'company_name' => 'PT Solusi Teknologi Nusantara',
-            'company_tagline' => 'Enterprise Cloud & ERP',
-            'company_npwp' => '01.234.567.8-901.000',
+            'company_npwp16' => '0123456789012345',
             'company_email' => 'contact@solusinusantara.com',
             'company_phone' => '081299887766',
-            'company_website' => 'www.solusinusantara.com',
             'company_address' => 'Jl. Asia Afrika No. 100, Bandung',
             'company_city' => 'Bandung',
             'company_bank_account' => 'BCA 1234567890 a.n PT Solusi Teknologi Nusantara',

@@ -366,7 +366,7 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('documents.index') ? 'active' : '' }}" href="{{ route('documents.index') }}">
+                                            <a class="dropdown-item py-2 {{ request()->routeIs('documents.index') || request()->routeIs('documents.show') ? 'active' : '' }}" href="{{ route('documents.index') }}">
                                                 <i class="fa-solid fa-folder-open me-2 text-warning"></i> Kelola Dokumen
                                             </a>
                                         </li>
@@ -427,9 +427,15 @@
                                                 <i class="fa-solid fa-scale-balanced me-2 text-primary"></i> Laba Rugi Komersial & Fiskal
                                             </a>
                                         </li>
+                                        <li>
+                                            <a class="dropdown-item py-2 {{ request()->routeIs('reports.project_margin') ? 'active' : '' }}" href="{{ route('reports.project_margin') }}">
+                                                <i class="fa-solid fa-chart-pie me-2 text-success"></i> Margin Proyek / Invoice
+                                            </a>
+                                        </li>
                                     </ul>
                                 </li>
                             @endif
+
 
                             @if(auth()->user()->hasAccess('user_management'))
                                 <li class="nav-item dropdown">
@@ -447,6 +453,13 @@
                                                 <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Kelola Role & Hak Akses
                                             </a>
                                         </li>
+                                        @if(auth()->user()->hasAccess('activity_logs'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('activity_logs.*') ? 'active' : '' }}" href="{{ route('activity_logs.index') }}">
+                                                    <i class="fa-solid fa-clock-rotate-left me-2"></i> Log Aktivitas
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif

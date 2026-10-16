@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Kwitansi - {{ $document->document_number }}</title>
+    <title>Kwitansi - {{ $document->receipt_number ?: $document->document_number }}</title>
     <style>
         @page {
             size: A4 landscape;
@@ -200,6 +200,12 @@
             height: 40px;
         }
 
+        .company-stamp {
+            max-width: 95px;
+            max-height: 38px;
+            object-fit: contain;
+        }
+
         .sig-name {
             font-weight: 700;
             font-size: 9.5pt;
@@ -231,8 +237,8 @@
             <div class="company-details">
                 {{ $setting->company_address ?? 'Alamat Perusahaan Belum Diset' }}<br>
                 <span>Email: {{ $setting->company_email ?? '-' }}</span> | <span>Telp: {{ $setting->company_phone ?? '-' }}</span>
-                @if(!empty($setting->company_npwp))
-                    <br><span>NPWP: {{ $setting->company_npwp }}</span>
+                @if(!empty($setting->company_npwp16))
+                    <br><span>NPWP 16 Digit: {{ $setting->company_npwp16 }}</span>
                 @endif
             </div>
         </div>
@@ -242,7 +248,7 @@
             <table class="meta-table">
                 <tr>
                     <td class="meta-label">No. Dokumen</td>
-                    <td class="meta-value">: {{ $document->document_number }}</td>
+                    <td class="meta-value">: {{ $document->receipt_number ?: $document->document_number }}</td>
                 </tr>
                 <tr>
                     <td class="meta-label">Tanggal</td>
@@ -326,6 +332,8 @@
                 <td class="content-col">
                     @if(!empty($document->payment_note))
                         {{ $document->payment_note }}
+                    @elseif(!empty($setting->receipt_footer_notes))
+                        {{ $setting->receipt_footer_notes }}
                     @else
                         Pembayaran Dokumen Invoice No. <strong>{{ $document->document_number }}</strong>
                     @endif
@@ -350,7 +358,11 @@
             <td class="col-signature">
                 <div class="sig-title">{{ $setting->signatory_city ?? $setting->company_city ?? 'Bandung' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Hormat Kami,</div>
                 
-                <div class="stamp-space"></div>
+                <div class="stamp-space">
+                    @if($setting->stamp_receipt_enabled && $setting->company_stamp && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->company_stamp))
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->path($setting->company_stamp) }}" class="company-stamp" alt="Stempel perusahaan">
+                    @endif
+                </div>
                 <br><br>
                 <div class="sig-name">{{ $setting->signatory_name ?? 'Fauzan Septiana' }}</div>
                 <div class="sig-caption">{{ $setting->company_name ?? 'PT. DWITAMA CIPTA INTERNUSA' }}</div>

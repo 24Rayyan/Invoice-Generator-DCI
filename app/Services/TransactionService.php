@@ -121,8 +121,10 @@ class TransactionService
             return null;
         }
 
-        // Cari transaksi yang sudah terhubung dengan invoice ini
-        $existingTransaction = Transaction::where('invoice_id', $document->id)->first();
+        // Hanya sinkronkan kas MASUK pelunasan. Kas keluar terikat proyek tidak ikut diubah/dihapus.
+        $existingTransaction = Transaction::where('invoice_id', $document->id)
+            ->where('type', 'income')
+            ->first();
 
         // JIKA STATUS PAID -> BUAT / UPDATE TRANSAKSI PEMASUKAN
         if ($document->status === 'PAID') {

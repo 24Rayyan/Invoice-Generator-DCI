@@ -12,14 +12,20 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
+        $filters = $request->validate([
+            'type' => ['nullable', 'in:income,expense'],
+            'search' => ['nullable', 'string', 'max:150'],
+            'per_page' => ['nullable', 'integer', 'in:10,25,50'],
+        ]);
+
         $query = Category::withCount('transactions');
 
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
+        if (! empty($filters['type'])) {
+            $query->where('type', $filters['type']);
         }
 
-        if ($request->filled('search')) {
-            $search = $request->search;
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('code', 'LIKE', "%{$search}%")
                   ->orWhere('name', 'LIKE', "%{$search}%")
@@ -27,9 +33,15 @@ class CategoryController extends Controller
             });
         }
 
-        $categories = $query->orderBy('code', 'asc')->get();
+        $stats = [
+            'total' => (clone $query)->count(),
+            'deductible' => (clone $query)->where('type', 'expense')->where('is_tax_deductible', true)->count(),
+            'non_deductible' => (clone $query)->where('type', 'expense')->where('is_tax_deductible', false)->count(),
+        ];
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $categories = $query->orderBy('code', 'asc')->paginate($perPage)->withQueryString();
 
-        return view('categories.index', compact('categories'));
+        return view('categories.index', compact('categories', 'stats', 'perPage'));
     }
 
     /**
