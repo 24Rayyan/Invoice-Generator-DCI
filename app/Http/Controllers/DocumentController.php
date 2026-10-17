@@ -199,10 +199,9 @@ public function index(Request $request)
     {
         $setting = Setting::getSetting();
         $customers = Customer::all();
-        $projects = Project::activeForSelection();
         $autoNumber = $this->generateDocumentNumber('INVOICE');
 
-        return view('documents.create', compact('customers', 'projects', 'autoNumber', 'setting'));
+        return view('documents.create', compact('customers', 'autoNumber', 'setting'));
     }
 
     public function store(Request $request)

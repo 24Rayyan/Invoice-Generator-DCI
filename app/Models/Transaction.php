@@ -58,12 +58,12 @@ class Transaction extends Model
 
     public function scopeUnallocated($query)
     {
-        return $query->whereNull('invoice_id');
+        return $query->whereNull('invoice_id')->whereNull('project_id');
     }
 
     public function scopeUnallocatedToProject($query)
     {
-        return $query->whereNull('project_id');
+        return $query->whereNull('invoice_id')->whereNull('project_id');
     }
 
     /**

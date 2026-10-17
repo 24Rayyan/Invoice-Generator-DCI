@@ -92,7 +92,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/documents/{id}/pdf', [DocumentController::class, 'downloadPdf'])->name('documents.pdf');
         Route::get('/documents/{id}/delivery-note', [DocumentController::class, 'downloadDeliveryNote'])->name('documents.delivery_note');
         Route::get('/documents/{id}/kwitansi', [DocumentController::class, 'downloadKwitansi'])->name('documents.kwitansi');
-        Route::post('/documents/{id}/duplicate', [DocumentController::class, 'duplicate'])->name('documents.duplicate');
+        Route::get('/documents/{id}/duplicate', [DocumentController::class, 'duplicate'])->name('documents.duplicate');
         Route::post('/documents/{document}/attach-transactions', [InvoiceCostController::class, 'attach'])->name('documents.attach-transactions');
         Route::post('/documents/{document}/transactions/{transaction}/detach', [InvoiceCostController::class, 'detach'])->name('documents.detach-transaction');
 

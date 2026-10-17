@@ -219,14 +219,14 @@
                 <div class="modal-header border-0 pb-0">
                     <div>
                         <h5 class="modal-title fw-bold" id="attachKasModalLabel">Hubungkan Kas ke Invoice</h5>
-                        <p class="text-muted font-sm mb-0">Hanya menampilkan kas keluar yang belum teralokasi (invoice_id kosong).</p>
+                        <p class="text-muted font-sm mb-0">Hanya menampilkan kas keluar yang belum terhubung ke invoice maupun project.</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body overflow-y-auto" style="min-height: 0;">
                     @if($unallocatedExpenses->isEmpty())
                         <div class="text-center text-muted py-4">
-                            Tidak ada kas keluar yang belum teralokasi.
+                            Tidak ada kas keluar yang belum terhubung ke invoice maupun project.
                         </div>
                     @else
                         <div class="row g-2 mb-3">

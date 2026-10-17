@@ -89,20 +89,6 @@
                     </div>
                 </div>
 
-                <div class="row g-3 mt-1">
-                    <div class="col-md-6">
-                        <label for="project_id" class="form-label fw-semibold text-dark small">Project (Opsional)</label>
-                        <select name="project_id" id="project_id" class="form-select select2">
-                            <option value="">-- Tidak terkait project --</option>
-                            @foreach($projects as $project)
-                                <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>
-                                    {{ $project->project_name }}{{ $project->client?->name ? ' — ' . $project->client->name : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">Invoice ini akan ikut menjadi bagian dari pendapatan project terpilih.</small>
-                    </div>
-                </div>
             </div>
 
             <!-- Section 2: Input Barang (Item) -->
@@ -169,27 +155,52 @@
                 </div>
             </div>
 
-            <!-- Section 3: Catatan Kwitansi & Diskon -->
+            <div class="card border bg-light mt-3" id="calculation-preview"
+                 data-tax-rate="{{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) : 0 }}"
+                 data-currency="{{ $setting->currency_symbol ?? 'Rp' }}">
+                <div class="card-body p-3 p-lg-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-calculator text-primary me-1"></i> Simulasi Perhitungan
+                        </h6>
+                        <div>
+                            <label for="discount" class="form-label fw-bold text-danger small mb-1">
+                                <i class="fa-solid fa-tag me-1"></i> Diskon (Nominal)
+                            </label>
+                            <div class="input-group shadow-sm rounded-3">
+                                <span class="input-group-text bg-white border-0 text-muted">{{ $setting->currency_symbol ?? 'Rp' }}</span>
+                                <input type="number" name="discount" id="discount" class="form-control border-0 fw-bold text-danger" value="0" min="0" step="any" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mb-3">Diskon mengurangi DPP sebelum perhitungan PPN.</small>
+                    <div class="row g-2 small">
+                        <div class="col-7 text-muted">Total DPP sebelum diskon</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-gross">Rp 0</div>
+                        <div class="col-7 text-muted">Diskon</div>
+                        <div class="col-5 text-end fw-semibold text-danger" id="preview-discount">- Rp 0</div>
+                        <div class="col-7 text-muted">DPP setelah diskon</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-net">Rp 0</div>
+                        <div class="col-7 text-muted">PPN ({{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) : 0 }}%)</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-tax">Rp 0</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
+                        <span class="fw-bold text-dark">Total (DPP + PPN)</span>
+                        <span class="fs-5 fw-bold text-primary" id="preview-total">Rp 0</span>
+                    </div>
+                    <small class="text-muted mt-2 d-block font-xs">Tarif PPN sistem: <strong>{{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) . '%' : 'Nonaktif (0%)' }}</strong>.</small>
+                </div>
+            </div>
+
+            <!-- Section 3: Catatan Kwitansi -->
             <div class="row g-4 mt-2">
-                <div class="col-md-7">
+                <div class="col-12">
                     <div class="card border bg-light h-100 p-3">
                         <label class="form-label fw-bold text-dark small mb-2">
                             <i class="fa-solid fa-receipt me-1 text-primary"></i> Keterangan Khusus Kwitansi (Opsional)
                         </label>
                         <textarea name="payment_note" class="form-control border-0 bg-white shadow-sm" rows="3" placeholder="{{ $setting->receipt_footer_notes ?? 'Contoh: Pembayaran Pelunasan Tagihan Dokumen Invoice' }}"></textarea>
                         <small class="text-muted mt-2 d-block font-xs">*Kosongkan jika ingin menggunakan format default otomatis.</small>
-                    </div>
-                </div>
-                <div class="col-md-5">
-                    <div class="card border bg-light h-100 p-3 d-flex flex-column justify-content-center">
-                        <label class="form-label fw-bold text-danger small mb-2">
-                            <i class="fa-solid fa-tag me-1"></i> Potongan Harga (Diskon)
-                        </label>
-                        <div class="input-group input-group-lg shadow-sm rounded-3">
-                            <span class="input-group-text bg-white border-0 text-muted">{{ $setting->currency_symbol ?? 'Rp' }}</span>
-                            <input type="number" name="discount" class="form-control border-0 fw-bold text-danger" value="0" min="0" step="any" placeholder="0">
-                        </div>
-                        <small class="text-muted mt-2 d-block font-xs">*Pengaturan PPN aktif: <strong>{{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) . '%' : 'Nonaktif (0%)' }}</strong>.</small>
                     </div>
                 </div>
             </div>
@@ -233,10 +244,37 @@
             row.find('.item-subtotal').val(new Intl.NumberFormat('id-ID').format(subtotal));
         }
 
+        function updateCalculationPreview() {
+            let gross = 0;
+            $('#item-table tbody tr').each(function() {
+                let qty = parseFloat($(this).find('.item-qty').val()) || 0;
+                let price = parseFloat($(this).find('.item-price').val()) || 0;
+                gross += qty * price;
+            });
+
+            let discount = parseFloat($('#discount').val()) || 0;
+            let net = gross - discount;
+            let taxRate = parseFloat($('#calculation-preview').data('tax-rate')) || 0;
+            let tax = net * (taxRate / 100);
+            let total = net + tax;
+            let currency = $('#calculation-preview').data('currency');
+            let formatter = new Intl.NumberFormat('id-ID');
+            let formatMoney = amount => `${currency} ${formatter.format(amount)}`;
+
+            $('#preview-gross').text(formatMoney(gross));
+            $('#preview-discount').text(`- ${formatMoney(discount)}`);
+            $('#preview-net').text(formatMoney(net));
+            $('#preview-tax').text(formatMoney(tax));
+            $('#preview-total').text(formatMoney(total));
+        }
+
         $('#item-table').on('input', '.item-qty, .item-price', function() {
             let row = $(this).closest('tr');
             calculateRowSubtotal(row);
+            updateCalculationPreview();
         });
+
+        $('#discount').on('input', updateCalculationPreview);
 
         $('#add-row').on('click', function() {
             let rowCount = $('#item-table tbody tr').length + 1;
@@ -274,12 +312,14 @@
             `;
             $('#item-table tbody').append(newRow);
             updateRowNumbers();
+            updateCalculationPreview();
         });
 
         $('#item-table').on('click', '.remove-row', function() {
             if($('#item-table tbody tr').length > 1) {
                 $(this).closest('tr').remove();
                 updateRowNumbers();
+                updateCalculationPreview();
             } else {
                 Swal.fire({
                     icon: 'warning',
@@ -289,6 +329,8 @@
                 });
             }
         });
+
+        updateCalculationPreview();
     });
 </script>
 @endpush
