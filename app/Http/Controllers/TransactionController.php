@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TransactionRequest;
 use App\Models\Category;
 use App\Models\Document;
+use App\Models\Project;
 use App\Models\Transaction;
 use App\Services\TransactionService;
 use Carbon\Carbon;
@@ -34,7 +35,7 @@ class TransactionController extends Controller
             'per_page'       => ['nullable', 'integer', 'in:10,25,50,100'],
         ]);
 
-        $query = Transaction::with(['category', 'document.customer', 'entertainmentDetail'])
+        $query = Transaction::with(['category', 'document.customer', 'project', 'entertainmentDetail'])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc');
 
@@ -84,6 +85,9 @@ class TransactionController extends Controller
                   })
                   ->orWhereHas('document', function ($documentQuery) use ($search) {
                       $documentQuery->where('document_number', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('project', function ($projectQuery) use ($search) {
+                      $projectQuery->where('project_name', 'LIKE', "%{$search}%");
                   });
             });
         }
@@ -141,8 +145,9 @@ class TransactionController extends Controller
         $categories = Category::orderBy('code', 'asc')->get();
         $autoNumber = Transaction::generateTransactionNumber($defaultType, date('Y-m-d'));
         $invoices = Document::linkableInvoices();
+        $projects = Project::activeForSelection();
 
-        return view('transactions.create', compact('categories', 'defaultType', 'autoNumber', 'invoices'));
+        return view('transactions.create', compact('categories', 'defaultType', 'autoNumber', 'invoices', 'projects'));
     }
 
     /**
@@ -177,6 +182,7 @@ class TransactionController extends Controller
             'type'             => $request->type,
             'category_id'      => $request->category_id,
             'invoice_id'       => $invoiceId,
+            'project_id'       => $request->validated('project_id'),
             'amount'           => $request->amount,
             'transaction_date' => $request->transaction_date,
             'payment_method'   => $request->payment_method,
@@ -197,11 +203,12 @@ class TransactionController extends Controller
      */
     public function edit(Transaction $transaction)
     {
-        $transaction->load(['category', 'entertainmentDetail', 'document']);
+        $transaction->load(['category', 'entertainmentDetail', 'document', 'project']);
         $categories = Category::orderBy('code', 'asc')->get();
         $invoices = Document::linkableInvoices($transaction->invoice_id);
+        $projects = Project::activeForSelection($transaction->project_id);
 
-        return view('transactions.edit', compact('transaction', 'categories', 'invoices'));
+        return view('transactions.edit', compact('transaction', 'categories', 'invoices', 'projects'));
     }
 
     /**
@@ -235,6 +242,7 @@ class TransactionController extends Controller
             'type'             => $category->type,
             'category_id'      => $request->category_id,
             'invoice_id'       => $invoiceId,
+            'project_id'       => $request->validated('project_id'),
             'amount'           => $request->amount,
             'transaction_date' => $request->transaction_date,
             'payment_method'   => $request->payment_method,

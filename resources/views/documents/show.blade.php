@@ -17,6 +17,9 @@
         <h3 class="fw-bold text-dark mb-1">{{ $document->document_number }}</h3>
         <p class="text-muted mb-0 font-sm">
             {{ $document->customer->name ?? 'Tanpa Customer' }}
+            @if($document->project)
+                · <a href="{{ route('projects.show', $document->project) }}" class="text-decoration-none">{{ $document->project->project_name }}</a>
+            @endif
             · {{ $document->date?->format('d/m/Y') }}
             · <span class="badge bg-{{ $document->status === 'PAID' ? 'success' : ($document->status === 'SENT' ? 'info' : 'warning') }}-subtle text-{{ $document->status === 'PAID' ? 'success' : ($document->status === 'SENT' ? 'info' : 'dark') }} border">{{ $document->status }}</span>
             · {{ $document->type }}

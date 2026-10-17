@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class FinancialReportController extends Controller
 {
     protected FinancialReportService $reportService;
+
     protected ProjectMarginService $marginService;
 
     public function __construct(FinancialReportService $reportService, ProjectMarginService $marginService)
@@ -95,11 +96,11 @@ class FinancialReportController extends Controller
             $content = view('exports.financial_statement_excel', compact('reportData', 'setting'))->render();
 
             return response($content, 200, [
-                'Content-Type'        => 'application/vnd.ms-excel; charset=utf-8',
-                'Content-Disposition' => 'attachment; filename="' . $fileNameXls . '"',
-                'Pragma'              => 'no-cache',
-                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires'             => '0',
+                'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="'.$fileNameXls.'"',
+                'Pragma' => 'no-cache',
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0',
             ]);
         }
     }
@@ -167,36 +168,44 @@ class FinancialReportController extends Controller
         $content = view('exports.profit_loss_excel', compact('reportData', 'setting'))->render();
 
         return response($content, 200, [
-            'Content-Type'        => 'application/vnd.ms-excel; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            'Pragma'              => 'no-cache',
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires'             => '0',
+            'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ]);
     }
 
     /**
-     * Laporan ringkas margin proyek per invoice.
+     * Margin report grouped by project, with revenue aggregated across its invoices.
      */
     public function projectMargin(Request $request)
     {
-        $search = $request->get('search');
-        $status = $request->filled('status') ? $request->status : null;
-        $sort = $request->get('sort', 'date_desc');
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:150'],
+            'status' => ['nullable', 'in:active,on_hold,completed,DRAFT,SENT,PAID'],
+            'sort' => ['nullable', 'in:name_asc,name_desc,margin_asc,margin_desc,profit_asc,profit_desc,revenue_asc,revenue_desc,expense_asc,expense_desc'],
+        ]);
 
-        $rows = $this->marginService->overview($search, $status, $sort);
+        $search = $validated['search'] ?? null;
+        $status = $validated['status'] ?? null;
+        $sort = $validated['sort'] ?? 'name_asc';
+        $rows = $this->marginService->projectOverview($search, $status, $sort);
         $setting = Setting::getSetting();
-
         $totals = [
-            'revenue'        => $rows->sum('revenue'),
+            'revenue' => $rows->sum('revenue'),
             'direct_expense' => $rows->sum('direct_expense'),
-            'net_profit'     => $rows->sum('net_profit'),
+            'net_profit' => $rows->sum('net_profit'),
         ];
         $totals['net_margin'] = $totals['revenue'] > 0
             ? round(($totals['net_profit'] / $totals['revenue']) * 100, 2)
             : 0.0;
 
-        return view('reports.project_margin', compact('rows', 'setting', 'search', 'status', 'sort', 'totals'));
+        return view('reports.projects', compact('rows', 'setting', 'search', 'status', 'sort', 'totals'));
     }
 
+    public function projects(Request $request)
+    {
+        return $this->projectMargin($request);
+    }
 }

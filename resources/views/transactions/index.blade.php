@@ -329,9 +329,14 @@
                                 <a href="{{ route('documents.show', $trx->document) }}" class="small text-decoration-none">
                                     <i class="fa-solid fa-link me-1"></i>{{ $trx->document->document_number }}
                                 </a>
-                            @elseif($trx->entertainmentDetail)
+                            @endif
+                            @if($trx->project)
+                                <a href="{{ route('projects.show', $trx->project) }}" class="small text-decoration-none d-block">
+                                    <i class="fa-solid fa-diagram-project me-1"></i>{{ $trx->project->project_name }}
+                                </a>
+                            @elseif(!$trx->document && $trx->entertainmentDetail)
                                 <div class="cashflow-note small">{{ $trx->entertainmentDetail->attendee_name }} · {{ $trx->entertainmentDetail->attendee_company }}</div>
-                            @else
+                            @elseif(!$trx->document && !$trx->project)
                                 <div class="cashflow-note small">Tidak terhubung ke invoice</div>
                             @endif
                         </td>

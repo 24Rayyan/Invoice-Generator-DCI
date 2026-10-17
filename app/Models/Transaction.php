@@ -16,6 +16,7 @@ class Transaction extends Model
         'type',
         'category_id',
         'invoice_id',
+        'project_id',
         'amount',
         'transaction_date',
         'payment_method',
@@ -50,9 +51,19 @@ class Transaction extends Model
         return $this->document();
     }
 
+    public function project()
+    {
+        return $this->belongsTo(Project::class);
+    }
+
     public function scopeUnallocated($query)
     {
         return $query->whereNull('invoice_id');
+    }
+
+    public function scopeUnallocatedToProject($query)
+    {
+        return $query->whereNull('project_id');
     }
 
     /**

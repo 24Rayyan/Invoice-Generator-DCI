@@ -13,6 +13,10 @@
         <h3 class="fw-bold text-dark mb-0 tracking-tight">Kelola Dokumen</h3>
     </div>
     <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('projects.index') }}" class="btn btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
+            <i class="fa-solid fa-diagram-project"></i>
+            <span>Projects</span>
+        </a>
         <a href="{{ route('documents.create') }}" class="btn btn-primary px-3.5 py-2 rounded-3 shadow-sm fw-semibold d-inline-flex align-items-center gap-2">
             <i class="fa-solid fa-plus fs-6"></i>
             <span>Buat Dokumen Baru</span>

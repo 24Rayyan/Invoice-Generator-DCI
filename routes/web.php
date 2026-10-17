@@ -1,17 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\SettingController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\TransactionController;
-use App\Http\Controllers\FinancialReportController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\FinancialReportController;
 use App\Http\Controllers\InvoiceCostController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,12 +51,12 @@ Route::middleware(['auth'])->group(function () {
 
         // 2. Mapping key modul di DB ke nama route landing page masing-masing
         $moduleRoutes = [
-            'invoices'        => 'documents.index',
-            'expenses'        => 'transactions.index',
-            'reports'         => 'reports.financial_statement',
+            'invoices' => 'documents.index',
+            'expenses' => 'transactions.index',
+            'reports' => 'reports.financial_statement',
             'user_management' => 'management.users.index',
-            'settings'        => 'settings.index', // <-- Ditambahkan ke smart redirector
-            'activity_logs'   => 'activity_logs.index',
+            'settings' => 'settings.index', // <-- Ditambahkan ke smart redirector
+            'activity_logs' => 'activity_logs.index',
         ];
 
         // 3. Iterasi modul milik role user & redirect ke modul pertama yang cocok
@@ -75,6 +76,15 @@ Route::middleware(['auth'])->group(function () {
     // --- MANAGEMENT DOKUMEN (INVOICE / PO) ---
     Route::middleware(['module:invoices'])->group(function () {
         Route::resource('documents', DocumentController::class);
+        Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+        Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+        Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+        Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+        Route::post('/projects/{project}/attach-invoices', [ProjectController::class, 'attachInvoices'])->name('projects.attach-invoices');
+        Route::post('/projects/{project}/invoices/{document}/detach', [ProjectController::class, 'detachInvoice'])->name('projects.detach-invoice');
+        Route::post('/projects/{project}/attach-expenses', [ProjectController::class, 'attachExpenses'])->name('projects.attach-expenses');
+        Route::post('/projects/{project}/transactions/{transaction}/detach', [ProjectController::class, 'detachExpense'])->name('projects.detach-expense');
         Route::patch('/documents/{id}/update-status', [DocumentController::class, 'updateStatus'])->name('documents.update-status');
         Route::post('/documents/export-coretax', [DocumentController::class, 'exportCoretax'])->name('documents.export_coretax');
         Route::post('/documents/export-coretax-xml', [DocumentController::class, 'exportCoretaxXml'])->name('documents.export_coretax_xml');
@@ -108,6 +118,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profit-loss/excel', [FinancialReportController::class, 'exportProfitAndLossExcel'])->name('profit_loss.excel');
 
         Route::get('/project-margin', [FinancialReportController::class, 'projectMargin'])->name('project_margin');
+        Route::get('/projects', [FinancialReportController::class, 'projects'])->name('projects');
     });
 
     // --- PENGATURAN PERUSAHAAN (SETTINGS) ---

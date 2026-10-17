@@ -141,6 +141,7 @@ class TransactionService
                     'transaction_date' => $document->date ?? date('Y-m-d'),
                     'description'      => $description,
                     'category_id'      => $category?->id ?? $existingTransaction->category_id,
+                    'project_id'       => $document->project_id,
                 ]);
                 return $existingTransaction;
             }
@@ -150,6 +151,7 @@ class TransactionService
                 'type'               => 'income',
                 'category_id'        => $category?->id ?? 1,
                 'invoice_id'         => $document->id,
+                'project_id'         => $document->project_id,
                 'amount'             => $document->total_amount,
                 'transaction_date'   => $document->date ?? date('Y-m-d'),
                 'payment_method'     => $paymentMethod,

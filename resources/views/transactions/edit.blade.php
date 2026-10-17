@@ -112,6 +112,10 @@
                             'invoices' => $invoices,
                             'selectedInvoiceId' => old('invoice_id', $transaction->invoice_id),
                         ])
+                        @include('transactions.partials.project-select', [
+                            'projects' => $projects,
+                            'selectedProjectId' => old('project_id', $transaction->project_id),
+                        ])
                     </div>
                 </div>
             </div>
@@ -205,6 +209,12 @@
             theme: 'bootstrap-5',
             width: '100%',
             placeholder: '-- Umum / Operasional (tidak terikat invoice) --',
+            allowClear: true
+        });
+        $('.select2-project').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '-- Umum / Operasional (tidak terikat project) --',
             allowClear: true
         });
     });

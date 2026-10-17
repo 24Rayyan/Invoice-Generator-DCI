@@ -14,6 +14,14 @@
             Bandingkan pendapatan invoice dengan kas keluar yang terikat, lalu lihat laba bersih dan persentase margin per proyek.
         </p>
     </div>
+    <div class="col-md-5 text-md-end">
+        <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary btn-sm me-1">
+            <i class="fa-solid fa-diagram-project me-1"></i> Project Grouping
+        </a>
+        <a href="{{ route('projects.index') }}" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-folder-plus me-1"></i> Kelola Project
+        </a>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">

@@ -25,6 +25,7 @@ class TransactionRequest extends FormRequest
                 'nullable',
                 Rule::exists('documents', 'id')->where('type', 'INVOICE'),
             ],
+            'project_id'        => ['nullable', 'integer', 'exists:projects,id'],
             'receipt_file'      => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,webp', 'max:5120'],
             'event_date'        => ['nullable', 'date'],
             'location'          => ['nullable', 'string', 'max:255'],

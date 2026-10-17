@@ -232,9 +232,9 @@ class ProjectCostTrackingTest extends TestCase
         $this->actingAs($this->user)
             ->get(route('reports.project_margin'))
             ->assertOk()
-            ->assertSee('Laporan Margin Proyek')
+            ->assertSee('Project Margin Overview')
             ->assertSee($invoice->document_number)
-            ->assertSee('PT Proyek Sukses');
+            ->assertSee('Invoice belum terhubung ke project');
     }
 
     public function test_financial_dashboard_shows_recent_documents_and_expenses(): void

@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\Customer;
 use App\Models\DocumentItem;
 use App\Models\Setting;
+use App\Models\Project;
 use App\Models\Transaction;
 use App\Services\TransactionService;
 use App\Services\ProjectMarginService;
@@ -180,7 +181,7 @@ public function index(Request $request)
 
     public function show(Document $document)
     {
-        $document->load(['customer', 'items', 'directExpenses.category']);
+        $document->load(['customer', 'project', 'items', 'directExpenses.category']);
         $setting = Setting::getSetting();
         $margin = app(ProjectMarginService::class)->forInvoice($document);
 
@@ -198,15 +199,17 @@ public function index(Request $request)
     {
         $setting = Setting::getSetting();
         $customers = Customer::all();
+        $projects = Project::activeForSelection();
         $autoNumber = $this->generateDocumentNumber('INVOICE');
 
-        return view('documents.create', compact('customers', 'autoNumber', 'setting'));
+        return view('documents.create', compact('customers', 'projects', 'autoNumber', 'setting'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'customer_id'          => 'required',
+            'project_id'           => 'nullable|integer|exists:projects,id',
             'type'                 => 'required',
             'document_number'      => 'required|unique:documents,document_number',
             'item_desc'            => 'required|array|min:1',
@@ -259,6 +262,7 @@ public function index(Request $request)
         $documentDate = date('Y-m-d');
         $documentData = [
             'customer_id'          => $request->customer_id,
+            'project_id'           => $request->type === 'INVOICE' ? $request->project_id : null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
             'date'                 => $documentDate,
@@ -302,17 +306,19 @@ public function index(Request $request)
 
         // Ambil data customers untuk dropdown pilihan customer
         $customers = Customer::orderBy('name', 'asc')->get();
+        $projects = Project::activeForSelection($document->project_id);
 
         // Pastikan relasi items ter-load jika dibutuhkan di form edit
         $document->load('items');
 
-        return view('documents.edit', compact('document', 'customers'));
+        return view('documents.edit', compact('document', 'customers', 'projects'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
             'customer_id'          => 'required',
+            'project_id'           => 'nullable|integer|exists:projects,id',
             'type'                 => 'required',
             'document_number'      => 'required|unique:documents,document_number,' . $id,
             'status'               => 'required',
@@ -363,6 +369,7 @@ public function index(Request $request)
 
         $documentData = [
             'customer_id'          => $request->customer_id,
+            'project_id'           => $request->type === 'INVOICE' ? $request->project_id : null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
             'status'               => $request->status,
