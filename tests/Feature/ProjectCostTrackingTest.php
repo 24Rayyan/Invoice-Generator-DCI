@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Document;
+use App\Models\Project;
 use App\Models\Role;
 use App\Models\Transaction;
 use App\Models\User;
@@ -34,6 +35,33 @@ class ProjectCostTrackingTest extends TestCase
             'password' => Hash::make('password'),
             'role_id' => $role->id,
             'is_active' => true,
+        ]);
+    }
+
+    public function test_expense_cannot_be_linked_to_an_invoice_and_project_at_the_same_time(): void
+    {
+        $invoice = $this->makeInvoice();
+        $project = Project::create([
+            'project_name' => 'Exclusive allocation project',
+            'status' => 'active',
+        ]);
+        $category = Category::where('code', '5-101')->firstOrFail();
+
+        $this->actingAs($this->user)
+            ->post(route('transactions.store'), [
+                'type' => 'expense',
+                'category_id' => $category->id,
+                'invoice_id' => $invoice->id,
+                'project_id' => $project->id,
+                'amount' => 750000,
+                'transaction_date' => '2026-10-06',
+                'payment_method' => 'Cash',
+                'description' => 'Expense with conflicting allocations',
+            ])
+            ->assertSessionHasErrors(['invoice_id', 'project_id']);
+
+        $this->assertDatabaseMissing('transactions', [
+            'description' => 'Expense with conflicting allocations',
         ]);
     }
 
@@ -162,20 +190,33 @@ class ProjectCostTrackingTest extends TestCase
     {
         $invoiceA = $this->makeInvoice(5000000, 'INV-A/X/2026');
         $invoiceB = $this->makeInvoice(8000000, 'INV-B/X/2026');
+        $project = Project::create([
+            'project_name' => 'Allocated expense project',
+            'status' => 'active',
+        ]);
 
         $freeOne = $this->makeExpense(100000);
         $freeTwo = $this->makeExpense(200000);
         $alreadyLinked = $this->makeExpense(300000, $invoiceB->id);
+        $projectLinked = $this->makeExpense(400000);
+        $projectLinked->update(['project_id' => $project->id]);
+
+        $this->actingAs($this->user)
+            ->get(route('documents.show', $invoiceA))
+            ->assertOk()
+            ->assertDontSee($projectLinked->transaction_number);
 
         $this->actingAs($this->user)
             ->post(route('documents.attach-transactions', $invoiceA), [
-                'transaction_ids' => [$freeOne->id, $freeTwo->id, $alreadyLinked->id],
+                'transaction_ids' => [$freeOne->id, $freeTwo->id, $alreadyLinked->id, $projectLinked->id],
             ])
             ->assertRedirect();
 
         $this->assertEquals($invoiceA->id, $freeOne->fresh()->invoice_id);
         $this->assertEquals($invoiceA->id, $freeTwo->fresh()->invoice_id);
         $this->assertEquals($invoiceB->id, $alreadyLinked->fresh()->invoice_id);
+        $this->assertNull($projectLinked->fresh()->invoice_id);
+        $this->assertEquals($project->id, $projectLinked->fresh()->project_id);
 
         $this->actingAs($this->user)
             ->post(route('documents.detach-transaction', [$invoiceA, $freeOne]))

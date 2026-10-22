@@ -93,8 +93,8 @@ class ProjectGroupingTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('documents.create'))
             ->assertOk()
-            ->assertSee('Project (Opsional)')
-            ->assertSee('ERP Rollout');
+            ->assertDontSee('name="project_id"', false)
+            ->assertDontSee('ERP Rollout');
 
         $this->actingAs($this->admin)
             ->post(route('documents.store'), [
@@ -150,6 +150,20 @@ class ProjectGroupingTest extends TestCase
         $transaction = Transaction::where('description', 'Implementation cost')->firstOrFail();
         $this->assertSame($project->id, $transaction->project_id);
 
+        $otherProject = $this->makeProject('Another project');
+        $this->actingAs($this->admin)
+            ->put(route('transactions.update', $transaction), [
+                'category_id' => $category->id,
+                'project_id' => $otherProject->id,
+                'amount' => 400000,
+                'transaction_date' => now()->toDateString(),
+                'payment_method' => 'Cash',
+                'description' => 'Implementation cost',
+            ])
+            ->assertSessionHasErrors('invoice_id');
+
+        $this->assertSame($project->id, $transaction->fresh()->project_id);
+
         $this->actingAs($this->admin)
             ->put(route('transactions.update', $transaction), [
                 'category_id' => $category->id,
@@ -170,6 +184,8 @@ class ProjectGroupingTest extends TestCase
         $invoice = $this->makeInvoice($project);
         $linkedExpense = $this->makeExpense($project->id, 500000);
         $unallocatedExpense = $this->makeExpense(null, 250000);
+        $invoiceLinkedExpense = $this->makeExpense(null, 150000);
+        $invoiceLinkedExpense->update(['invoice_id' => $invoice->id]);
         $otherProject = $this->makeProject('Other project');
         $alreadyLinkedExpense = $this->makeExpense($otherProject->id, 300000);
 
@@ -189,17 +205,20 @@ class ProjectGroupingTest extends TestCase
             ->assertSee('Hubungkan Invoice')
             ->assertSee('projectInvoiceSearch')
             ->assertSee('projectInvoiceDateFrom')
-            ->assertSee('projectInvoiceDateTo');
+            ->assertSee('projectInvoiceDateTo')
+            ->assertDontSee($invoiceLinkedExpense->transaction_number);
 
         $this->actingAs($this->admin)
             ->post(route('projects.attach-expenses', $project), [
-                'transaction_ids' => [$unallocatedExpense->id, $alreadyLinkedExpense->id],
+                'transaction_ids' => [$unallocatedExpense->id, $alreadyLinkedExpense->id, $invoiceLinkedExpense->id],
             ])
             ->assertRedirect()
             ->assertSessionHas('success');
 
         $this->assertSame($project->id, $unallocatedExpense->fresh()->project_id);
         $this->assertSame($otherProject->id, $alreadyLinkedExpense->fresh()->project_id);
+        $this->assertNull($invoiceLinkedExpense->fresh()->project_id);
+        $this->assertSame($invoice->id, $invoiceLinkedExpense->fresh()->invoice_id);
         $this->assertDatabaseHas('activity_logs', [
             'module_name' => 'Project Management',
             'action' => ActivityLog::ACTION_UPDATE,

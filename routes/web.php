@@ -103,7 +103,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/projects/{project}/invoices/{document}/detach', [ProjectController::class, 'detachInvoice'])->name('projects.detach-invoice');
         Route::post('/projects/{project}/attach-expenses', [ProjectController::class, 'attachExpenses'])->name('projects.attach-expenses');
         Route::post('/projects/{project}/transactions/{transaction}/detach', [ProjectController::class, 'detachExpense'])->name('projects.detach-expense');
+<<<<<<< HEAD
     });
+=======
+        Route::patch('/documents/{id}/update-status', [DocumentController::class, 'updateStatus'])->name('documents.update-status');
+        Route::post('/documents/export-coretax', [DocumentController::class, 'exportCoretax'])->name('documents.export_coretax');
+        Route::post('/documents/export-coretax-xml', [DocumentController::class, 'exportCoretaxXml'])->name('documents.export_coretax_xml');
+        Route::post('/documents/export-xml', [DocumentController::class, 'exportXml'])->name('documents.export_xml');
+        Route::get('/documents/{id}/pdf', [DocumentController::class, 'downloadPdf'])->name('documents.pdf');
+        Route::get('/documents/{id}/delivery-note', [DocumentController::class, 'downloadDeliveryNote'])->name('documents.delivery_note');
+        Route::get('/documents/{id}/kwitansi', [DocumentController::class, 'downloadKwitansi'])->name('documents.kwitansi');
+        Route::get('/documents/{id}/duplicate', [DocumentController::class, 'duplicate'])->name('documents.duplicate');
+        Route::post('/documents/{document}/attach-transactions', [InvoiceCostController::class, 'attach'])->name('documents.attach-transactions');
+        Route::post('/documents/{document}/transactions/{transaction}/detach', [InvoiceCostController::class, 'detach'])->name('documents.detach-transaction');
+>>>>>>> e011b68e5fc28068cb5f55e7e3b399ebf6ed8fba
 
     Route::middleware(['module:customers'])->group(function () {
         Route::resource('customers', CustomerController::class)->except(['show']);

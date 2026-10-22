@@ -6,6 +6,7 @@ use App\Http\Requests\AttachInvoiceExpensesRequest;
 use App\Models\Document;
 use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceCostController extends Controller
 {
@@ -16,14 +17,29 @@ class InvoiceCostController extends Controller
     {
         abort_unless($document->type === 'INVOICE', 404);
 
-        $updated = Transaction::query()
-            ->whereIn('id', $request->validated('transaction_ids'))
-            ->where('type', 'expense')
-            ->whereNull('invoice_id')
-            ->update(['invoice_id' => $document->id]);
+        $updated = DB::transaction(function () use ($request, $document) {
+            $transactions = Transaction::query()
+                ->whereIn('id', $request->validated('transaction_ids'))
+                ->where('type', 'expense')
+                ->whereNull('invoice_id')
+                ->whereNull('project_id')
+                ->lockForUpdate()
+                ->get();
+
+            if ($transactions->isEmpty()) {
+                return 0;
+            }
+
+            return Transaction::query()
+                ->whereIn('id', $transactions->modelKeys())
+                ->where('type', 'expense')
+                ->whereNull('invoice_id')
+                ->whereNull('project_id')
+                ->update(['invoice_id' => $document->id]);
+        });
 
         if ($updated === 0) {
-            return back()->with('error', 'Tidak ada transaksi kas keluar yang dapat dihubungkan. Pastikan item belum terikat invoice lain.');
+            return back()->with('error', 'Tidak ada transaksi kas keluar yang dapat dihubungkan. Pastikan item belum terikat invoice atau project.');
         }
 
         return back()->with('success', "{$updated} transaksi kas keluar berhasil dihubungkan ke invoice {$document->document_number}.");

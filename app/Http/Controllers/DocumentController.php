@@ -208,12 +208,15 @@ public function index(Request $request)
     {
         $setting = Setting::getSetting();
         $customers = Customer::all();
+<<<<<<< HEAD
         $projects = auth()->user()->hasAccess('projects')
             ? Project::activeForSelection()
             : collect();
+=======
+>>>>>>> e011b68e5fc28068cb5f55e7e3b399ebf6ed8fba
         $autoNumber = $this->generateDocumentNumber('INVOICE');
 
-        return view('documents.create', compact('customers', 'projects', 'autoNumber', 'setting'));
+        return view('documents.create', compact('customers', 'autoNumber', 'setting'));
     }
 
     public function store(Request $request)

@@ -100,6 +100,7 @@ class ProjectController extends Controller
                 ->whereIn('id', $request->validated('transaction_ids'))
                 ->where('type', 'expense')
                 ->whereNull('project_id')
+                ->whereNull('invoice_id')
                 ->lockForUpdate()
                 ->get();
 
@@ -129,7 +130,7 @@ class ProjectController extends Controller
         });
 
         if ($updated === 0) {
-            return back()->with('error', 'Tidak ada transaksi kas keluar yang dapat dihubungkan. Pastikan item belum terikat project lain.');
+            return back()->with('error', 'Tidak ada transaksi kas keluar yang dapat dihubungkan. Pastikan item belum terikat invoice atau project.');
         }
 
         return back()->with('success', "{$updated} transaksi kas keluar berhasil dihubungkan ke project {$project->project_name}.");

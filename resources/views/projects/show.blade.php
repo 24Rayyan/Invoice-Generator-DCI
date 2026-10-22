@@ -181,10 +181,10 @@
         <div class="modal-content project-attach-modal-content border-0 rounded-4 shadow">
             <form class="project-attach-modal-form" method="POST" action="{{ route('projects.attach-expenses', $project) }}">
                 @csrf
-                <div class="modal-header"><div><h5 class="modal-title fw-bold" id="attachProjectExpensesLabel">Hubungkan Kas ke Project</h5><small class="text-muted">Hanya kas keluar dengan project_id kosong.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header"><div><h5 class="modal-title fw-bold" id="attachProjectExpensesLabel">Hubungkan Kas ke Project</h5><small class="text-muted">Hanya kas keluar yang belum terhubung ke invoice maupun project.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
                     @if($unallocatedExpenses->isEmpty())
-                        <p class="text-center text-muted py-4 mb-0">Tidak ada transaksi kas keluar yang belum terhubung ke project.</p>
+                        <p class="text-center text-muted py-4 mb-0">Tidak ada transaksi kas keluar yang belum terhubung ke invoice maupun project.</p>
                     @else
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
