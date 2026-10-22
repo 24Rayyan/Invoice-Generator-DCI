@@ -16,7 +16,10 @@ class ActivityLogTest extends TestCase
 
     protected function makeUser(string $roleName): User
     {
-        $role = Role::where('name', $roleName)->firstOrFail();
+        $role = Role::firstOrCreate(
+            ['name' => $roleName],
+            ['display_name' => ucfirst($roleName), 'description' => 'Test role']
+        );
 
         return User::create([
             'username'  => 'user_' . $roleName,

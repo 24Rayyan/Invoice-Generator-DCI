@@ -6,10 +6,11 @@ use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, LogsActivity;
+    use HasApiTokens, HasFactory, Notifiable, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -52,9 +53,8 @@ class User extends Authenticatable
             return false;
         }
 
-        // 3. Super Admin bypass (pengecekan tidak sensitif huruf besar/kecil)
-        $roleName = strtolower(trim($this->role->name ?? ''));
-        if (in_array($roleName, ['super_admin', 'superadmin', 'admin'])) {
+        // 3. Full access roles bypass module grants
+        if ($this->role->hasFullAccess()) {
             return true;
         }
 

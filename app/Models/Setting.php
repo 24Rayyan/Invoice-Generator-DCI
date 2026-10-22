@@ -64,14 +64,14 @@ class Setting extends Model
         $setting = self::first();
         if (!$setting) {
             $setting = self::create([
-                'company_name' => 'PT Dwitama Cipta Internusa',
-                'company_npwp16' => '0123456789012345',
+                'company_name' => null,
+                'company_npwp16' => null,
                 'company_nitku' => '0000000000000000000000',
-                'company_city' => 'Bandung',
-                'invoice_prefix' => 'INV-DCI',
+                'company_city' => null,
+                'invoice_prefix' => 'INV',
                 'po_prefix' => 'PO',
-                'delivery_note_prefix' => 'SJ-DCI',
-                'kwitansi_prefix' => 'KWT-DCI',
+                'delivery_note_prefix' => 'SJ',
+                'kwitansi_prefix' => 'KWT',
                 'default_tax_rate' => 11.00,
                 'enable_tax' => true,
                 'stamp_invoice_enabled' => true,
@@ -80,9 +80,9 @@ class Setting extends Model
                 'currency_symbol' => 'Rp',
                 'currency_code' => 'IDR',
                 'term_of_payment' => 30,
-                'signatory_name' => 'Fauzan Septiana',
-                'signatory_position' => 'Direktur Utama',
-                'signatory_city' => 'Bandung',
+                'signatory_name' => null,
+                'signatory_position' => null,
+                'signatory_city' => null,
             ]);
         }
         return $setting;

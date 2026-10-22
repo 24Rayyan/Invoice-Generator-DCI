@@ -6,9 +6,11 @@
         <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-diagram-project text-primary me-2"></i>Manajemen Project</h3>
         <p class="text-muted mb-0">Kelompokkan beberapa invoice dan biaya kas untuk memantau profitabilitas setiap project.</p>
     </div>
-    <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary">
-        <i class="fa-solid fa-chart-pie me-1"></i> Laporan Margin Project
-    </a>
+    @if(auth()->user()->hasAccess('project_margin'))
+        <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary">
+            <i class="fa-solid fa-chart-pie me-1"></i> Laporan Margin Project
+        </a>
+    @endif
 </div>
 
 @if(session('success'))

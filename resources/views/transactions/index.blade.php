@@ -326,14 +326,22 @@
                                 {{ $trx->description ?? '-' }}
                             </div>
                             @if($trx->document)
-                                <a href="{{ route('documents.show', $trx->document) }}" class="small text-decoration-none">
-                                    <i class="fa-solid fa-link me-1"></i>{{ $trx->document->document_number }}
-                                </a>
+                                @if(auth()->user()->hasAccess('invoices'))
+                                    <a href="{{ route('documents.show', $trx->document) }}" class="small text-decoration-none">
+                                        <i class="fa-solid fa-link me-1"></i>{{ $trx->document->document_number }}
+                                    </a>
+                                @else
+                                    <span class="small"><i class="fa-solid fa-link me-1"></i>{{ $trx->document->document_number }}</span>
+                                @endif
                             @endif
                             @if($trx->project)
-                                <a href="{{ route('projects.show', $trx->project) }}" class="small text-decoration-none d-block">
-                                    <i class="fa-solid fa-diagram-project me-1"></i>{{ $trx->project->project_name }}
-                                </a>
+                                @if(auth()->user()->hasAccess('projects'))
+                                    <a href="{{ route('projects.show', $trx->project) }}" class="small text-decoration-none d-block">
+                                        <i class="fa-solid fa-diagram-project me-1"></i>{{ $trx->project->project_name }}
+                                    </a>
+                                @else
+                                    <span class="small d-block"><i class="fa-solid fa-diagram-project me-1"></i>{{ $trx->project->project_name }}</span>
+                                @endif
                             @elseif(!$trx->document && $trx->entertainmentDetail)
                                 <div class="cashflow-note small">{{ $trx->entertainmentDetail->attendee_name }} · {{ $trx->entertainmentDetail->attendee_company }}</div>
                             @elseif(!$trx->document && !$trx->project)

@@ -88,7 +88,7 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-dark small">Nama Resmi Perusahaan <span class="text-danger">*</span></label>
-                            <input type="text" name="company_name" class="form-control" value="{{ old('company_name', $setting->company_name ?? 'PT Dwitama Cipta Internusa') }}" required placeholder="Contoh: PT Dwitama Cipta Internusa">
+                            <input type="text" name="company_name" class="form-control" value="{{ old('company_name', $setting->company_name ?? '') }}" required placeholder="Contoh: PT Sinar Abadi">
                             <small class="text-muted font-xs">Nama entitas bisnis resmi yang akan dicetak di Kop Surat & Laporan.</small>
                         </div>
 
@@ -104,8 +104,8 @@
                             <label class="form-label fw-semibold text-primary small">
                                 <i class="fa-solid fa-building-circle-check me-1"></i> NITKU 22 Digit Penjual (Coretax DJP)
                             </label>
-                            <input type="text" name="company_nitku" class="form-control font-monospace fw-bold text-primary" maxlength="22" value="{{ old('company_nitku', $setting->company_nitku ?? '0000000000000000000000') }}" placeholder="22 digit angka">
-                            <small class="text-muted font-xs">Default: 22 digit 0 jika PKP Pusat.</small>
+                            <input type="text" name="company_nitku" class="form-control font-monospace fw-bold text-primary" maxlength="22" value="{{ old('company_nitku', $setting->company_nitku ?? '') }}" placeholder="22 digit NITKU">
+                            <small class="text-muted font-xs">Isi sesuai NITKU resmi perusahaan.</small>
                         </div>
 
                         <div class="col-md-4">
@@ -126,7 +126,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-dark small">Kota Domisili Kantor</label>
-                            <input type="text" name="company_city" class="form-control" value="{{ old('company_city', $setting->company_city ?? 'Bandung') }}" placeholder="Contoh: Bandung">
+                            <input type="text" name="company_city" class="form-control" value="{{ old('company_city', $setting->company_city ?? '') }}" placeholder="Contoh: Jakarta">
                             <small class="text-muted font-xs">Digunakan otomatis sebagai kota penanggalan kwitansi dan surat resmi.</small>
                         </div>
 
@@ -182,9 +182,9 @@
 
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Prefix Invoice Penjualan <span class="text-danger">*</span></label>
-                            <input type="text" name="invoice_prefix" class="form-control fw-bold font-monospace text-primary" value="{{ old('invoice_prefix', $setting->invoice_prefix ?? 'INV-DCI') }}" required placeholder="INV-DCI">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>INV-DCI</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
+                            <label class="form-label fw-semibold text-dark small">Prefix Penjualan <span class="text-danger">*</span></label>
+                            <input type="text" name="invoice_prefix" class="form-control fw-bold font-monospace text-primary" value="{{ old('invoice_prefix', $setting->invoice_prefix ?? 'INV') }}" required placeholder="INV">
+                            <small class="text-muted font-xs">Contoh: <code>001/<strong>{{ $setting->invoice_prefix ?: 'INV' }}</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
                         </div>
 
                         <div class="col-md-6">
@@ -195,14 +195,14 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-dark small">Prefix Surat Jalan (Delivery Note)</label>
-                            <input type="text" name="delivery_note_prefix" class="form-control fw-bold font-monospace text-dark" value="{{ old('delivery_note_prefix', $setting->delivery_note_prefix ?? 'SJ-DCI') }}" placeholder="SJ-DCI">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>SJ-DCI</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
+                            <input type="text" name="delivery_note_prefix" class="form-control fw-bold font-monospace text-dark" value="{{ old('delivery_note_prefix', $setting->delivery_note_prefix ?? 'SJ') }}" placeholder="SJ">
+                            <small class="text-muted font-xs">Contoh: <code>001/<strong>{{ $setting->delivery_note_prefix ?: 'SJ' }}</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-dark small">Prefix Kwitansi Pembayaran</label>
-                            <input type="text" name="kwitansi_prefix" class="form-control fw-bold font-monospace text-dark" value="{{ old('kwitansi_prefix', $setting->kwitansi_prefix ?? 'KWT-DCI') }}" placeholder="KWT-DCI">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>KWT-DCI</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
+                            <input type="text" name="kwitansi_prefix" class="form-control fw-bold font-monospace text-dark" value="{{ old('kwitansi_prefix', $setting->kwitansi_prefix ?? 'KWT') }}" placeholder="KWT">
+                            <small class="text-muted font-xs">Contoh: <code>001/<strong>{{ $setting->kwitansi_prefix ?: 'KWT' }}</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
                         </div>
                     </div>
 
@@ -320,7 +320,7 @@
 
                         <div class="col-12">
                             <label class="form-label fw-semibold text-dark small">Informasi Rekening Bank & Petunjuk Transfer (Untuk Invoice)</label>
-                            <textarea name="company_bank_account" class="form-control" rows="3" placeholder="Contoh:&#10;Bank BCA - 1234567890 a.n PT Dwitama Cipta Internusa&#10;Bank Mandiri - 0987654321 a.n PT Dwitama Cipta Internusa">{{ old('company_bank_account', $setting->company_bank_account ?? '') }}</textarea>
+                            <textarea name="company_bank_account" class="form-control" rows="3" placeholder="Contoh:&#10;Bank: [Nama Bank]&#10;No. Rekening: [Nomor Rekening]&#10;Atas nama: [Nama Pemilik Rekening]">{{ old('company_bank_account', $setting->company_bank_account ?? '') }}</textarea>
                             <small class="text-muted font-xs">Instruksi ini akan dicetak di kotak <strong>Catatan Pembayaran</strong> pada PDF Invoice.</small>
                         </div>
                     </div>
@@ -341,18 +341,18 @@
                     <div class="row g-4">
                         <div class="col-md-5">
                             <label class="form-label fw-semibold text-dark small">Nama Lengkap Pejabat Penandatangan</label>
-                            <input type="text" name="signatory_name" class="form-control fw-bold" value="{{ old('signatory_name', $setting->signatory_name ?? 'Fauzan Septiana') }}" placeholder="Nama Pejabat">
+                            <input type="text" name="signatory_name" class="form-control fw-bold" value="{{ old('signatory_name', $setting->signatory_name ?? '') }}" placeholder="Nama lengkap pejabat">
                             <small class="text-muted font-xs">Nama terang yang tertera di atas kolom tanda tangan.</small>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label fw-semibold text-dark small">Jabatan Resmi</label>
-                            <input type="text" name="signatory_position" class="form-control" value="{{ old('signatory_position', $setting->signatory_position ?? 'Direktur Utama') }}" placeholder="Direktur Utama / Finance Manager">
+                            <input type="text" name="signatory_position" class="form-control" value="{{ old('signatory_position', $setting->signatory_position ?? '') }}" placeholder="Contoh: Direktur / Manajer Keuangan">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label fw-semibold text-dark small">Kota Tanda Tangan</label>
-                            <input type="text" name="signatory_city" class="form-control" value="{{ old('signatory_city', $setting->signatory_city ?? 'Bandung') }}" placeholder="Bandung">
+                            <input type="text" name="signatory_city" class="form-control" value="{{ old('signatory_city', $setting->signatory_city ?? '') }}" placeholder="Contoh: Jakarta">
                         </div>
 
                         <div class="col-12">
@@ -394,7 +394,7 @@
                             <div class="card bg-light border-0 rounded-3 p-4 mt-3">
                                 <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> Integrasi Tanda Tangan Otomatis</h6>
                                 <p class="text-muted small mb-0">
-                                    PDF Invoice, Kwitansi, dan Surat Jalan menggunakan nama <strong>{{ $setting->signatory_name ?? 'Fauzan Septiana' }}</strong> ({{ $setting->signatory_position ?? 'Direktur Utama' }}), bertempat di <strong>{{ $setting->signatory_city ?? 'Bandung' }}</strong>. PO tidak menampilkan stempel perusahaan.
+                                    PDF Invoice, Kwitansi, dan Surat Jalan menggunakan nama, jabatan, dan kota tanda tangan yang Anda isi di atas. PO tidak menampilkan stempel perusahaan.
                                 </p>
                             </div>
                         </div>

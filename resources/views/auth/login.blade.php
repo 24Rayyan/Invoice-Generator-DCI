@@ -30,10 +30,7 @@
                 <!-- Logo dari Upload User (Sesuaikan height agar proporsional seperti di Navbar) -->
                 <img src="{{ asset('storage/' . $globalSetting->company_logo) }}" alt="Logo" class="h-10 sm:h-12 w-auto object-contain">
             @else
-                <!-- Fallback Icon jika logo belum diupload / path tidak ketemu -->
-                <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-                    <i class="fa-solid fa-cube text-xl"></i>
-                </div>
+                <img src="{{ asset('images/company-growth.png') }}" alt="Ilustrasi perusahaan" class="h-16 w-16 object-contain">
             @endif
         </div>
         

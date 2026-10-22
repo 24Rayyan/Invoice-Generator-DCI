@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 return new class extends Migration
 {
@@ -11,8 +10,6 @@ return new class extends Migration
         // 1. Insert Default Roles
         $roles = [
             ['id' => 1, 'name' => 'super_admin', 'display_name' => 'Super Admin', 'description' => 'Akses penuh seluruh sistem', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 2, 'name' => 'admin', 'display_name' => 'Admin Operasional', 'description' => 'Akses pengelolaan invoice, client, dan transaksi', 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 3, 'name' => 'finance', 'display_name' => 'Finance / Kasir', 'description' => 'Akses pembayaran, pengeluaran, dan laporan keuangan', 'created_at' => now(), 'updated_at' => now()],
         ];
         DB::table('roles')->insertOrIgnore($roles);
 
@@ -27,15 +24,17 @@ return new class extends Migration
         DB::table('modules')->insertOrIgnore($modules);
 
         // 3. Grant All Modules to Super Admin
+        $superAdminId = DB::table('roles')->where('name', 'super_admin')->value('id');
+
         foreach ($modules as $module) {
             DB::table('role_has_modules')->insertOrIgnore([
-                'role_id' => 1,
+                'role_id' => $superAdminId,
                 'module_id' => $module['id'],
             ]);
         }
 
         // 4. Set existing users without role to Super Admin (opsional/aman)
-        DB::table('users')->whereNull('role_id')->update(['role_id' => 1]);
+        DB::table('users')->whereNull('role_id')->update(['role_id' => $superAdminId]);
     }
 
     public function down(): void

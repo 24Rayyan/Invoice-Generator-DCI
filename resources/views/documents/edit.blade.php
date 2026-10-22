@@ -79,17 +79,19 @@
                         <input type="text" name="document_number" class="form-control fw-bold text-primary font-monospace" value="{{ $document->document_number }}" required>
                     </div>
 
-                    <div class="col-md-6">
-                        <label for="project_id" class="form-label fw-semibold text-dark small">Project (Opsional)</label>
-                        <select name="project_id" id="project_id" class="form-select select2">
-                            <option value="">-- Tidak terkait project --</option>
-                            @foreach($projects as $project)
-                                <option value="{{ $project->id }}" {{ old('project_id', $document->project_id) == $project->id ? 'selected' : '' }}>
-                                    {{ $project->project_name }}{{ $project->client?->name ? ' — ' . $project->client->name : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if(auth()->user()->hasAccess('projects'))
+                        <div class="col-md-6">
+                            <label for="project_id" class="form-label fw-semibold text-dark small">Project (Opsional)</label>
+                            <select name="project_id" id="project_id" class="form-select select2">
+                                <option value="">-- Tidak terkait project --</option>
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}" {{ old('project_id', $document->project_id) == $project->id ? 'selected' : '' }}>
+                                        {{ $project->project_name }}{{ $project->client?->name ? ' — ' . $project->client->name : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     <div class="col-md-4">
                         <label class="form-label fw-semibold text-dark small">

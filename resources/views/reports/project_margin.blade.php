@@ -18,9 +18,11 @@
         <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary btn-sm me-1">
             <i class="fa-solid fa-diagram-project me-1"></i> Project Grouping
         </a>
-        <a href="{{ route('projects.index') }}" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-folder-plus me-1"></i> Kelola Project
-        </a>
+        @if(auth()->user()->hasAccess('projects'))
+            <a href="{{ route('projects.index') }}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-folder-plus me-1"></i> Kelola Project
+            </a>
+        @endif
     </div>
 </div>
 
@@ -116,9 +118,13 @@
                     @php $invoice = $row['invoice']; @endphp
                     <tr>
                         <td class="ps-4">
-                            <a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">
-                                {{ $invoice->document_number }}
-                            </a>
+                            @if(auth()->user()->hasAccess('invoices'))
+                                <a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">
+                                    {{ $invoice->document_number }}
+                                </a>
+                            @else
+                                <span class="fw-bold">{{ $invoice->document_number }}</span>
+                            @endif
                             <div class="text-muted font-xs">{{ $invoice->date?->format('d/m/Y') }}</div>
                         </td>
                         <td>{{ $invoice->customer->name ?? '-' }}</td>

@@ -192,7 +192,7 @@
         Periode laporan: <strong>{{ $reportData['formatted_start_date'] }}</strong> s/d <strong>{{ $reportData['formatted_end_date'] }}</strong>
     </div>
     <span class="small text-muted fw-semibold">
-        {{ $setting->company_name ?? 'PT Dwitama Cipta Internusa' }}
+        {{ $setting->company_name ?? 'Nama Perusahaan' }}
     </span>
 </div>
 

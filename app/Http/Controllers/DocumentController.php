@@ -92,7 +92,7 @@ class DocumentController extends Controller
         $currentYear = date('Y');  // Tahun Berjalan (2026)
         $romanMonth = $this->getRomanMonth($currentMonth);
         
-        $prefix = ($type == 'PO') ? ($setting->po_prefix ?: 'PO') : ($setting->invoice_prefix ?: 'INV-DCI');
+        $prefix = ($type == 'PO') ? ($setting->po_prefix ?: 'PO') : ($setting->invoice_prefix ?: 'INV');
         $searchPattern = "%/{$prefix}/{$romanMonth}/{$currentYear}";
 
         $lastDoc = Document::where('document_number', 'LIKE', $searchPattern)
@@ -181,25 +181,36 @@ public function index(Request $request)
 
     public function show(Document $document)
     {
-        $document->load(['customer', 'project', 'items', 'directExpenses.category']);
+        $document->load(['customer', 'project', 'items']);
         $setting = Setting::getSetting();
-        $margin = app(ProjectMarginService::class)->forInvoice($document);
+        $canViewInvoiceMargin = $document->type === 'INVOICE'
+            && auth()->user()->hasAccess('invoice_margin');
+        if ($canViewInvoiceMargin) {
+            $document->load('directExpenses.category');
+        }
 
-        $unallocatedExpenses = Transaction::with('category')
-            ->expense()
-            ->unallocated()
-            ->orderByDesc('transaction_date')
-            ->orderByDesc('id')
-            ->get();
+        $margin = $canViewInvoiceMargin
+            ? app(ProjectMarginService::class)->forInvoice($document)
+            : null;
+        $unallocatedExpenses = $canViewInvoiceMargin
+            ? Transaction::with('category')
+                ->expense()
+                ->unallocated()
+                ->orderByDesc('transaction_date')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
 
-        return view('documents.show', compact('document', 'setting', 'margin', 'unallocatedExpenses'));
+        return view('documents.show', compact('document', 'setting', 'margin', 'unallocatedExpenses', 'canViewInvoiceMargin'));
     }
 
     public function create()
     {
         $setting = Setting::getSetting();
         $customers = Customer::all();
-        $projects = Project::activeForSelection();
+        $projects = auth()->user()->hasAccess('projects')
+            ? Project::activeForSelection()
+            : collect();
         $autoNumber = $this->generateDocumentNumber('INVOICE');
 
         return view('documents.create', compact('customers', 'projects', 'autoNumber', 'setting'));
@@ -207,9 +218,10 @@ public function index(Request $request)
 
     public function store(Request $request)
     {
+        $canManageProjects = auth()->user()->hasAccess('projects');
         $request->validate([
             'customer_id'          => 'required',
-            'project_id'           => 'nullable|integer|exists:projects,id',
+            'project_id'           => $canManageProjects ? 'nullable|integer|exists:projects,id' : 'prohibited',
             'type'                 => 'required',
             'document_number'      => 'required|unique:documents,document_number',
             'item_desc'            => 'required|array|min:1',
@@ -262,7 +274,7 @@ public function index(Request $request)
         $documentDate = date('Y-m-d');
         $documentData = [
             'customer_id'          => $request->customer_id,
-            'project_id'           => $request->type === 'INVOICE' ? $request->project_id : null,
+            'project_id'           => $request->type === 'INVOICE' && $canManageProjects ? $request->project_id : null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
             'date'                 => $documentDate,
@@ -277,12 +289,12 @@ public function index(Request $request)
         if ($request->type === 'INVOICE') {
             $documentData['delivery_note_number'] = $this->generateAuxiliaryDocumentNumber(
                 'delivery_note_number',
-                $setting->delivery_note_prefix ?: 'SJ-DCI',
+                $setting->delivery_note_prefix ?: 'SJ',
                 $documentDate
             );
             $documentData['receipt_number'] = $this->generateAuxiliaryDocumentNumber(
                 'receipt_number',
-                $setting->kwitansi_prefix ?: 'KWT-DCI',
+                $setting->kwitansi_prefix ?: 'KWT',
                 $documentDate
             );
         }
@@ -306,7 +318,9 @@ public function index(Request $request)
 
         // Ambil data customers untuk dropdown pilihan customer
         $customers = Customer::orderBy('name', 'asc')->get();
-        $projects = Project::activeForSelection($document->project_id);
+        $projects = auth()->user()->hasAccess('projects')
+            ? Project::activeForSelection($document->project_id)
+            : collect();
 
         // Pastikan relasi items ter-load jika dibutuhkan di form edit
         $document->load('items');
@@ -316,9 +330,11 @@ public function index(Request $request)
 
     public function update(Request $request, $id)
     {
+        $document = Document::findOrFail($id);
+        $canManageProjects = auth()->user()->hasAccess('projects');
         $request->validate([
             'customer_id'          => 'required',
-            'project_id'           => 'nullable|integer|exists:projects,id',
+            'project_id'           => $canManageProjects ? 'nullable|integer|exists:projects,id' : 'prohibited',
             'type'                 => 'required',
             'document_number'      => 'required|unique:documents,document_number,' . $id,
             'status'               => 'required',
@@ -337,7 +353,6 @@ public function index(Request $request)
         ]);
 
         $setting = Setting::getSetting();
-        $document = Document::findOrFail($id);
         $total_bruto = 0;
         
         $document->items()->delete();
@@ -369,7 +384,9 @@ public function index(Request $request)
 
         $documentData = [
             'customer_id'          => $request->customer_id,
-            'project_id'           => $request->type === 'INVOICE' ? $request->project_id : null,
+            'project_id'           => $request->type === 'INVOICE'
+                ? ($canManageProjects ? $request->project_id : $document->project_id)
+                : null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
             'status'               => $request->status,
@@ -383,9 +400,9 @@ public function index(Request $request)
         ];
         if ($request->type === 'INVOICE') {
             $documentData['delivery_note_number'] = $document->delivery_note_number
-                ?: $this->generateAuxiliaryDocumentNumber('delivery_note_number', $setting->delivery_note_prefix ?: 'SJ-DCI', $document->date);
+                ?: $this->generateAuxiliaryDocumentNumber('delivery_note_number', $setting->delivery_note_prefix ?: 'SJ', $document->date);
             $documentData['receipt_number'] = $document->receipt_number
-                ?: $this->generateAuxiliaryDocumentNumber('receipt_number', $setting->kwitansi_prefix ?: 'KWT-DCI', $document->date);
+                ?: $this->generateAuxiliaryDocumentNumber('receipt_number', $setting->kwitansi_prefix ?: 'KWT', $document->date);
         }
         $document->update($documentData);
 

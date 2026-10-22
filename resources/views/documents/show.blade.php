@@ -17,7 +17,7 @@
         <h3 class="fw-bold text-dark mb-1">{{ $document->document_number }}</h3>
         <p class="text-muted mb-0 font-sm">
             {{ $document->customer->name ?? 'Tanpa Customer' }}
-            @if($document->project)
+            @if($document->project && auth()->user()->hasAccess('projects'))
                 · <a href="{{ route('projects.show', $document->project) }}" class="text-decoration-none">{{ $document->project->project_name }}</a>
             @endif
             · {{ $document->date?->format('d/m/Y') }}
@@ -65,7 +65,7 @@
 </div>
 @endif
 
-@if($document->type === 'INVOICE')
+@if($document->type === 'INVOICE' && $canViewInvoiceMargin)
 <div class="row g-3 mb-4">
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
@@ -155,7 +155,7 @@
     </div>
 </div>
 
-@if($document->type === 'INVOICE')
+@if($document->type === 'INVOICE' && $canViewInvoiceMargin)
 <div class="card border-0 shadow-sm rounded-4 mb-5">
     <div class="card-header bg-white border-0 py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div>

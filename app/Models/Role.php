@@ -22,6 +22,13 @@ class Role extends Model
         return $this->belongsToMany(Module::class, 'role_has_modules');
     }
 
+    public function hasFullAccess(): bool
+    {
+        $roleName = strtolower(trim($this->name ?? ''));
+
+        return $roleName === 'super_admin';
+    }
+
     // Helper untuk mengecek apakah role punya akses ke module key tertentu
     public function hasModule($moduleKey): bool
     {

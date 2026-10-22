@@ -8,7 +8,7 @@
     <table border="1">
         <tr>
             <th colspan="4" style="font-size: 14pt; font-weight: bold; text-align: center; background-color: #0f172a; color: #ffffff;">
-                {{ strtoupper($setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA') }}
+                {{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}
             </th>
         </tr>
         <tr>

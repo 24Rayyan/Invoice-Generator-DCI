@@ -47,7 +47,7 @@
             </div>
             <div class="col-md-6 text-end">
                 <span class="badge bg-light text-dark border p-2 font-xs">
-                    <i class="fa-solid fa-building me-1 text-primary"></i> {{ $setting->company_name ?? 'PT Dwitama Cipta Internusa' }} | NPWP 16 Digit: {{ $setting->company_npwp16 ?? '-' }}
+                    <i class="fa-solid fa-building me-1 text-primary"></i> {{ $setting->company_name ?? 'Nama Perusahaan' }} | NPWP 16 Digit: {{ $setting->company_npwp16 ?? '-' }}
                 </span>
             </div>
         </form>

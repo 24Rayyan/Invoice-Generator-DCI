@@ -9,7 +9,7 @@
         <!-- HEADER PERUSAHAAN -->
         <tr>
             <th colspan="8" style="font-size: 14pt; font-weight: bold; text-align: center; background-color: #0f172a; color: #ffffff;">
-                {{ strtoupper($setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA') }}
+                {{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}
             </th>
         </tr>
         <tr>

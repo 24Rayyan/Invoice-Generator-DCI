@@ -294,7 +294,7 @@
             @if($setting && $setting->company_logo && file_exists(public_path('storage/' . $setting->company_logo)))
                 <img src="{{ public_path('storage/' . $setting->company_logo) }}" class="company-logo">
             @else
-                <div class="company-name">{{ strtoupper($setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA') }}</div>
+                <div class="company-name">{{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}</div>
             @endif
             
             <div class="company-details">
@@ -399,14 +399,14 @@
         <tr>
             <!-- Kolom Tanda Tangan -->
             <td class="col-signature">
-                <div class="signature-title">{{ $setting->signatory_city ?? 'Bandung' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Ditandatangani oleh,</div>
+                <div class="signature-title">{{ $setting->signatory_city ?? $setting->company_city ?? 'Kota' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Ditandatangani oleh,</div>
                 <div class="stamp-space">
                     @if($setting->stamp_invoice_enabled && $setting->company_stamp && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->company_stamp))
                         <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->path($setting->company_stamp) }}" class="company-stamp" alt="Stempel perusahaan">
                     @endif
                 </div>
                 <div class="signer-name">{{ strtoupper($setting->signatory_name ?? 'ADMIN / FINANCE') }}</div>
-                <div class="signer-title">{{ $setting->signatory_position ?? 'Direktur Utama' }}</div>
+                <div class="signer-title">{{ $setting->signatory_position ?? 'Jabatan' }}</div>
             </td>
 
             <!-- Kolom Catatan Bank & Terms -->

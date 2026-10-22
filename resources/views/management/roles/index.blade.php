@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="h3 fw-bold tracking-tight text-white m-0">Role & Module Access Matrix</h1>
                 <p class="text-secondary small mt-1 mb-0" style="max-width: 600px;">
-                    Atur struktur peran (role), daftarkan kategori baru, dan alokasikan izin akses modul secara fleksibel.
+                    Atur role dan izin akses setiap modul aplikasi secara terpisah, termasuk invoice, proyek, transaksi, dan laporan.
                 </p>
             </div>
 
@@ -93,7 +93,7 @@
         <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
             <div class="d-flex align-items-center gap-3">
                 <div class="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 38px; height: 38px;">
-                    <i class="fa-solid fa-shield-plus"></i>
+                    <img src="{{ asset('images/business-management.png') }}" alt="" width="24" height="24" class="object-fit-contain">
                 </div>
                 <div>
                     <h2 class="h6 fw-bold text-dark m-0">Tambah Role Baru</h2>
@@ -161,18 +161,19 @@
                     // Pastikan dikonversi menjadi array integer secara murni
                     $assignedModuleIds = array_map('intval', $role->modules->pluck('id')->toArray());
                     $allModuleIds = array_map('intval', $modules->pluck('id')->toArray());
-                    $isSuperAdmin = ($role->name === 'super_admin');
-                    $isSystemRole = in_array($role->name, ['super_admin', 'admin', 'finance'], true);
+                    $isFullAccess = $role->hasFullAccess();
+                    $isSystemRole = $role->hasFullAccess();
                 @endphp
 
                 <div class="card border rounded-4 shadow-sm overflow-hidden bg-white" 
                      x-data="{
                          selectedModules: {{ json_encode($assignedModuleIds) }},
                          allModules: {{ json_encode($allModuleIds) }},
-                         isSuperAdmin: {{ $isSuperAdmin ? 'true' : 'false' }},
+                         isFullAccess: {{ $isFullAccess ? 'true' : 'false' }},
+                         isOpen: false,
                          
                          toggleAll() {
-                             if (this.isSuperAdmin) return;
+                             if (this.isFullAccess) return;
                              if (this.selectedModules.length === this.allModules.length) {
                                  this.selectedModules = [];
                              } else {
@@ -181,11 +182,11 @@
                          },
                          
                          isGranted(id) {
-                             return this.selectedModules.map(Number).includes(Number(id));
+                             return this.isFullAccess || this.selectedModules.map(Number).includes(Number(id));
                          },
 
                          toggleModule(id) {
-                             if (this.isSuperAdmin) return;
+                             if (this.isFullAccess) return;
                              const numId = Number(id);
                              if (this.isGranted(numId)) {
                                  this.selectedModules = this.selectedModules.filter(item => Number(item) !== numId);
@@ -210,7 +211,7 @@
                             </div>
 
                             <div class="d-flex flex-wrap align-items-center gap-2">
-                            @if($isSuperAdmin)
+                            @if($isFullAccess)
                                 <span class="badge bg-dark text-white px-3 py-2 rounded-pill fw-bold" style="font-size: 0.72rem;">
                                     Full Access Guaranteed
                                 </span>
@@ -250,61 +251,82 @@
                                     @endif
                                 @endif
                             </div>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 d-inline-flex align-items-center gap-2"
+                                    @click="isOpen = !isOpen"
+                                    :aria-expanded="isOpen.toString()"
+                                    aria-controls="role-modules-{{ $role->id }}">
+                                <span x-text="isOpen ? 'Tutup Akses' : 'Atur Akses'"></span>
+                                <i class="fa-solid fa-chevron-down transition-transform"
+                                   :class="{ 'rotate-180': isOpen }"
+                                   aria-hidden="true"></i>
+                            </button>
                         </div>
                     </div>
 
                     <!-- Form & Interactive Module Selection Grid -->
+                    <div id="role-modules-{{ $role->id }}"
+                         x-show="isOpen"
+                         x-transition.duration.200ms
+                         style="display: none;">
                     <form action="{{ route('management.roles.grant-modules', $role) }}" method="POST">
                         @csrf
                         <div class="card-body p-3 p-md-4">
-                            <div class="row g-3">
-                                @foreach($modules as $module)
-                                    @php 
-                                        $modId = (int) $module->id; 
-                                        $isAssigned = in_array($modId, $assignedModuleIds, true);
-                                    @endphp
-                                    <div class="col-12 col-sm-6 col-lg-3">
-                                        <label for="mod_{{ $role->id }}_{{ $modId }}" 
-                                               class="w-100 h-100 p-3 rounded-3 border user-select-none cursor-pointer transition-all d-block"
-                                               :class="{
-                                                   'border-primary bg-primary bg-opacity-10': isGranted({{ $modId }}),
-                                                   'border-light-subtle bg-white': !isGranted({{ $modId }})
-                                               }">
-                                            
-                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                                <!-- Title Module -->
-                                                <h4 class="fw-bold text-dark m-0" style="font-size: 0.88rem;">{{ $module->name }}</h4>
-                                                
-                                                <!-- Standard Native Checkbox -->
-                                                <input type="checkbox" 
-                                                       id="mod_{{ $role->id }}_{{ $modId }}"
-                                                       name="modules[]" 
-                                                       value="{{ $modId }}" 
-                                                       class="form-check-input mt-0 fs-5 cursor-pointer"
-                                                       :checked="isGranted({{ $modId }})"
-                                                       @change="toggleModule({{ $modId }})"
-                                                       {{ $isAssigned ? 'checked' : '' }}
-                                                       {{ $isSuperAdmin ? 'disabled checked' : '' }}>
-                                            </div>
-
-                                            <div class="d-flex align-items-center justify-content-between">
-                                                <span class="text-muted font-monospace" style="font-size: 0.72rem;">{{ $module->key }}</span>
-                                                
-                                                <!-- Badge Status Text (AKTIF / NONAKTIF) -->
-                                                <span class="badge rounded-pill fw-bold" 
-                                                      :class="isGranted({{ $modId }}) ? 'bg-primary text-white' : 'bg-secondary bg-opacity-10 text-muted'"
-                                                      style="font-size: 0.65rem;"
-                                                      x-text="isGranted({{ $modId }}) ? 'AKTIF' : 'NONAKTIF'">
-                                                </span>
-                                            </div>
-                                        </label>
-                                    </div>
+                            <div class="d-flex flex-column gap-4">
+                                @foreach($moduleGroups as $group)
+                                    <section>
+                                        <div class="d-flex align-items-center gap-2 border-bottom pb-2 mb-3">
+                                            <span class="rounded-2 bg-primary bg-opacity-10 text-primary d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                <i class="fa-solid {{ $group['icon'] }} small"></i>
+                                            </span>
+                                            <h4 class="h6 fw-bold text-dark mb-0">{{ $group['name'] }}</h4>
+                                            <span class="badge bg-light text-muted border rounded-pill">{{ $group['modules']->count() }}</span>
+                                        </div>
+                                        <div class="row g-3">
+                                            @foreach($group['modules'] as $module)
+                                                @php
+                                                    $modId = (int) $module->id;
+                                                    $isAssigned = in_array($modId, $assignedModuleIds, true);
+                                                @endphp
+                                                <div class="col-12 col-sm-6 col-lg-3">
+                                                    <label for="mod_{{ $role->id }}_{{ $modId }}"
+                                                           class="w-100 h-100 p-3 rounded-3 border user-select-none cursor-pointer transition-all d-block"
+                                                           :class="{
+                                                               'border-primary bg-primary bg-opacity-10': isGranted({{ $modId }}),
+                                                               'border-light-subtle bg-white': !isGranted({{ $modId }})
+                                                           }">
+                                                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                                            <h5 class="fw-bold text-dark m-0" style="font-size: 0.88rem;">{{ $module->name }}</h5>
+                                                            <input type="checkbox"
+                                                                   id="mod_{{ $role->id }}_{{ $modId }}"
+                                                                   name="modules[]"
+                                                                   value="{{ $modId }}"
+                                                                   class="form-check-input mt-0 fs-5 cursor-pointer"
+                                                                   :checked="isGranted({{ $modId }})"
+                                                                   @change="toggleModule({{ $modId }})"
+                                                                   {{ $isAssigned || $isFullAccess ? 'checked' : '' }}
+                                                                   {{ $isFullAccess ? 'disabled' : '' }}>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-between">
+                                                            <span class="text-muted font-monospace" style="font-size: 0.72rem;">{{ $module->key }}</span>
+                                                            <span class="badge rounded-pill fw-bold"
+                                                                  :class="isGranted({{ $modId }}) ? 'bg-primary text-white' : 'bg-secondary bg-opacity-10 text-muted'"
+                                                                  style="font-size: 0.65rem;"
+                                                                  x-text="isGranted({{ $modId }}) ? 'AKTIF' : 'NONAKTIF'">
+                                                            </span>
+                                                        </div>
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </section>
                                 @endforeach
                             </div>
                         </div>
 
                         <!-- Card Footer: Save Button -->
-                        @if(!$isSuperAdmin)
+                        @if(!$isFullAccess)
                             <div class="card-footer bg-white border-top p-3 d-flex align-items-center justify-content-end">
                                 <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
                                     <i class="fa-solid fa-floppy-disk small"></i> Simpan Hak Akses Peran
@@ -312,6 +334,7 @@
                             </div>
                         @endif
                     </form>
+                    </div>
 
                 </div>
             @endforeach

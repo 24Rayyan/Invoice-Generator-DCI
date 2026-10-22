@@ -8,7 +8,9 @@
         <h3 class="fw-bold text-dark mb-1"><i class="fa-solid fa-chart-pie text-success me-2"></i>Project Margin Overview</h3>
         <p class="text-muted mb-0">Invoice dalam project digabungkan per project. Invoice yang belum terhubung ditampilkan sebagai baris tersendiri.</p>
     </div>
-    <a href="{{ route('projects.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-diagram-project me-1"></i>Kelola Project</a>
+    @if(auth()->user()->hasAccess('projects'))
+        <a href="{{ route('projects.index') }}" class="btn btn-outline-primary"><i class="fa-solid fa-diagram-project me-1"></i>Kelola Project</a>
+    @endif
 </div>
 
 <div class="row g-3 mb-4">
@@ -50,7 +52,14 @@
                             <td><span class="badge bg-{{ $project->status === 'active' ? 'success' : ($project->status === 'completed' ? 'secondary' : 'warning') }}-subtle text-dark border">{{ ['active' => 'Aktif', 'on_hold' => 'Ditunda', 'completed' => 'Selesai'][$project->status] ?? $project->status }}</span></td>
                         @else
                             @php($invoice = $row['invoice'])
-                            <td class="ps-4"><a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">{{ $invoice->document_number }}</a><small class="d-block text-muted">Invoice belum terhubung ke project</small></td>
+                            <td class="ps-4">
+                                @if(auth()->user()->hasAccess('invoices'))
+                                    <a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">{{ $invoice->document_number }}</a>
+                                @else
+                                    <span class="fw-bold">{{ $invoice->document_number }}</span>
+                                @endif
+                                <small class="d-block text-muted">Invoice belum terhubung ke project</small>
+                            </td>
                             <td>{{ $invoice->customer?->name ?? '—' }}</td>
                             <td><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>
                         @endif

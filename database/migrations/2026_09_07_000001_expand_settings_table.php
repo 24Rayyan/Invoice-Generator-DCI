@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('settings', function (Blueprint $table) {
             // Profil & Identitas Bisnis
             if (!Schema::hasColumn('settings', 'company_name')) {
-                $table->string('company_name')->default('PT Dwitama Cipta Internusa')->after('id');
+                $table->string('company_name')->nullable()->after('id');
             }
             if (!Schema::hasColumn('settings', 'company_tagline')) {
                 $table->string('company_tagline')->default('Business & IT Solutions')->nullable()->after('company_name');
@@ -26,15 +26,15 @@ return new class extends Migration
                 $table->string('company_website')->nullable()->after('company_phone');
             }
             if (!Schema::hasColumn('settings', 'company_city')) {
-                $table->string('company_city')->default('Bandung')->after('company_address');
+                $table->string('company_city')->nullable()->after('company_address');
             }
 
             // Penomoran Dokumen
             if (!Schema::hasColumn('settings', 'delivery_note_prefix')) {
-                $table->string('delivery_note_prefix')->default('SJ-DCI')->after('invoice_last_number');
+                $table->string('delivery_note_prefix')->default('SJ')->after('invoice_last_number');
             }
             if (!Schema::hasColumn('settings', 'kwitansi_prefix')) {
-                $table->string('kwitansi_prefix')->default('KWT-DCI')->after('delivery_note_prefix');
+                $table->string('kwitansi_prefix')->default('KWT')->after('delivery_note_prefix');
             }
 
             // Pajak & Finansial
@@ -53,13 +53,13 @@ return new class extends Migration
 
             // Otorisasi & Pejabat Penandatangan
             if (!Schema::hasColumn('settings', 'signatory_name')) {
-                $table->string('signatory_name')->default('Fauzan Septiana')->after('currency_code');
+                $table->string('signatory_name')->nullable()->after('currency_code');
             }
             if (!Schema::hasColumn('settings', 'signatory_position')) {
-                $table->string('signatory_position')->default('Direktur Utama')->after('signatory_name');
+                $table->string('signatory_position')->nullable()->after('signatory_name');
             }
             if (!Schema::hasColumn('settings', 'signatory_city')) {
-                $table->string('signatory_city')->default('Bandung')->after('signatory_position');
+                $table->string('signatory_city')->nullable()->after('signatory_position');
             }
 
             // Catatan Footer & Syarat Ketentuan Standar

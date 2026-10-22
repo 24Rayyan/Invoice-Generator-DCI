@@ -231,7 +231,7 @@
             @if($setting && $setting->company_logo && file_exists(public_path('storage/' . $setting->company_logo)))
                 <img src="{{ public_path('storage/' . $setting->company_logo) }}" class="company-logo">
             @else
-                <div class="company-name">{{ strtoupper($setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA') }}</div>
+                <div class="company-name">{{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}</div>
             @endif
             
             <div class="company-details">
@@ -356,7 +356,7 @@
         <tr>
             <td class="col-empty"></td>
             <td class="col-signature">
-                <div class="sig-title">{{ $setting->signatory_city ?? $setting->company_city ?? 'Bandung' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Hormat Kami,</div>
+                <div class="sig-title">{{ $setting->signatory_city ?? $setting->company_city ?? 'Kota' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Hormat Kami,</div>
                 
                 <div class="stamp-space">
                     @if($setting->stamp_receipt_enabled && $setting->company_stamp && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->company_stamp))
@@ -364,7 +364,7 @@
                     @endif
                 </div>
                 <br><br>
-                <div class="sig-name">{{ $setting->signatory_name ?? 'Fauzan Septiana' }}</div>
+                <div class="sig-name">{{ $setting->signatory_name ?? 'Nama Pejabat' }}</div>
                 <div class="sig-caption">{{ $setting->company_name ?? 'PT. DWITAMA CIPTA INTERNUSA' }}</div>
             </td>
         </tr>

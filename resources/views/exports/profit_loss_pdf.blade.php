@@ -99,7 +99,7 @@
     <table class="header-table">
         <tr>
             <td style="width: 60%; vertical-align: top;">
-                <div class="company-name">{{ $setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA' }}</div>
+                <div class="company-name">{{ $setting->company_name ?? 'Nama Perusahaan' }}</div>
                 <div class="company-info">
                     {{ $setting->company_address ?? 'Jakarta, Indonesia' }}<br>
                     NPWP 16 Digit: <strong>{{ $setting->company_npwp16 ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}

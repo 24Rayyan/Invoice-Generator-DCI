@@ -22,10 +22,14 @@ class TransactionRequest extends FormRequest
             'payment_method'    => ['required', 'string'],
             'description'       => ['nullable', 'string'],
             'invoice_id'        => [
-                'nullable',
+                $this->user()->hasAccess('invoice_margin') ? 'nullable' : 'prohibited',
                 Rule::exists('documents', 'id')->where('type', 'INVOICE'),
             ],
-            'project_id'        => ['nullable', 'integer', 'exists:projects,id'],
+            'project_id'        => [
+                $this->user()->hasAccess('projects') ? 'nullable' : 'prohibited',
+                'integer',
+                'exists:projects,id',
+            ],
             'receipt_file'      => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,webp', 'max:5120'],
             'event_date'        => ['nullable', 'date'],
             'location'          => ['nullable', 'string', 'max:255'],

@@ -117,14 +117,18 @@
                             <small class="text-muted font-xs d-block mt-1">Format: JPG, PNG, PDF (Maks. 5 MB)</small>
                         </div>
 
-                        @include('transactions.partials.invoice-select', [
-                            'invoices' => $invoices,
-                            'selectedInvoiceId' => old('invoice_id'),
-                        ])
-                        @include('transactions.partials.project-select', [
-                            'projects' => $projects,
-                            'selectedProjectId' => old('project_id'),
-                        ])
+                        @if(auth()->user()->hasAccess('invoice_margin'))
+                            @include('transactions.partials.invoice-select', [
+                                'invoices' => $invoices,
+                                'selectedInvoiceId' => old('invoice_id'),
+                            ])
+                        @endif
+                        @if(auth()->user()->hasAccess('projects'))
+                            @include('transactions.partials.project-select', [
+                                'projects' => $projects,
+                                'selectedProjectId' => old('project_id'),
+                            ])
+                        @endif
                     </div>
                 </div>
             </div>

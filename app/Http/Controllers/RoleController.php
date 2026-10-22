@@ -12,8 +12,35 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::with('modules')->withCount('users')->orderBy('id')->get();
-        $modules = Module::all();
-        return view('management.roles.index', compact('roles', 'modules'));
+        $modules = Module::orderBy('name')->get();
+        $moduleGroups = collect([
+            ['name' => 'Dashboard', 'icon' => 'fa-gauge-high', 'keys' => ['dashboard']],
+            ['name' => 'Invoicing & PO', 'icon' => 'fa-file-invoice-dollar', 'keys' => ['invoices', 'customers', 'invoice_margin', 'projects']],
+            ['name' => 'Buku Kas & Transaksi', 'icon' => 'fa-money-bill-transfer', 'keys' => ['expenses', 'categories']],
+            ['name' => 'Laporan Keuangan', 'icon' => 'fa-chart-line', 'keys' => ['financial_reports', 'profit_loss', 'project_margin']],
+            ['name' => 'User Management', 'icon' => 'fa-user-gear', 'keys' => ['user_management', 'activity_logs']],
+            ['name' => 'Pengaturan', 'icon' => 'fa-sliders', 'keys' => ['settings']],
+        ])->map(function (array $group) use ($modules) {
+            $group['modules'] = $modules
+                ->whereIn('key', $group['keys'])
+                ->sortBy(fn (Module $module) => array_search($module->key, $group['keys'], true))
+                ->values();
+
+            return $group;
+        })->filter(fn (array $group) => $group['modules']->isNotEmpty())
+            ->values();
+
+        $groupedKeys = $moduleGroups->flatMap(fn (array $group) => $group['keys']);
+        $ungroupedModules = $modules->whereNotIn('key', $groupedKeys)->values();
+        if ($ungroupedModules->isNotEmpty()) {
+            $moduleGroups->push([
+                'name' => 'Modul Lainnya',
+                'icon' => 'fa-cubes',
+                'modules' => $ungroupedModules,
+            ]);
+        }
+
+        return view('management.roles.index', compact('roles', 'modules', 'moduleGroups'));
     }
 
     public function store(Request $request)
@@ -35,7 +62,7 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
-        if (in_array($role->name, ['super_admin', 'admin', 'finance'], true)) {
+        if ($role->hasFullAccess()) {
             return back()->with('error', 'Role bawaan sistem tidak dapat dihapus.');
         }
 

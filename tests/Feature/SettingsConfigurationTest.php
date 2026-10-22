@@ -39,6 +39,13 @@ class SettingsConfigurationTest extends TestCase
     {
         $setting = Setting::getSetting();
 
+        $this->assertNull($setting->company_name);
+        $this->assertNull($setting->company_city);
+        $this->assertNull($setting->company_bank_account);
+        $this->assertSame('INV', $setting->invoice_prefix);
+        $this->assertNull($setting->signatory_name);
+        $this->assertNull($setting->signatory_position);
+        $this->assertNull($setting->signatory_city);
         $this->assertTrue($setting->stamp_invoice_enabled);
         $this->assertTrue($setting->stamp_delivery_note_enabled);
         $this->assertFalse($setting->stamp_receipt_enabled);
@@ -48,6 +55,11 @@ class SettingsConfigurationTest extends TestCase
             ->assertOk()
             ->assertSee('NPWP 16 Digit Penjual')
             ->assertSee('Stempel Perusahaan')
+            ->assertSee('placeholder="Contoh: PT Sinar Abadi"', false)
+            ->assertSee('Bank: [Nama Bank]')
+            ->assertSee('placeholder="Nama lengkap pejabat"', false)
+            ->assertSee('name="invoice_prefix"', false)
+            ->assertSee('placeholder="INV"', false)
             ->assertDontSee('name="company_tagline"', false)
             ->assertDontSee('name="company_website"', false);
     }

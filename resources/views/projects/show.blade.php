@@ -33,7 +33,9 @@
     </div>
     <div class="d-flex gap-2">
         <a href="#project-settings" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square me-1"></i>Edit Project</a>
-        <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary"><i class="fa-solid fa-chart-pie me-1"></i>Laporan Margin</a>
+        @if(auth()->user()->hasAccess('project_margin'))
+            <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary"><i class="fa-solid fa-chart-pie me-1"></i>Laporan Margin</a>
+        @endif
         <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Daftar Project</a>
     </div>
 </div>
@@ -60,7 +62,13 @@
             <tbody>
                 @forelse($project->invoices as $invoice)
                     <tr>
-                        <td class="ps-4"><a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">{{ $invoice->document_number }}</a></td>
+                        <td class="ps-4">
+                            @if(auth()->user()->hasAccess('invoices'))
+                                <a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">{{ $invoice->document_number }}</a>
+                            @else
+                                <span class="fw-bold">{{ $invoice->document_number }}</span>
+                            @endif
+                        </td>
                         <td>{{ $invoice->customer?->name ?? '—' }}</td>
                         <td>{{ $invoice->date?->format('d/m/Y') }}</td>
                         <td><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>

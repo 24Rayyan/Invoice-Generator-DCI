@@ -27,7 +27,7 @@
         @if($setting && $setting->company_logo && file_exists(public_path('storage/' . $setting->company_logo)))
             <img src="{{ public_path('storage/' . $setting->company_logo) }}" class="logo"><br>
         @else
-            <div class="company-title">{{ strtoupper($setting->company_name ?? 'PT DWITAMA CIPTA INTERNUSA') }}</div>
+            <div class="company-title">{{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}</div>
         @endif
         
         <div class="company-info">{{ $setting->company_address ?? 'Alamat Belum Diset' }}</div>
@@ -100,10 +100,10 @@
 
     <div class="signature-area">
         <div class="signature-box">
-            <div style="font-size: 8.5pt; color: #64748b;">{{ $setting->signatory_city ?? $setting->company_city ?? 'Bandung' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Disetujui Oleh,</div>
+            <div style="font-size: 8.5pt; color: #64748b;">{{ $setting->signatory_city ?? $setting->company_city ?? 'Kota' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Disetujui Oleh,</div>
             <br><br><br><br>
-            <div class="signer-name">{{ $setting->signatory_name ?? 'Fauzan Septiana' }}</div>
-            <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">{{ $setting->signatory_position ?? 'Direktur Utama' }}</div>
+            <div class="signer-name">{{ $setting->signatory_name ?? 'Nama Pejabat' }}</div>
+            <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">{{ $setting->signatory_position ?? 'Jabatan' }}</div>
         </div>
     </div>
 </body>

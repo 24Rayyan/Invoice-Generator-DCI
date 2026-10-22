@@ -108,14 +108,18 @@
                             <small class="text-muted font-xs">Biarkan kosong jika tidak ingin mengubah berkas bukti nota.</small>
                         </div>
 
-                        @include('transactions.partials.invoice-select', [
-                            'invoices' => $invoices,
-                            'selectedInvoiceId' => old('invoice_id', $transaction->invoice_id),
-                        ])
-                        @include('transactions.partials.project-select', [
-                            'projects' => $projects,
-                            'selectedProjectId' => old('project_id', $transaction->project_id),
-                        ])
+                        @if(auth()->user()->hasAccess('invoice_margin'))
+                            @include('transactions.partials.invoice-select', [
+                                'invoices' => $invoices,
+                                'selectedInvoiceId' => old('invoice_id', $transaction->invoice_id),
+                            ])
+                        @endif
+                        @if(auth()->user()->hasAccess('projects'))
+                            @include('transactions.partials.project-select', [
+                                'projects' => $projects,
+                                'selectedProjectId' => old('project_id', $transaction->project_id),
+                            ])
+                        @endif
                     </div>
                 </div>
             </div>

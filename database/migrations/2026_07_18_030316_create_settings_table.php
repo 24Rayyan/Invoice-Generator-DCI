@@ -27,7 +27,7 @@ return new class extends Migration
         // Monitoring Nomor Dokumen
         $table->string('po_prefix')->default('PO-');
         $table->integer('po_last_number')->default(0);
-        $table->string('invoice_prefix')->default('INV-');
+        $table->string('invoice_prefix')->default('INV');
         $table->integer('invoice_last_number')->default(0);
         
         $table->timestamps();

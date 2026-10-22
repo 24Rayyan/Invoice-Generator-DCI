@@ -18,6 +18,7 @@
     
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -323,9 +324,7 @@
                     @if(isset($globalSetting) && $globalSetting->company_logo && file_exists(public_path('storage/' . $globalSetting->company_logo)))
                         <img src="{{ asset('storage/' . $globalSetting->company_logo) }}" alt="Logo" class="navbar-brand-logo">
                     @else
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
-                            <i class="fa-solid fa-cube"></i>
-                        </div>
+                        <img src="{{ asset('images/navbar-user.png') }}" alt="User" class="navbar-brand-logo" style="width: 32px; height: 32px;">
                     @endif
                     <span class="fw-semibold text-dark fs-6 ms-3">
                         Hello {{ Auth::user()->username ?? 'User' }} !
@@ -354,105 +353,127 @@
                                 </li>
                             @endif
 
-                            @if(auth()->user()->hasAccess('invoices'))
+                            @if(auth()->user()->hasAccess('invoices') || auth()->user()->hasAccess('customers') || auth()->user()->hasAccess('projects'))
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('customers.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('customers.*') || request()->routeIs('projects.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-file-invoice-dollar me-2"></i> Invoicing & PO
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 250px;">
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('documents.create') ? 'active' : '' }}" href="{{ route('documents.create') }}">
-                                                <i class="fa-solid fa-plus-circle me-2 text-primary"></i> Buat Invoice / PO Baru
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('documents.index') || request()->routeIs('documents.show') ? 'active' : '' }}" href="{{ route('documents.index') }}">
-                                                <i class="fa-solid fa-folder-open me-2 text-warning"></i> Kelola Dokumen
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider border-secondary opacity-10 my-1"></li>
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
-                                                <i class="fa-solid fa-users me-2 text-success"></i> Master Customer
-                                            </a>
-                                        </li>
+                                        @if(auth()->user()->hasAccess('invoices'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('documents.create') ? 'active' : '' }}" href="{{ route('documents.create') }}">
+                                                    <i class="fa-solid fa-plus-circle me-2 text-primary"></i> Buat Invoice / PO Baru
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('documents.index') || request()->routeIs('documents.show') ? 'active' : '' }}" href="{{ route('documents.index') }}">
+                                                    <i class="fa-solid fa-folder-open me-2 text-warning"></i> Kelola Dokumen
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(auth()->user()->hasAccess('customers'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
+                                                    <i class="fa-solid fa-users me-2 text-success"></i> Master Customer
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(auth()->user()->hasAccess('projects'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
+                                                    <i class="fa-solid fa-diagram-project me-2 text-info"></i> Manajemen Proyek
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif
 
-                            @if(auth()->user()->hasAccess('expenses'))
+                            @if(auth()->user()->hasAccess('expenses') || auth()->user()->hasAccess('categories'))
                                 <li class="nav-item dropdown">
                                     <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('transactions.*') || request()->routeIs('categories.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-money-bill-transfer me-2"></i> Buku Kas & Transaksi
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 260px;">
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('transactions.index') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
-                                                <i class="fa-solid fa-receipt me-2 text-info"></i> Jurnal Transaksi Kas
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item py-2" href="{{ route('transactions.create', ['type' => 'expense']) }}">
-                                                <i class="fa-solid fa-minus-circle me-2 text-danger"></i> Catat Pengeluaran (Expense)
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item py-2" href="{{ route('transactions.create', ['type' => 'income']) }}">
-                                                <i class="fa-solid fa-plus-circle me-2 text-success"></i> Catat Pemasukan (Income)
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider border-secondary opacity-10 my-1"></li>
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}">
-                                                <i class="fa-solid fa-tags me-2 text-warning"></i> Master Akun & COA
-                                            </a>
-                                        </li>
+                                        @if(auth()->user()->hasAccess('expenses'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('transactions.index') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
+                                                    <i class="fa-solid fa-receipt me-2 text-info"></i> Jurnal Transaksi Kas
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{{ route('transactions.create', ['type' => 'expense']) }}">
+                                                    <i class="fa-solid fa-minus-circle me-2 text-danger"></i> Catat Pengeluaran (Expense)
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item py-2" href="{{ route('transactions.create', ['type' => 'income']) }}">
+                                                    <i class="fa-solid fa-plus-circle me-2 text-success"></i> Catat Pemasukan (Income)
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(auth()->user()->hasAccess('categories'))
+                                            <li><hr class="dropdown-divider border-secondary opacity-10 my-1"></li>
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}">
+                                                    <i class="fa-solid fa-tags me-2 text-warning"></i> Master Akun & COA
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif
 
-                            @if(auth()->user()->hasAccess('reports'))
+                            @if(auth()->user()->hasAccess('financial_reports') || auth()->user()->hasAccess('profit_loss') || auth()->user()->hasAccess('project_margin'))
                                 <li class="nav-item dropdown">
                                     <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-chart-line me-2"></i> Laporan Keuangan
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 280px;">
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('reports.financial_statement*') ? 'active' : '' }}" href="{{ route('reports.financial_statement') }}">
-                                                <i class="fa-solid fa-file-contract me-2 text-info"></i> Laporan Keuangan
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('reports.profit_loss*') ? 'active' : '' }}" href="{{ route('reports.profit_loss') }}">
-                                                <i class="fa-solid fa-scale-balanced me-2 text-primary"></i> Laba Rugi Komersial & Fiskal
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('reports.project_margin') ? 'active' : '' }}" href="{{ route('reports.project_margin') }}">
-                                                <i class="fa-solid fa-chart-pie me-2 text-success"></i> Margin Proyek / Invoice
-                                            </a>
-                                        </li>
+                                        @if(auth()->user()->hasAccess('financial_reports'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('reports.financial_statement*') ? 'active' : '' }}" href="{{ route('reports.financial_statement') }}">
+                                                    <i class="fa-solid fa-file-contract me-2 text-info"></i> Laporan Keuangan
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(auth()->user()->hasAccess('profit_loss'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('reports.profit_loss*') ? 'active' : '' }}" href="{{ route('reports.profit_loss') }}">
+                                                    <i class="fa-solid fa-scale-balanced me-2 text-primary"></i> Laba Rugi Komersial & Fiskal
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(auth()->user()->hasAccess('project_margin'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('reports.project_margin') ? 'active' : '' }}" href="{{ route('reports.project_margin') }}">
+                                                    <i class="fa-solid fa-chart-pie me-2 text-success"></i> Margin Proyek / Invoice
+                                                </a>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </li>
                             @endif
 
 
-                            @if(auth()->user()->hasAccess('user_management'))
+                            @if(auth()->user()->hasAccess('user_management') || auth()->user()->hasAccess('activity_logs'))
                                 <li class="nav-item dropdown">
                                     <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('management.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-user-gear me-2"></i> User Management
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 220px;">
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('management.users.*') ? 'active' : '' }}" href="{{ route('management.users.index') }}">
-                                                <i class="fa-solid fa-users-gear me-2 text-primary"></i> Kelola User
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item py-2 {{ request()->routeIs('management.roles.*') ? 'active' : '' }}" href="{{ route('management.roles.index') }}">
-                                                <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Kelola Role & Hak Akses
-                                            </a>
-                                        </li>
+                                        @if(auth()->user()->hasAccess('user_management'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('management.users.*') ? 'active' : '' }}" href="{{ route('management.users.index') }}">
+                                                    <i class="fa-solid fa-users-gear me-2 text-primary"></i> Kelola User
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('management.roles.*') ? 'active' : '' }}" href="{{ route('management.roles.index') }}">
+                                                    <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Kelola Role & Hak Akses
+                                                </a>
+                                            </li>
+                                        @endif
                                         @if(auth()->user()->hasAccess('activity_logs'))
                                             <li>
                                                 <a class="dropdown-item py-2 {{ request()->routeIs('activity_logs.*') ? 'active' : '' }}" href="{{ route('activity_logs.index') }}">

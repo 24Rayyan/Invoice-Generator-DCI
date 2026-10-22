@@ -35,10 +35,10 @@ class SettingController extends Controller
         $currentMonth = date('n');
         $currentYear = date('Y');
         $romanMonth = $this->getRomanMonth($currentMonth);
-        $invPrefix = $setting->invoice_prefix ?: 'INV-DCI';
+        $invPrefix = $setting->invoice_prefix ?: 'INV';
         $poPrefix = $setting->po_prefix ?: 'PO';
-        $sjPrefix = $setting->delivery_note_prefix ?: 'SJ-DCI';
-        $kwtPrefix = $setting->kwitansi_prefix ?: 'KWT-DCI';
+        $sjPrefix = $setting->delivery_note_prefix ?: 'SJ';
+        $kwtPrefix = $setting->kwitansi_prefix ?: 'KWT';
 
         // 3. Ambil Dokumen Terakhir di Bulan & Tahun Berjalan
         $lastInvoice = Document::where('type', 'INVOICE')
