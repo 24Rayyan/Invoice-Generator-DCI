@@ -89,7 +89,6 @@
                     </div>
                 </div>
 
-<<<<<<< HEAD
                 <div class="row g-3 mt-1">
                     @if(auth()->user()->hasAccess('projects'))
                         <div class="col-md-6">
@@ -106,8 +105,6 @@
                         </div>
                     @endif
                 </div>
-=======
->>>>>>> e011b68e5fc28068cb5f55e7e3b399ebf6ed8fba
             </div>
 
             <!-- Section 2: Input Barang (Item) -->

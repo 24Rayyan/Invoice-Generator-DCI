@@ -1,4 +1,5 @@
-<<<<<<< HEAD
+# Invoice-Generator-DCI
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
@@ -57,6 +58,13 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-=======
-# Invoice-Generator-DCI
->>>>>>> 425e604311a9cb5449ae7ca34a981a0d53f8ea6e
+
+## Data Demo Lokal
+
+Untuk mengisi data demonstrasi customer, invoice, kategori akun pemasukan/pengeluaran, dan transaksi kas:
+
+```bash
+php artisan db:seed --class="Database\Seeders\DemoDataSeeder"
+```
+
+Seeder ini aman dijalankan ulang dan tidak menghapus data yang sudah ada. Data customer dan transaksi diberi penanda `DEMO`, menggunakan email domain `.test`, dan tidak memakai NPWP sungguhan. Data ini adalah simulasi realistis untuk skenario jasa IT/pengadaan perangkat, bukan catatan transaksi perusahaan sebenarnya. Akun yang dibuat mengikuti model kategori pemasukan/pengeluaran aplikasi saat ini, bukan COA akuntansi penuh.

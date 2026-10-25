@@ -52,18 +52,6 @@
         overflow-wrap: anywhere;
     }
 
-    .professional-report .report-kpi-net {
-        background: #102446;
-        border-color: #102446 !important;
-    }
-
-    .professional-report .report-kpi-net .text-muted,
-    .professional-report .report-kpi-net .report-kpi-label,
-    .professional-report .report-kpi-net .report-kpi-note,
-    .professional-report .report-kpi-net .report-kpi-icon {
-        color: #c5d1e2 !important;
-    }
-
     .professional-report .report-table {
         min-width: 760px;
     }
@@ -114,6 +102,7 @@
         'category_id' => $categoryId,
         'type' => $type,
     ];
+    $netProfitColor = $reportData['net_profit'] >= 0 ? 'primary' : 'danger';
 @endphp
 
 <div class="professional-report">
@@ -267,21 +256,21 @@
 
             <!-- 3. Laba / Rugi Bersih -->
             <div class="col-sm-6 col-xl-3">
-                <div class="report-kpi report-kpi-net card h-100 position-relative overflow-hidden text-white">
-                    <div class="position-absolute top-0 start-0 bottom-0 {{ $reportData['net_profit'] >= 0 ? 'bg-primary' : 'bg-danger' }}" style="width: 4px;"></div>
+                <div class="report-kpi card h-100 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 start-0 bottom-0 bg-{{ $netProfitColor }}" style="width: 4px;"></div>
                     <div class="card-body p-3 ps-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
                                 <span class="text-uppercase font-xs fw-bold text-muted tracking-wider d-block">Laba / Rugi Bersih</span>
-                                <span class="badge {{ $reportData['net_profit'] >= 0 ? 'bg-primary-subtle text-primary border-primary' : 'bg-danger-subtle text-danger border-danger' }} border border-opacity-25 rounded-pill font-xs px-2 py-0.5 mt-1">
-                                    <i class="fa-solid {{ $reportData['net_profit'] >= 0 ? 'fa-chart-line' : 'fa-chart-line-down' }} me-1"></i>Net Profit
+                                <span class="badge bg-{{ $netProfitColor }}-subtle text-{{ $netProfitColor }} border border-{{ $netProfitColor }} border-opacity-25 rounded-pill font-xs px-2 py-0.5 mt-1">
+                                    <i class="fa-solid {{ $reportData['net_profit'] >= 0 ? 'fa-chart-line' : 'fa-chart-line-down' }} me-1"></i>{{ $reportData['net_profit'] >= 0 ? 'Net Profit' : 'Net Loss' }}
                                 </span>
                             </div>
-                            <div class="{{ $reportData['net_profit'] >= 0 ? 'bg-primary bg-opacity-10 text-primary' : 'bg-danger bg-opacity-10 text-danger' }} rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <div class="bg-{{ $netProfitColor }} bg-opacity-10 text-{{ $netProfitColor }} rounded-3 p-2.5 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
                                 <i class="fa-solid fa-scale-balanced fs-5"></i>
                             </div>
                         </div>
-                        <h3 class="report-kpi-value fw-bold {{ $reportData['net_profit'] >= 0 ? 'text-white' : 'text-danger' }} mb-1">
+                        <h3 class="report-kpi-value fw-bold text-dark mb-1">
                             {{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($reportData['net_profit'], 0, ',', '.') }}
                         </h3>
                         <p class="report-kpi-note text-muted font-xs mb-0">Pemasukan Bersih - Pengeluaran</p>

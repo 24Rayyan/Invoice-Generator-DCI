@@ -112,6 +112,11 @@
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
+        .action-buttons-wrapper .nav-link-custom.active {
+            color: #2563eb !important;
+            background-color: #ffffff !important;
+        }
+
         /* Dropdown Custom Styling */
         .dropdown-menu-custom {
             background-color: #ffffff !important;
