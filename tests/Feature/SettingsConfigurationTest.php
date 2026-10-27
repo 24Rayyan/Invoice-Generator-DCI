@@ -115,12 +115,15 @@ class SettingsConfigurationTest extends TestCase
                 'type' => 'INVOICE',
                 'document_number' => '001/INV-TEST/'.$periodSuffix,
                 'item_desc' => ['Service'],
+                'item_type' => ['B'],
                 'item_qty' => [1],
                 'item_unit' => ['Pcs'],
                 'item_price' => [1000],
             ])
             ->assertRedirect(route('documents.index'))
             ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('document_items', ['item_type' => 'B']);
 
         $document = Document::firstOrFail();
         $this->assertSame('001/SJ-TEST/'.$periodSuffix, $document->delivery_note_number);
@@ -142,6 +145,7 @@ class SettingsConfigurationTest extends TestCase
                 'type' => 'INVOICE',
                 'document_number' => '002/INV-TEST/'.$periodSuffix,
                 'item_desc' => ['Service'],
+                'item_type' => ['B'],
                 'item_qty' => [1],
                 'item_unit' => ['Pcs'],
                 'item_price' => [1000],

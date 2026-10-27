@@ -216,6 +216,186 @@
             outline: none;
         }
 
+        .smooth-dropdown + .ts-wrapper {
+            width: 100%;
+            background-image: none !important;
+        }
+
+        .pagination-dropdown + .ts-wrapper {
+            width: 76px;
+            flex: 0 0 76px;
+        }
+
+        .item-type-select {
+            width: 100%;
+            min-width: 120px;
+            height: 34px;
+            min-height: 34px;
+            box-sizing: border-box;
+            padding-right: 2.25rem;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+            background-position: right 0.75rem center;
+            white-space: nowrap;
+        }
+
+        .ts-wrapper.single .ts-control {
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 0.55rem 2.25rem 0.55rem 0.85rem;
+            color: #0f172a;
+            background: #fff;
+            background-image: none !important;
+            box-shadow: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .ts-wrapper.single .ts-control > .item {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ts-wrapper.single.focus .ts-control,
+        .ts-wrapper.single.dropdown-active .ts-control {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .ts-wrapper.single .ts-control input {
+            color: #0f172a;
+            font: inherit;
+        }
+
+        .ts-wrapper.single .ts-control input::placeholder {
+            color: #94a3b8;
+        }
+
+        select.smooth-dropdown.form-select-sm + .ts-wrapper.single .ts-control {
+            min-height: 34px;
+            padding: 0.3rem 2rem 0.3rem 0.65rem;
+            font-size: 0.8125rem;
+        }
+
+        .ts-wrapper.single .ts-control::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 0.85rem;
+            width: 0.45rem;
+            height: 0.45rem;
+            border-top: 0;
+            border-left: 0;
+            border-right: 1.5px solid #64748b;
+            border-bottom: 1.5px solid #64748b;
+            transform: translateY(-70%) rotate(45deg);
+            transition: transform 0.15s ease;
+        }
+
+        .ts-wrapper.single.dropdown-active .ts-control::after {
+            transform: translateY(-25%) rotate(225deg);
+        }
+
+        .ts-dropdown {
+            z-index: 1070;
+            overflow: hidden;
+            margin-top: 6px;
+            border: 1px solid #dbe4f0;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
+            animation: smooth-dropdown-in 0.14s ease-out;
+        }
+
+        .ts-dropdown .dropdown-input-wrap {
+            padding: 9px;
+            border-bottom: 1px solid #eef2f7;
+            background: #fff;
+        }
+
+        .ts-dropdown .dropdown-input {
+            min-height: 36px;
+            border: 1px solid #dbe4f0;
+            border-radius: 8px;
+            padding: 7px 10px;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .ts-dropdown .dropdown-input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .ts-dropdown-content {
+            max-height: min(280px, 45vh);
+            padding: 5px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .ts-dropdown .option,
+        .ts-dropdown .no-results {
+            margin: 2px 0;
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: #334155;
+            font-size: 0.84rem;
+            line-height: 1.4;
+        }
+
+        .ts-dropdown .active {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .ts-dropdown .selected {
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+
+        .category-filter-dropdown-menu .option.disabled {
+            display: none;
+        }
+
+        .ts-dropdown .customer-option {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .ts-dropdown .customer-option-name {
+            overflow: hidden;
+            font-size: 0.84rem;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ts-dropdown .customer-option-meta {
+            overflow: hidden;
+            color: #64748b;
+            font-size: 0.72rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @keyframes smooth-dropdown-in {
+            from {
+                opacity: 0;
+                transform: translateY(-3px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .btn {
             border-radius: 8px;
             font-weight: 600;
@@ -359,39 +539,39 @@
                             @endif
 
                             @if(auth()->user()->hasAccess('invoices') || auth()->user()->hasAccess('customers') || auth()->user()->hasAccess('projects'))
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('customers.*') || request()->routeIs('projects.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-file-invoice-dollar me-2"></i> Invoicing & PO
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 250px;">
-                                        @if(auth()->user()->hasAccess('invoices'))
-                                            <li>
-                                                <a class="dropdown-item py-2 {{ request()->routeIs('documents.create') ? 'active' : '' }}" href="{{ route('documents.create') }}">
-                                                    <i class="fa-solid fa-plus-circle me-2 text-primary"></i> Buat Invoice / PO Baru
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item py-2 {{ request()->routeIs('documents.index') || request()->routeIs('documents.show') ? 'active' : '' }}" href="{{ route('documents.index') }}">
-                                                    <i class="fa-solid fa-folder-open me-2 text-warning"></i> Kelola Dokumen
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(auth()->user()->hasAccess('customers'))
-                                            <li>
-                                                <a class="dropdown-item py-2 {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
-                                                    <i class="fa-solid fa-users me-2 text-success"></i> Master Customer
-                                                </a>
-                                            </li>
-                                        @endif
-                                        @if(auth()->user()->hasAccess('projects'))
-                                            <li>
-                                                <a class="dropdown-item py-2 {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
-                                                    <i class="fa-solid fa-diagram-project me-2 text-info"></i> Manajemen Proyek
-                                                </a>
-                                            </li>
-                                        @endif
-                                    </ul>
-                                </li>
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('customers.*') || request()->routeIs('projects.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa-solid fa-file-invoice-dollar me-2"></i> Invoicing & PO
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 250px;">
+                                            @if(auth()->user()->hasAccess('invoices'))
+                                                <li>
+                                                    <a class="dropdown-item py-2 {{ request()->routeIs('documents.index') || (request()->routeIs('documents.show', 'documents.edit', 'documents.duplicate') && (request()->route('document')?->type === 'INVOICE' || (isset($sourceDoc) && $sourceDoc->type === 'INVOICE'))) ? 'active' : '' }}" href="{{ route('documents.index') }}">
+                                                        <i class="fa-solid fa-file-invoice me-2 text-warning"></i> Kelola Invoice
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item py-2 {{ request()->routeIs('purchase-orders.*') || (request()->routeIs('documents.show', 'documents.edit', 'documents.duplicate') && (request()->route('document')?->type === 'PO' || (isset($sourceDoc) && $sourceDoc->type === 'PO'))) ? 'active' : '' }}" href="{{ route('purchase-orders.index') }}">
+                                                        <i class="fa-solid fa-clipboard-list me-2 text-info"></i> Kelola PO
+                                                    </a>
+                                                </li>
+                                            @endif
+                                            @if(auth()->user()->hasAccess('customers'))
+                                                <li>
+                                                    <a class="dropdown-item py-2 {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
+                                                        <i class="fa-solid fa-users me-2 text-success"></i> Master Customer
+                                                    </a>
+                                                </li>
+                                            @endif
+                                            @if(auth()->user()->hasAccess('projects'))
+                                                <li>
+                                                    <a class="dropdown-item py-2 {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
+                                                        <i class="fa-solid fa-diagram-project me-2 text-info"></i> Manajemen Proyek
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </li>
                             @endif
 
                             @if(auth()->user()->hasAccess('expenses') || auth()->user()->hasAccess('categories'))
@@ -404,16 +584,6 @@
                                             <li>
                                                 <a class="dropdown-item py-2 {{ request()->routeIs('transactions.index') ? 'active' : '' }}" href="{{ route('transactions.index') }}">
                                                     <i class="fa-solid fa-receipt me-2 text-info"></i> Jurnal Transaksi Kas
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item py-2" href="{{ route('transactions.create', ['type' => 'expense']) }}">
-                                                    <i class="fa-solid fa-minus-circle me-2 text-danger"></i> Catat Pengeluaran (Expense)
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item py-2" href="{{ route('transactions.create', ['type' => 'income']) }}">
-                                                    <i class="fa-solid fa-plus-circle me-2 text-success"></i> Catat Pemasukan (Income)
                                                 </a>
                                             </li>
                                         @endif
@@ -560,6 +730,7 @@
         });
     </script>
 
+    @include('partials.smooth_dropdown_script')
     @stack('scripts')
 </body>
 </html>

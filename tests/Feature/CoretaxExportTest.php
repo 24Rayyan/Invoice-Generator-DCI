@@ -62,6 +62,7 @@ class CoretaxExportTest extends TestCase
         DocumentItem::create([
             'document_id' => $this->invoice->id,
             'description' => 'Jasa Maintenance Server Bulanan',
+            'item_type'   => 'B',
             'qty'         => 1,
             'unit'        => 'Bulan',
             'price'       => 10000000,
@@ -147,6 +148,7 @@ class CoretaxExportTest extends TestCase
         // Render detail sheet and verify item data
         $detailHtml = $sheets[1]->view()->render();
         $this->assertStringContainsString('NOMOR_DOKUMEN_REFERENSI', $detailHtml);
+        $this->assertStringContainsString('<td>B</td>', $detailHtml);
         $this->assertStringContainsString('Jasa Maintenance Server Bulanan', $detailHtml);
         $this->assertStringContainsString('000000', $detailHtml);
         $this->assertStringContainsString('UM.0030', $detailHtml);

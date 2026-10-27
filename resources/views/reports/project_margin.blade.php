@@ -70,7 +70,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Status</label>
-                <select name="status" class="form-select form-select-sm">
+                <select name="status" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Status">
                     <option value="">Semua Status</option>
                     <option value="DRAFT" {{ $status === 'DRAFT' ? 'selected' : '' }}>DRAFT</option>
                     <option value="SENT" {{ $status === 'SENT' ? 'selected' : '' }}>SENT</option>
@@ -79,7 +79,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Urutkan</label>
-                <select name="sort" class="form-select form-select-sm">
+                <select name="sort" class="form-select form-select-sm smooth-dropdown" data-placeholder="Urutkan...">
                     <option value="date_desc" {{ $sort === 'date_desc' ? 'selected' : '' }}>Tanggal terbaru</option>
                     <option value="date_asc" {{ $sort === 'date_asc' ? 'selected' : '' }}>Tanggal terlama</option>
                     <option value="margin_desc" {{ $sort === 'margin_desc' ? 'selected' : '' }}>Margin tertinggi</option>

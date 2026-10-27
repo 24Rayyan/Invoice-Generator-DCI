@@ -10,7 +10,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('documents.index') }}" class="text-decoration-none text-muted small">Dokumen</a></li>
+                <li class="breadcrumb-item"><a href="{{ route($indexRoute) }}" class="text-decoration-none text-muted small">{{ $document->type === 'PO' ? 'Purchase Order' : 'Invoice' }}</a></li>
                 <li class="breadcrumb-item active small fw-semibold" aria-current="page">{{ $document->document_number }}</li>
             </ol>
         </nav>
@@ -34,7 +34,7 @@
                 <i class="fa-solid fa-pen-to-square me-1"></i> Edit
             </a>
         @endif
-        <a href="{{ route('documents.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route($indexRoute) }}" class="btn btn-outline-secondary">
             <i class="fa-solid fa-arrow-left me-1"></i> Kembali
         </a>
     </div>
@@ -123,30 +123,41 @@
             <table class="table align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4">Deskripsi</th>
-                        <th>Qty</th>
-                        <th>Satuan</th>
-                        <th class="text-end">Harga</th>
-                        <th class="text-end pe-4">Subtotal</th>
+                        <th class="ps-4">{{ $document->type === 'PO' ? 'Nama Barang' : 'Deskripsi' }}</th>
+                        @if($document->type === 'PO')
+                            <th>Spesifikasi</th>
+                            <th>Kuantitas</th>
+                        @else
+                            <th>Qty</th>
+                            <th>Satuan</th>
+                            <th class="text-end">Harga</th>
+                            <th class="text-end pe-4">Subtotal</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($document->items as $item)
                     <tr>
-                        <td class="ps-4">
-                            <div class="fw-semibold">{{ $item->description }}</div>
-                            @if($item->notes)
-                                <small class="text-muted">{{ $item->notes }}</small>
-                            @endif
-                        </td>
-                        <td>{{ $item->qty }}</td>
-                        <td>{{ $item->unit }}</td>
-                        <td class="text-end">{{ $currency }} {{ number_format($item->price, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4 fw-bold">{{ $currency }} {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        @if($document->type === 'PO')
+                            <td class="ps-4 fw-semibold">{{ $item->description }}</td>
+                            <td>{{ $item->notes ?: '-' }}</td>
+                            <td>{{ $item->qty }}</td>
+                        @else
+                            <td class="ps-4">
+                                <div class="fw-semibold">{{ $item->description }}</div>
+                                @if($item->notes)
+                                    <small class="text-muted">{{ $item->notes }}</small>
+                                @endif
+                            </td>
+                            <td>{{ $item->qty }}</td>
+                            <td>{{ $item->unit }}</td>
+                            <td class="text-end">{{ $currency }} {{ number_format($item->price, 0, ',', '.') }}</td>
+                            <td class="text-end pe-4 fw-bold">{{ $currency }} {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                        @endif
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">Belum ada item.</td>
+                        <td colspan="{{ $document->type === 'PO' ? 3 : 5 }}" class="text-center text-muted py-4">Belum ada item.</td>
                     </tr>
                     @endforelse
                 </tbody>

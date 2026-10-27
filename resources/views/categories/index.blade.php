@@ -196,7 +196,7 @@
             </div>
             <div class="col-12 col-md-4 col-lg-3">
                 <label for="coaType" class="form-label small fw-semibold text-secondary mb-1">Tipe Akun</label>
-                <select id="coaType" name="type" class="form-select">
+                <select id="coaType" name="type" class="form-select smooth-dropdown" data-placeholder="Semua tipe akun">
                     <option value="">Semua tipe akun</option>
                     <option value="income" @selected(request('type') === 'income')>Pendapatan</option>
                     <option value="expense" @selected(request('type') === 'expense')>Beban / Biaya</option>
@@ -342,7 +342,7 @@
                         <input type="hidden" name="type" value="{{ request('type') }}">
                     @endif
                     <label for="categoriesPerPage" class="small text-muted text-nowrap mb-0">Baris per halaman</label>
-                    <select id="categoriesPerPage" name="per_page" class="form-select form-select-sm" style="width: 76px;" onchange="this.form.submit()">
+                    <select id="categoriesPerPage" name="per_page" class="form-select form-select-sm smooth-dropdown pagination-dropdown" data-placeholder="Baris" onchange="this.form.submit()">
                         @foreach([10, 25, 50] as $option)
                             <option value="{{ $option }}" @selected($perPage === $option)>{{ $option }}</option>
                         @endforeach

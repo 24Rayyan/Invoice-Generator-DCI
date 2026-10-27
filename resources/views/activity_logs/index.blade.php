@@ -63,7 +63,7 @@
             </div>
             <div class="al-field">
                 <label>Aksi</label>
-                <select name="action" class="al-select">
+                <select name="action" class="al-select smooth-dropdown" data-placeholder="Semua Aksi">
                     <option value="">Semua Aksi</option>
                     @foreach($actions as $action)
                         <option value="{{ $action }}" {{ request('action') === $action ? 'selected' : '' }}>{{ $action }}</option>
@@ -72,7 +72,7 @@
             </div>
             <div class="al-field">
                 <label>Modul</label>
-                <select name="module" class="al-select">
+                <select name="module" class="al-select smooth-dropdown" data-placeholder="Semua Modul">
                     <option value="">Semua Modul</option>
                     @foreach($modules as $module)
                         <option value="{{ $module }}" {{ request('module') === $module ? 'selected' : '' }}>{{ $module }}</option>
@@ -81,7 +81,7 @@
             </div>
             <div class="al-field">
                 <label>Pengguna</label>
-                <select name="user_id" class="al-select">
+                <select name="user_id" class="al-select smooth-dropdown" data-placeholder="Semua Pengguna">
                     <option value="">Semua Pengguna</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" {{ (string) request('user_id') === (string) $user->id ? 'selected' : '' }}>

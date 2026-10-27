@@ -229,9 +229,11 @@ class CoretaxXmlService
         // Khusus Kode Transaksi 04 (DPP Nilai Lain), OtherTaxBase = 11/12 x DPP
         if ($trxCode === '04') {
             $otherTaxBase = isset($item->other_tax_base) ? (float) $item->other_tax_base : round(($taxBase * 11) / 12, 2);
-            $vat = round($otherTaxBase * ($taxRate / 100), 2);
+            $vatRate = $taxRate > 0 ? 12.0 : 0.0;
+            $vat = round($otherTaxBase * ($vatRate / 100), 2);
         } else {
             $otherTaxBase = 0.0;
+            $vatRate = $taxRate;
             $vat = round($taxBase * ($taxRate / 100), 2);
         }
 
@@ -240,7 +242,7 @@ class CoretaxXmlService
         $this->appendElement($dom, $goodService, 'TotalDiscount', $this->formatNumber($discount));
         $this->appendElement($dom, $goodService, 'TaxBase', $this->formatNumber($taxBase));
         $this->appendElement($dom, $goodService, 'OtherTaxBase', $this->formatNumber($otherTaxBase));
-        $this->appendElement($dom, $goodService, 'VATRate', $this->formatNumber($taxRate));
+        $this->appendElement($dom, $goodService, 'VATRate', $this->formatNumber($vatRate));
         $this->appendElement($dom, $goodService, 'VAT', $this->formatNumber($vat));
         $this->appendElement($dom, $goodService, 'STLGRate', '0');
         $this->appendElement($dom, $goodService, 'STLG', '0');
@@ -269,9 +271,11 @@ class CoretaxXmlService
         $taxBase = (float) ($invoice->subtotal ?? ($invoice->total_amount ?? 0));
         if ($trxCode === '04') {
             $otherTaxBase = round(($taxBase * 11) / 12, 2);
-            $vat = round($otherTaxBase * ($taxRate / 100), 2);
+            $vatRate = $taxRate > 0 ? 12.0 : 0.0;
+            $vat = round($otherTaxBase * ($vatRate / 100), 2);
         } else {
             $otherTaxBase = 0.0;
+            $vatRate = $taxRate;
             $vat = round($taxBase * ($taxRate / 100), 2);
         }
 
@@ -280,7 +284,7 @@ class CoretaxXmlService
         $this->appendElement($dom, $goodService, 'TotalDiscount', '0');
         $this->appendElement($dom, $goodService, 'TaxBase', $this->formatNumber($taxBase));
         $this->appendElement($dom, $goodService, 'OtherTaxBase', $this->formatNumber($otherTaxBase));
-        $this->appendElement($dom, $goodService, 'VATRate', $this->formatNumber($taxRate));
+        $this->appendElement($dom, $goodService, 'VATRate', $this->formatNumber($vatRate));
         $this->appendElement($dom, $goodService, 'VAT', $this->formatNumber($vat));
         $this->appendElement($dom, $goodService, 'STLGRate', '0');
         $this->appendElement($dom, $goodService, 'STLG', '0');
@@ -411,6 +415,10 @@ class CoretaxXmlService
      */
     public static function determineItemOpt($item): string
     {
+        if (isset($item->item_type) && in_array(strtoupper((string) $item->item_type), ['A', 'B'], true)) {
+            return strtoupper((string) $item->item_type);
+        }
+
         if (isset($item->opt) && in_array(strtoupper((string)$item->opt), ['A', 'B'])) {
             return strtoupper((string)$item->opt);
         }
@@ -444,11 +452,11 @@ class CoretaxXmlService
     /**
      * Mengambil kode satuan Coretax:
      * - Opt B (Jasa)   => 'UM.0030'
-     * - Opt A (Barang) => 'UM.0021'
+     * - Opt A (Barang) => 'UM.0033'
      */
     public static function getUnitCode(string $opt = 'A'): string
     {
-        return strtoupper($opt) === 'B' ? 'UM.0030' : 'UM.0021';
+        return strtoupper($opt) === 'B' ? 'UM.0030' : 'UM.0033';
     }
 
     /**
@@ -467,7 +475,7 @@ class CoretaxXmlService
      * Konversi satuan ke kode Coretax UM.xxxx.
      * Sesuai aturan:
      * - Jasa (Opt B) langsung di-set ke 'UM.0030'
-     * - Barang (Opt A) langsung di-set ke 'UM.0021'
+     * - Barang (Opt A) langsung di-set ke 'UM.0033'
      */
     protected function formatUnit(?string $rawUnit, string $opt = 'A'): string
     {

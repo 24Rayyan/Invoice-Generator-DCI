@@ -204,7 +204,7 @@
             <form method="GET" action="{{ route('transactions.index') }}" class="row g-2 align-items-end">
                 <div class="col-sm-6 col-xl-3">
                     <label for="transactionPeriod" class="form-label small text-muted mb-1">Periode</label>
-                    <select id="transactionPeriod" name="period" class="form-select form-select-sm">
+                    <select id="transactionPeriod" name="period" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua periode">
                         <option value="" {{ $period === '' ? 'selected' : '' }}>Semua periode</option>
                         @foreach($availableMonths as $monthOption)
                             <option value="{{ $monthOption->value }}" {{ $period === $monthOption->value ? 'selected' : '' }}>
@@ -218,7 +218,7 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label for="transactionType" class="form-label small text-muted mb-1">Tipe transaksi</label>
-                    <select id="transactionType" name="type" class="form-select form-select-sm">
+                    <select id="transactionType" name="type" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Tipe">
                         <option value="">Semua Tipe</option>
                         <option value="income" {{ request('type') === 'income' ? 'selected' : '' }}>Pemasukan</option>
                         <option value="expense" {{ request('type') === 'expense' ? 'selected' : '' }}>Pengeluaran</option>
@@ -226,7 +226,7 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label for="transactionCategory" class="form-label small text-muted mb-1">Kategori akun (COA)</label>
-                    <select id="transactionCategory" name="category_id" class="form-select form-select-sm">
+                    <select id="transactionCategory" name="category_id" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Kategori">
                         <option value="">Semua Kategori</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ (string) request('category_id') === (string) $category->id ? 'selected' : '' }}>
@@ -237,7 +237,7 @@
                 </div>
                 <div class="col-sm-6 col-xl-3">
                     <label for="transactionPaymentMethod" class="form-label small text-muted mb-1">Metode bayar</label>
-                    <select id="transactionPaymentMethod" name="payment_method" class="form-select form-select-sm">
+                    <select id="transactionPaymentMethod" name="payment_method" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Metode">
                         <option value="">Semua Metode</option>
                         <option value="Bank Transfer" {{ request('payment_method') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
                         <option value="Cash" {{ request('payment_method') === 'Cash' ? 'selected' : '' }}>Cash / Tunai</option>
@@ -397,7 +397,7 @@
                         @endif
                     @endforeach
                     <label for="transactionsPerPage" class="cashflow-note text-nowrap">Baris per halaman</label>
-                    <select id="transactionsPerPage" name="per_page" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 75px;">
+                    <select id="transactionsPerPage" name="per_page" class="form-select form-select-sm smooth-dropdown pagination-dropdown" data-placeholder="Baris" onchange="this.form.submit()">
                         @foreach([10, 25, 50, 100] as $pageSize)
                             <option value="{{ $pageSize }}" {{ $perPage === $pageSize ? 'selected' : '' }}>{{ $pageSize }}</option>
                         @endforeach

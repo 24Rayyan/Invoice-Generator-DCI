@@ -28,7 +28,7 @@
         <form method="GET" action="{{ route('reports.profit_loss') }}" class="row g-2 align-items-end">
             <div class="col-md-3">
                 <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Tahun Pajak</label>
-                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select name="year" class="form-select form-select-sm smooth-dropdown" data-placeholder="Pilih tahun..." onchange="this.form.submit()">
                     @foreach($availableYears as $yr)
                         <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>Tahun {{ $yr }}</option>
                     @endforeach
@@ -36,7 +36,7 @@
             </div>
             <div class="col-md-3">
                 <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Bulan Buku</label>
-                <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select name="month" class="form-select form-select-sm smooth-dropdown" data-placeholder="Pilih bulan..." onchange="this.form.submit()">
                     <option value="" {{ empty($month) ? 'selected' : '' }}>Sepanjang Tahun (Tahunan)</option>
                     @for($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>

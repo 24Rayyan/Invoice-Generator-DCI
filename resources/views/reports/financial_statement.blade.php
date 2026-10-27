@@ -139,7 +139,7 @@
             </div>
             <div class="col-sm-6 col-xl-3">
                 <label for="reportCategory" class="form-label small text-muted mb-1">Kategori akun (COA)</label>
-                <select id="reportCategory" name="category_id" class="form-select form-select-sm">
+                <select id="reportCategory" name="category_id" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Kategori">
                     <option value="">Semua Kategori</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ $categoryId == $cat->id ? 'selected' : '' }}>
@@ -150,7 +150,7 @@
             </div>
             <div class="col-sm-6 col-xl-2">
                 <label for="reportType" class="form-label small text-muted mb-1">Tipe transaksi</label>
-                <select id="reportType" name="type" class="form-select form-select-sm">
+                <select id="reportType" name="type" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua (Income & Expense)">
                     <option value="">Semua (Income & Expense)</option>
                     <option value="income" {{ $type == 'income' ? 'selected' : '' }}>Pemasukan (Income)</option>
                     <option value="expense" {{ $type == 'expense' ? 'selected' : '' }}>Pengeluaran (Expense)</option>
@@ -467,7 +467,7 @@
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3 px-4 py-3 border-top">
                 <div class="d-flex align-items-center gap-2 small">
                     <label for="ledgerPerPage" class="text-muted text-nowrap">Baris per halaman</label>
-                    <select id="ledgerPerPage" class="form-select form-select-sm" style="width: 75px;">
+                    <select id="ledgerPerPage" class="form-select form-select-sm smooth-dropdown pagination-dropdown" data-placeholder="Baris">
                         <option value="10" selected>10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>

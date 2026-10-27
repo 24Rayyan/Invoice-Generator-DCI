@@ -80,7 +80,7 @@
                         <!-- Kategori Akun (COA) -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark font-sm">Kategori Akun (Chart of Accounts) <span class="text-danger">*</span></label>
-                            <select name="category_id" id="categorySelect" class="form-select" required onchange="onCategoryChange()">
+                            <select name="category_id" id="categorySelect" class="form-select smooth-dropdown category-filter-dropdown" data-placeholder="Pilih akun kategori..." required onchange="onCategoryChange()">
                                 <option value="">-- Pilih Akun Kategori --</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id }}" 
@@ -192,24 +192,28 @@
 <script>
     function onTypeChange() {
         var selectedType = $('input[name="type"]:checked').val();
-        
-        $('#categorySelect option').each(function() {
-            var catType = $(this).data('type');
-            if (!catType) return; // Skip placeholder
-            
-            if (catType === selectedType) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
 
         // Reset category if not matching
         var currentSelected = $('#categorySelect').find(':selected');
         if (currentSelected.val() && currentSelected.data('type') !== selectedType) {
-            $('#categorySelect').val('');
+            if ($('#categorySelect')[0].tomselect) {
+                $('#categorySelect')[0].tomselect.clear(true);
+            } else {
+                $('#categorySelect').val('');
+            }
             $('#categoryBadgeInfo').html('');
             $('#entertainmentSection').slideUp();
+        }
+
+        var categorySelect = $('#categorySelect')[0].tomselect;
+        if (categorySelect) {
+            Object.keys(categorySelect.options).forEach(function(value) {
+                var option = categorySelect.options[value];
+                categorySelect.updateOption(value, Object.assign({}, option, {
+                    disabled: Boolean(option.type && option.type !== selectedType)
+                }));
+            });
+            categorySelect.refreshOptions(false);
         }
     }
 

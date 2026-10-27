@@ -7,10 +7,10 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Dashboard</a></li>
-                <li class="breadcrumb-item active small fw-semibold" aria-current="page">Daftar Dokumen</li>
+                <li class="breadcrumb-item active small fw-semibold" aria-current="page">{{ $documentType === 'PO' ? 'Purchase Order' : 'Invoice' }}</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-0 tracking-tight">Kelola Dokumen</h3>
+        <h3 class="fw-bold text-dark mb-0 tracking-tight">Kelola {{ $documentType === 'PO' ? 'Purchase Order (PO)' : 'Invoice' }}</h3>
     </div>
     <div class="d-flex align-items-center gap-2">
         @if(auth()->user()->hasAccess('projects'))
@@ -19,14 +19,15 @@
                 <span>Projects</span>
             </a>
         @endif
-        <a href="{{ route('documents.create') }}" class="btn btn-primary px-3.5 py-2 rounded-3 shadow-sm fw-semibold d-inline-flex align-items-center gap-2">
+        <a href="{{ route('documents.create', ['type' => $documentType]) }}" class="btn btn-primary px-3.5 py-2 rounded-3 shadow-sm fw-semibold d-inline-flex align-items-center gap-2">
             <i class="fa-solid fa-plus fs-6"></i>
-            <span>Buat Dokumen Baru</span>
+            <span>Buat {{ $documentType === 'PO' ? 'PO' : 'Invoice' }} Baru</span>
         </a>
     </div>
 </div>
 
 <!-- Bulk Action Floating Bar -->
+@if($documentType !== 'PO')
 <div id="bulkActionBar" class="card border-0 shadow-lg rounded-4 mb-4 bg-dark text-white d-none">
     <div class="card-body p-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
         <div class="d-flex align-items-center gap-3">
@@ -46,6 +47,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Main Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -53,41 +55,22 @@
         
         <!-- TOOLBAR: FILTER BULAN & STATUS -->
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4 p-3 bg-light rounded-4 border border-light-subtle">
-            <form action="{{ route('documents.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap m-0" id="filterForm">
-                
-                <!-- HIDDEN INPUT UNTUK MENJAGA STATE DOUBLE FILTER -->
-                <input type="hidden" name="period" id="inputPeriod" value="{{ request('period') }}">
+            <form action="{{ route($indexRoute) }}" method="GET" class="d-flex align-items-end gap-2 flex-wrap m-0" id="filterForm">
                 <input type="hidden" name="status" id="inputStatus" value="{{ request('status') }}">
 
-                <!-- Filter Periode Dropdown Custom -->
-                <div class="dropdown">
-                    <button class="btn btn-white btn-sm border bg-white rounded-3 dropdown-toggle fw-semibold text-dark shadow-sm d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-regular fa-calendar-days text-primary"></i>
-                        <span>
-                            @if(request('period'))
-                                {{ optional($availableMonths->firstWhere('value', request('period')))->label ?? request('period') }}
-                            @else
-                                Semua Periode
-                            @endif
-                        </span>
-                    </button>
-                    <ul class="dropdown-menu shadow-lg border-0 rounded-3 mt-1 py-2" style="max-height: 280px; overflow-y: auto;">
-                        <li>
-                            <button class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 {{ !request('period') ? 'active fw-bold' : '' }}" type="button" onclick="setFilter('period', '')">
-                                <span>Semua Periode</span>
-                                @if(!request('period')) <i class="fa-solid fa-check small ms-2"></i> @endif
-                            </button>
-                        </li>
-                        <li><hr class="dropdown-divider opacity-50"></li>
+                <div class="document-period-filter">
+                    <label for="documentPeriod" class="form-label small text-muted mb-1">Periode</label>
+                    <select id="documentPeriod" name="period" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Periode" onchange="this.form.submit()">
+                        <option value="">Semua Periode</option>
                         @foreach($availableMonths as $item)
-                            <li>
-                                <button class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 {{ request('period') == $item->value ? 'active fw-bold' : '' }}" type="button" onclick="setFilter('period', '{{ $item->value }}')">
-                                    <span>{{ $item->label }}</span>
-                                    @if(request('period') == $item->value) <i class="fa-solid fa-check small ms-2"></i> @endif
-                                </button>
-                            </li>
+                            <option value="{{ $item->value }}" {{ request('period') === $item->value ? 'selected' : '' }}>
+                                {{ $item->label }}
+                            </option>
                         @endforeach
-                    </ul>
+                        @if(request('period') && ! $availableMonths->pluck('value')->contains(request('period')))
+                            <option value="{{ request('period') }}" selected>{{ request('period') }}</option>
+                        @endif
+                    </select>
                 </div>
 
                 <!-- Filter Status Badge Chips -->
@@ -108,7 +91,7 @@
 
                 <!-- Reset Button -->
                 @if(request('period') || request('status'))
-                    <a href="{{ route('documents.index') }}" class="btn btn-sm btn-danger-subtle text-danger border border-danger-subtle fw-semibold d-flex align-items-center gap-1.5 ms-md-1 px-2.5 py-1.5 rounded-3" data-bs-toggle="tooltip" title="Bersihkan Filter">
+                    <a href="{{ route($indexRoute) }}" class="btn btn-sm btn-danger-subtle text-danger border border-danger-subtle fw-semibold d-flex align-items-center gap-1.5 ms-md-1 px-2.5 py-1.5 rounded-3" data-bs-toggle="tooltip" title="Bersihkan Filter">
                         <i class="fa-solid fa-xmark"></i>
                         <span class="small">Reset</span>
                     </a>
@@ -121,9 +104,11 @@
             <table class="table table-hover align-middle mb-0 custom-saas-table" id="myTable">
                 <thead>
                     <tr>
+                        @if($documentType === 'INVOICE')
                         <th width="4%" class="text-center">
                             <input type="checkbox" class="form-check-input" id="selectAllDocs" title="Pilih Semua Faktur">
                         </th>
+                        @endif
                         <th width="20%">No. Dokumen</th>
                         <th width="22%">Customer</th>
                         <th width="16%">Total Tagihan</th>
@@ -142,10 +127,14 @@
                         $rowTrxCode = !empty($rowRawTrx) ? substr(preg_replace('/[^0-9]/', '', $rowRawTrx), 0, 2) : '04';
                         $rowOtherTaxBase = ($rowTrxCode === '04') ? round(($rowDpp * 11) / 12, 2) : $rowDpp;
                         $rowTaxRate = ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) : 0;
-                        $rowPpn = ($rowTrxCode === '04') ? round($rowOtherTaxBase * ($rowTaxRate / 100), 2) : round($rowDpp * ($rowTaxRate / 100), 2);
+                        $rowVatRate = $rowTrxCode === '04' ? ($rowTaxRate > 0 ? 12 : 0) : $rowTaxRate;
+                        $rowPpn = ($rowTrxCode === '04')
+                            ? round($rowOtherTaxBase * ($rowVatRate / 100), 2)
+                            : round($rowDpp * ($rowVatRate / 100), 2);
                     @endphp
                     <tr>
                         <!-- Checkbox Bulk Export (Invoice Only) -->
+                        @if($documentType === 'INVOICE')
                         <td class="text-center">
                             @if($doc->type == 'INVOICE')
                                 <input type="checkbox" class="form-check-input doc-checkbox" 
@@ -162,6 +151,7 @@
                                 <span class="text-muted small" title="Hanya INVOICE yang dapat diekspor ke Coretax">-</span>
                             @endif
                         </td>
+                        @endif
 
                         <!-- No. Dokumen + Badge Tipe -->
                         <td>
@@ -534,12 +524,23 @@
     }
 
     /* DataTables Control UI Overhaul */
+    .document-period-filter {
+        width: 205px;
+        flex: 0 0 205px;
+    }
+
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
         margin-bottom: 1.25rem;
         font-size: 0.85rem;
         color: #64748b;
         font-weight: 500;
+    }
+    .dataTables_wrapper .dataTables_length .ts-wrapper {
+        display: inline-block;
+        width: 72px;
+        margin: 0 6px;
+        vertical-align: middle;
     }
     .dataTables_wrapper .dataTables_length select {
         border: 1px solid #cbd5e1 !important;
@@ -567,9 +568,7 @@
 
 <script>
     function setFilter(type, value) {
-        if (type === 'period') {
-            document.getElementById('inputPeriod').value = value;
-        } else if (type === 'status') {
+        if (type === 'status') {
             document.getElementById('inputStatus').value = value;
         }
         document.getElementById('filterForm').submit();
@@ -602,7 +601,7 @@
             Swal.fire({
                 icon: 'info',
                 title: 'Data Tidak Ditemukan',
-                text: 'Tidak ada dokumen yang sesuai dengan filter Periode/Status yang Anda pilih.',
+                text: 'Tidak ada {{ $documentType === 'PO' ? 'Purchase Order' : 'Invoice' }} yang sesuai dengan filter Periode/Status yang Anda pilih.',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#0d6efd',
                 customClass: {
@@ -621,12 +620,19 @@
         const dataTable = $('#myTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
-                emptyTable: "Tidak ada dokumen yang ditemukan untuk periode/status ini."
+                emptyTable: "Tidak ada {{ $documentType === 'PO' ? 'Purchase Order' : 'Invoice' }} yang ditemukan untuk periode/status ini."
             },
             columnDefs: [
-                { orderable: false, targets: [0, 4, 5, 6] }
+                { orderable: false, targets: {{ $documentType === 'PO' ? '[3, 4, 5]' : '[0, 4, 5, 6]' }} }
             ]
         });
+
+        const tableWrapper = dataTable.table().node().closest('.dataTables_wrapper');
+        const pageLengthSelect = tableWrapper ? tableWrapper.querySelector('.dataTables_length select') : null;
+        if (pageLengthSelect) {
+            pageLengthSelect.classList.add('form-select', 'form-select-sm', 'smooth-dropdown', 'pagination-dropdown');
+            window.initializeSmoothDropdowns(pageLengthSelect);
+        }
 
         // Re-initialize Tooltips & Select Colors ketika DataTables me-render ulang halaman
         dataTable.on('draw.dt', function () {
@@ -654,14 +660,14 @@
         }
 
         // Select All handler
-        $('#selectAllDocs').on('change', function() {
+        $(document).on('change', '#selectAllDocs', function() {
             let isChecked = $(this).is(':checked');
             dataTable.$('.doc-checkbox').prop('checked', isChecked);
             updateBulkBar();
         });
 
         // Individual checkbox handler (Event Delegation)
-        $('#myTable tbody').on('change', '.doc-checkbox', function() {
+        $(document).on('change', '#myTable .doc-checkbox', function() {
             let totalCheckboxes = dataTable.$('.doc-checkbox').length;
             let checkedCount = dataTable.$('.doc-checkbox:checked').length;
             
@@ -670,14 +676,14 @@
         });
 
         // Clear selection handler
-        $('#btnClearSelection').on('click', function() {
+        $(document).on('click', '#btnClearSelection', function() {
             dataTable.$('.doc-checkbox').prop('checked', false);
             $('#selectAllDocs').prop('checked', false);
             updateBulkBar();
         });
 
         // Open Coretax Modal & calculate summary
-        $('#btnOpenCoretaxModal').on('click', function() {
+        $(document).on('click', '#btnOpenCoretaxModal', function() {
             let checkedBoxes = dataTable.$('.doc-checkbox:checked');
             let count = checkedBoxes.length;
 

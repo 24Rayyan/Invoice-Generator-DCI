@@ -115,7 +115,7 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('#customerTable').DataTable({
+        const customerTable = $('#customerTable').DataTable({
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Cari customer...",
@@ -129,6 +129,12 @@
                 }
             }
         });
+
+        const pageLengthSelect = customerTable.table().container().querySelector('.dataTables_length select');
+        if (pageLengthSelect) {
+            pageLengthSelect.classList.add('form-select', 'form-select-sm', 'smooth-dropdown', 'pagination-dropdown');
+            window.initializeSmoothDropdowns(pageLengthSelect);
+        }
 
         // SweetAlert Delete Confirmation
         $('.btn-delete').on('click', function(e) {

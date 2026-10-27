@@ -39,14 +39,14 @@
                     $unitCode = \App\Services\CoretaxXmlService::getUnitCode($opt);
                     $itemCode = $item->coretax_code ?? '000000';
                     
-                    $typeCategory = (!empty($item->is_service) && $item->is_service) ? 'B' : 'A';
+                    $typeCategory = \App\Services\CoretaxXmlService::determineItemOpt($item);
                     
                     $isTrx04 = ($trxCode === '04');
                     
                     if ($isTrx04) {
                         $dppNilaiLain = round(($itemDpp * 11) / 12, 2);
-                        $ppnAmount = round($dppNilaiLain * 0.12, 2);
-                        $displayTaxRate = 12;
+                        $displayTaxRate = $taxRatePercent > 0 ? 12 : 0;
+                        $ppnAmount = round($dppNilaiLain * ($displayTaxRate / 100), 2);
                     } else {
                         $dppNilaiLain = 0;
                         $ppnAmount = round($itemDpp * ($taxRatePercent / 100), 2);

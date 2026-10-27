@@ -9,6 +9,7 @@ class DocumentItem extends Model
     protected $fillable = [
         'document_id',
         'description',
+        'item_type',
         'notes',
         'qty',
         'unit',

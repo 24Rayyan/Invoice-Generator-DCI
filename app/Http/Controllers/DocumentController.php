@@ -126,7 +126,17 @@ class DocumentController extends Controller
             . "/{$prefix}/{$romanMonth}/{$documentDate->year}";
     }
 
-public function index(Request $request)
+    public function index(Request $request)
+    {
+        return $this->documentList($request, 'INVOICE');
+    }
+
+    public function purchaseOrders(Request $request)
+    {
+        return $this->documentList($request, 'PO');
+    }
+
+    private function documentList(Request $request, string $documentType)
     {
         $setting = Setting::first(); // Sesuaikan jika menggunakan helper custom
 
@@ -156,6 +166,8 @@ public function index(Request $request)
             $query->where('status', $request->status);
         }
 
+        $query->where('type', $documentType);
+
         $documents = $query->get();
 
         // 3. Mengambil Option Daftar Bulan Unik
@@ -176,7 +188,9 @@ public function index(Request $request)
             ->unique('value')
             ->values();
 
-        return view('documents.index', compact('documents', 'availableMonths', 'setting'));
+        $indexRoute = $documentType === 'PO' ? 'purchase-orders.index' : 'documents.index';
+
+        return view('documents.index', compact('documents', 'availableMonths', 'documentType', 'indexRoute', 'setting'));
     }
 
     public function show(Document $document)
@@ -201,37 +215,43 @@ public function index(Request $request)
                 ->get()
             : collect();
 
-        return view('documents.show', compact('document', 'setting', 'margin', 'unallocatedExpenses', 'canViewInvoiceMargin'));
+        $indexRoute = $document->type === 'PO' ? 'purchase-orders.index' : 'documents.index';
+
+        return view('documents.show', compact('document', 'setting', 'margin', 'unallocatedExpenses', 'canViewInvoiceMargin', 'indexRoute'));
     }
 
     public function create()
     {
         $setting = Setting::getSetting();
         $customers = Customer::all();
-        $projects = auth()->user()->hasAccess('projects')
-            ? Project::activeForSelection()
-            : collect();
-        $autoNumber = $this->generateDocumentNumber('INVOICE');
+        $autoInvoiceNumber = $this->generateDocumentNumber('INVOICE');
+        $autoPoNumber = $this->generateDocumentNumber('PO');
+        $documentType = old('type', request('type') === 'PO' ? 'PO' : 'INVOICE');
 
-        return view('documents.create', compact('customers', 'projects', 'autoNumber', 'setting'));
+        $indexRoute = $documentType === 'PO' ? 'purchase-orders.index' : 'documents.index';
+
+        return view('documents.create', compact('customers', 'autoInvoiceNumber', 'autoPoNumber', 'documentType', 'indexRoute', 'setting'));
     }
 
     public function store(Request $request)
     {
-        $canManageProjects = auth()->user()->hasAccess('projects');
         $request->validate([
             'customer_id'          => 'required',
-            'project_id'           => $canManageProjects ? 'nullable|integer|exists:projects,id' : 'prohibited',
-            'type'                 => 'required',
+            'project_id'           => 'prohibited',
+            'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number',
             'item_desc'            => 'required|array|min:1',
+            'item_type'            => $request->type === 'INVOICE'
+                ? 'required|array|size:' . count($request->input('item_desc', []))
+                : 'nullable|array',
+            'item_type.*'          => $request->type === 'INVOICE' ? 'required|in:A,B' : 'nullable|in:A,B',
             'item_notes'           => 'nullable|array',
             'item_qty'             => 'required|array',
             'item_qty.*'           => 'required|numeric|min:0.01',
-            'item_unit'            => 'required|array',
-            'item_unit.*'          => 'required|string',
-            'item_price'           => 'required|array',
-            'item_price.*'         => 'required|numeric|min:0',
+            'item_unit'            => $request->type === 'PO' ? 'nullable|array' : 'required|array',
+            'item_unit.*'          => $request->type === 'PO' ? 'nullable|string' : 'required|string',
+            'item_price'           => $request->type === 'PO' ? 'nullable|array' : 'required|array',
+            'item_price.*'         => $request->type === 'PO' ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'discount'             => 'nullable|numeric|min:0',
             'tax_transaction_code' => 'nullable|string|max:10',
             'tax_invoice_date'     => 'nullable|date',
@@ -246,22 +266,23 @@ public function index(Request $request)
         
         for ($i = 0; $i < count($request->item_desc); $i++) {
             $qty = $request->item_qty[$i];
-            $price = $request->item_price[$i];
+            $price = $request->type === 'PO' ? 0 : $request->item_price[$i];
             $subtotal = $qty * $price;
             
             $total_bruto += $subtotal;
 
             $items_data[] = [
                 'description' => $request->item_desc[$i],
+                'item_type'   => $request->type === 'INVOICE' ? $request->item_type[$i] : null,
                 'notes'       => $request->item_notes[$i] ?? null,
                 'qty'         => $qty,
-                'unit'        => $request->item_unit[$i] ?? 'Pcs',
+                'unit'        => $request->type === 'PO' ? 'Pcs' : ($request->item_unit[$i] ?? 'Pcs'),
                 'price'       => $price,
                 'subtotal'    => $subtotal,
             ];
         }
 
-        $discount = $request->discount ?? 0;
+        $discount = $request->type === 'PO' ? 0 : ($request->discount ?? 0);
         $netto = $total_bruto - $discount;
         
         $taxRate = ($setting->enable_tax ?? true) ? (($setting->default_tax_rate ?? 11) / 100) : 0;
@@ -274,7 +295,7 @@ public function index(Request $request)
         $documentDate = date('Y-m-d');
         $documentData = [
             'customer_id'          => $request->customer_id,
-            'project_id'           => $request->type === 'INVOICE' && $canManageProjects ? $request->project_id : null,
+            'project_id'           => null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
             'date'                 => $documentDate,
@@ -282,9 +303,9 @@ public function index(Request $request)
             'discount'             => $discount,
             'tax_transaction_code' => $transactionCode,
             'tax_invoice_date'     => $request->tax_invoice_date ?? date('Y-m-d'),
-            'payment_note'         => filled($request->payment_note)
+            'payment_note'         => $request->type === 'INVOICE' && filled($request->payment_note)
                 ? $request->payment_note
-                : ($setting->receipt_footer_notes ?: null),
+                : ($request->type === 'INVOICE' ? ($setting->receipt_footer_notes ?: null) : null),
         ];
         if ($request->type === 'INVOICE') {
             $documentData['delivery_note_number'] = $this->generateAuxiliaryDocumentNumber(
@@ -305,14 +326,15 @@ public function index(Request $request)
             DocumentItem::create(array_merge($item, ['document_id' => $document->id]));
         }
 
-        return redirect()->route('documents.index')->with('success', 'Dokumen berhasil dibuat');
+        return redirect()->route($request->type === 'PO' ? 'purchase-orders.index' : 'documents.index')
+            ->with('success', 'Dokumen berhasil dibuat');
     }
 
     public function edit(Document $document)
     {
         // Jika status PAID, tolak akses edit dan redirect kembali
         if ($document->status === 'PAID') {
-            return redirect()->route('documents.index')
+            return redirect()->route($document->type === 'PO' ? 'purchase-orders.index' : 'documents.index')
                 ->with('error', 'Dokumen berstatus PAID sudah terkunci dan tidak dapat diubah.');
         }
 
@@ -325,7 +347,9 @@ public function index(Request $request)
         // Pastikan relasi items ter-load jika dibutuhkan di form edit
         $document->load('items');
 
-        return view('documents.edit', compact('document', 'customers', 'projects'));
+        $indexRoute = $document->type === 'PO' ? 'purchase-orders.index' : 'documents.index';
+
+        return view('documents.edit', compact('document', 'customers', 'projects', 'indexRoute'));
     }
 
     public function update(Request $request, $id)
@@ -335,17 +359,21 @@ public function index(Request $request)
         $request->validate([
             'customer_id'          => 'required',
             'project_id'           => $canManageProjects ? 'nullable|integer|exists:projects,id' : 'prohibited',
-            'type'                 => 'required',
+            'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number,' . $id,
             'status'               => 'required',
             'item_desc'            => 'required|array|min:1',
+            'item_type'            => $request->type === 'INVOICE'
+                ? 'required|array|size:' . count($request->input('item_desc', []))
+                : 'nullable|array',
+            'item_type.*'          => $request->type === 'INVOICE' ? 'required|in:A,B' : 'nullable|in:A,B',
             'item_notes'           => 'nullable|array',
             'item_qty'             => 'required|array',
             'item_qty.*'           => 'required|numeric|min:0.01',
-            'item_unit'            => 'required|array',
-            'item_unit.*'          => 'required|string',
-            'item_price'           => 'required|array',
-            'item_price.*'         => 'required|numeric|min:0',
+            'item_unit'            => $request->type === 'PO' ? 'nullable|array' : 'required|array',
+            'item_unit.*'          => $request->type === 'PO' ? 'nullable|string' : 'required|string',
+            'item_price'           => $request->type === 'PO' ? 'nullable|array' : 'required|array',
+            'item_price.*'         => $request->type === 'PO' ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
             'discount'             => 'nullable|numeric|min:0',
             'tax_transaction_code' => 'nullable|string|max:10',
             'tax_invoice_date'     => 'nullable|date',
@@ -359,7 +387,7 @@ public function index(Request $request)
 
         for ($i = 0; $i < count($request->item_desc); $i++) {
             $qty = $request->item_qty[$i];
-            $price = $request->item_price[$i];
+            $price = $request->type === 'PO' ? 0 : $request->item_price[$i];
             $subtotal = $qty * $price;
             
             $total_bruto += $subtotal;
@@ -367,15 +395,16 @@ public function index(Request $request)
             DocumentItem::create([
                 'document_id' => $document->id,
                 'description' => $request->item_desc[$i],
+                'item_type'   => $request->type === 'INVOICE' ? $request->item_type[$i] : null,
                 'notes'       => $request->item_notes[$i] ?? null,
                 'qty'         => $qty,
-                'unit'        => $request->item_unit[$i] ?? 'Pcs',
+                'unit'        => $request->type === 'PO' ? 'Pcs' : ($request->item_unit[$i] ?? 'Pcs'),
                 'price'       => $price,
                 'subtotal'    => $subtotal,
             ]);
         }
 
-        $discount = $request->discount ?? 0;
+        $discount = $request->type === 'PO' ? 0 : ($request->discount ?? 0);
         $netto = $total_bruto - $discount;
         
         $taxRate = ($setting->enable_tax ?? true) ? (($setting->default_tax_rate ?? 11) / 100) : 0;
@@ -394,9 +423,9 @@ public function index(Request $request)
             'discount'             => $discount,
             'tax_transaction_code' => $request->tax_transaction_code ?? $document->tax_transaction_code ?? '040',
             'tax_invoice_date'     => $request->tax_invoice_date ?? $document->tax_invoice_date ?? $document->date,
-            'payment_note'         => filled($request->payment_note)
+            'payment_note'         => $request->type === 'INVOICE' && filled($request->payment_note)
                 ? $request->payment_note
-                : ($setting->receipt_footer_notes ?: null),
+                : ($request->type === 'INVOICE' ? ($setting->receipt_footer_notes ?: null) : null),
         ];
         if ($request->type === 'INVOICE') {
             $documentData['delivery_note_number'] = $document->delivery_note_number
@@ -409,7 +438,8 @@ public function index(Request $request)
         // Auto-sync transaksi kas jika status berubah menjadi PAID atau sebaliknya
         $this->transactionService->syncInvoicePaidTransaction($document);
 
-        return redirect()->route('documents.index')->with('success', 'Dokumen berhasil diperbarui');
+        return redirect()->route($document->type === 'PO' ? 'purchase-orders.index' : 'documents.index')
+            ->with('success', 'Dokumen berhasil diperbarui');
     }
 
     // Ubah Status Cepat via AJAX
@@ -440,9 +470,12 @@ public function index(Request $request)
         $sourceDoc = Document::with('items')->findOrFail($id);
         $customers = Customer::all();
         
-        $autoNumber = $this->generateDocumentNumber($sourceDoc->type);
+        $autoInvoiceNumber = $this->generateDocumentNumber('INVOICE');
+        $autoPoNumber = $this->generateDocumentNumber('PO');
 
-        return view('documents.create_duplicate', compact('sourceDoc', 'customers', 'autoNumber', 'setting'));
+        $indexRoute = $sourceDoc->type === 'PO' ? 'purchase-orders.index' : 'documents.index';
+
+        return view('documents.create_duplicate', compact('sourceDoc', 'customers', 'autoInvoiceNumber', 'autoPoNumber', 'indexRoute', 'setting'));
     }
 
     public function destroy($id)
@@ -456,7 +489,8 @@ public function index(Request $request)
 
         $document->delete();
         
-        return redirect()->route('documents.index')->with('success', 'Dokumen berhasil dihapus');
+        return redirect()->route($document->type === 'PO' ? 'purchase-orders.index' : 'documents.index')
+            ->with('success', 'Dokumen berhasil dihapus');
     }
 
     // Export Faktur Pajak Keluaran (FK) ke XML Coretax DJP (v1.6.1)
@@ -476,6 +510,10 @@ public function index(Request $request)
 
         if ($documents->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada dokumen Invoice yang valid untuk diekspor ke Coretax.');
+        }
+
+        if ($this->hasInvoiceItemsWithoutType($documents)) {
+            return redirect()->back()->with('error', 'Lengkapi tipe Barang/Jasa pada semua item Invoice sebelum mengekspor Coretax.');
         }
 
         $customDate = $request->tax_invoice_date;
@@ -519,10 +557,23 @@ public function index(Request $request)
             return redirect()->back()->with('error', 'Tidak ada dokumen Invoice yang valid untuk diekspor ke Coretax.');
         }
 
+        if ($this->hasInvoiceItemsWithoutType($documents)) {
+            return redirect()->back()->with('error', 'Lengkapi tipe Barang/Jasa pada semua item Invoice sebelum mengekspor Coretax.');
+        }
+
         $customDate = $request->tax_invoice_date;
         $fileName = 'Coretax_FK_Import_' . date('Ymd_His') . '.xlsx';
 
         return Excel::download(new CoretaxFkExport($documents, $setting, $customDate), $fileName);
+    }
+
+    private function hasInvoiceItemsWithoutType($documents): bool
+    {
+        return $documents->contains(function (Document $document) {
+            return $document->items->contains(function (DocumentItem $item) {
+                return ! in_array($item->item_type, ['A', 'B'], true);
+            });
+        });
     }
 
     // Download PDF Utama

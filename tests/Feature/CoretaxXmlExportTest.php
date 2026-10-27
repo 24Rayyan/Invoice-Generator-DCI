@@ -95,6 +95,7 @@ class CoretaxXmlExportTest extends TestCase
         DocumentItem::create([
             'document_id' => $this->invoice1->id,
             'description' => 'Jasa Maintenance Sistem Server & Cloud',
+            'item_type'   => 'B',
             'qty'         => 1,
             'unit'        => 'Bulan',
             'price'       => 25000000,
@@ -117,6 +118,7 @@ class CoretaxXmlExportTest extends TestCase
         DocumentItem::create([
             'document_id' => $this->invoice2->id,
             'description' => 'Router Wireless Gigabit Dual Band',
+            'item_type'   => 'A',
             'qty'         => 2,
             'unit'        => 'Pcs',
             'price'       => 2500000,
@@ -139,6 +141,7 @@ class CoretaxXmlExportTest extends TestCase
         DocumentItem::create([
             'document_id' => $this->invoiceSpecial->id,
             'description' => 'Instalasi Jaringan & Web Server <Production> Ver "2.0"',
+            'item_type'   => 'B',
             'qty'         => 1,
             'unit'        => 'Paket',
             'price'       => 10000000,
@@ -238,10 +241,10 @@ class CoretaxXmlExportTest extends TestCase
         $this->assertEquals('0', $gs1->getElementsByTagName('TotalDiscount')->item(0)->textContent);
         $this->assertEquals('25000000', $gs1->getElementsByTagName('TaxBase')->item(0)->textContent);
         $this->assertEquals('22916666.67', $gs1->getElementsByTagName('OtherTaxBase')->item(0)->textContent);
-        $this->assertEquals('11', $gs1->getElementsByTagName('VATRate')->item(0)->textContent);
-        $this->assertEquals('2520833.33', $gs1->getElementsByTagName('VAT')->item(0)->textContent);
+        $this->assertEquals('12', $gs1->getElementsByTagName('VATRate')->item(0)->textContent);
+        $this->assertEquals('2750000', $gs1->getElementsByTagName('VAT')->item(0)->textContent);
 
-        // Faktur 2 (NIK Pembeli, TrxCode 01, Barang: Opt A, Code 000000, Unit UM.0021, TrxCode 01: OtherTaxBase 0)
+        // Faktur 2 (NIK Pembeli, TrxCode 01, Barang: Opt A, Code 000000, Unit UM.0033, TrxCode 01: OtherTaxBase 0)
         $inv2Node = $taxInvoices->item(1);
         $this->assertEquals('01', $inv2Node->getElementsByTagName('TrxCode')->item(0)->textContent);
         $this->assertEquals('0000000000000000', $inv2Node->getElementsByTagName('BuyerTin')->item(0)->textContent);
@@ -254,7 +257,7 @@ class CoretaxXmlExportTest extends TestCase
         $gs2 = $goodServices2->item(0);
         $this->assertEquals('A', $gs2->getElementsByTagName('Opt')->item(0)->textContent);
         $this->assertEquals('000000', $gs2->getElementsByTagName('Code')->item(0)->textContent);
-        $this->assertEquals('UM.0021', $gs2->getElementsByTagName('Unit')->item(0)->textContent);
+        $this->assertEquals('UM.0033', $gs2->getElementsByTagName('Unit')->item(0)->textContent);
         $this->assertEquals('2500000', $gs2->getElementsByTagName('Price')->item(0)->textContent);
         $this->assertEquals('2', $gs2->getElementsByTagName('Qty')->item(0)->textContent);
         $this->assertEquals('5000000', $gs2->getElementsByTagName('TaxBase')->item(0)->textContent);
@@ -289,6 +292,20 @@ class CoretaxXmlExportTest extends TestCase
 
         $itemName = $dom->getElementsByTagName('Name')->item(0)->textContent;
         $this->assertEquals('Instalasi Jaringan & Web Server <Production> Ver "2.0"', $itemName);
+    }
+
+    public function test_stored_item_type_takes_precedence_over_description_keywords(): void
+    {
+        $this->assertSame('A', CoretaxXmlService::determineItemOpt((object) [
+            'item_type' => 'A',
+            'description' => 'Jasa konsultasi',
+        ]));
+        $this->assertSame('B', CoretaxXmlService::determineItemOpt((object) [
+            'item_type' => 'B',
+            'description' => 'Router wireless',
+        ]));
+        $this->assertSame('UM.0033', CoretaxXmlService::getUnitCode('A'));
+        $this->assertSame('UM.0030', CoretaxXmlService::getUnitCode('B'));
     }
 
     /**

@@ -55,10 +55,9 @@
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="45%">Deskripsi Barang / Jasa</th>
-                <th width="10%">Qty</th>
-                <th width="20%" style="text-align: right;">Harga Satuan</th>
-                <th width="20%" style="text-align: right;">Total</th>
+                <th width="40%">Nama Barang</th>
+                <th width="40%">Spesifikasi</th>
+                <th width="15%">Kuantitas</th>
             </tr>
         </thead>
         <tbody>
@@ -66,36 +65,11 @@
             <tr>
                 <td style="text-align: center;">{{ $index + 1 }}</td>
                 <td>{{ $item->description }}</td>
-                <td style="text-align: center;">{{ $item->qty }} {{ $item->unit ?? 'Pcs' }}</td>
-                <td style="text-align: right;">{{ number_format($item->price, 0, ',', '.') }}</td>
-                <td style="text-align: right;">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                <td>{{ $item->notes ?? '-' }}</td>
+                <td style="text-align: center;">{{ $item->qty }}</td>
             </tr>
             @endforeach
         </tbody>
-        
-        @php
-            $bruto = $document->items->sum('subtotal');
-            $potongan = $document->discount ?? 0;
-            $netto = $bruto - $potongan;
-            $currencySymbol = $setting->currency_symbol ?? 'Rp';
-        @endphp
-        
-        <tfoot>
-            @if($potongan > 0)
-            <tr>
-                <td colspan="4" style="text-align: right;"><strong>JUMLAH BRUTO</strong></td>
-                <td style="text-align: right;">{{ $currencySymbol }} {{ number_format($bruto, 0, ',', '.') }}</td>
-            </tr>
-            <tr>
-                <td colspan="4" style="text-align: right;"><strong>POTONGAN / DISKON</strong></td>
-                <td style="text-align: right; color: red;">- {{ $currencySymbol }} {{ number_format($potongan, 0, ',', '.') }}</td>
-            </tr>
-            @endif
-            <tr style="background-color: #f1f5f9; font-weight: bold;">
-                <td colspan="4" style="text-align: right;"><strong>TOTAL PEMBELIAN (PO)</strong></td>
-                <td style="text-align: right;"><strong>{{ $currencySymbol }} {{ number_format($netto, 0, ',', '.') }}</strong></td>
-            </tr>
-        </tfoot>
     </table>
 
     <div class="signature-area">

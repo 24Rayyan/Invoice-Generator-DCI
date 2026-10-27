@@ -80,6 +80,7 @@ Route::middleware(['auth'])->group(function () {
 
     // --- MANAGEMENT DOKUMEN (INVOICE / PO) ---
     Route::middleware(['module:invoices'])->group(function () {
+        Route::get('/purchase-orders', [DocumentController::class, 'purchaseOrders'])->name('purchase-orders.index');
         Route::resource('documents', DocumentController::class);
         Route::patch('/documents/{id}/update-status', [DocumentController::class, 'updateStatus'])->name('documents.update-status');
         Route::post('/documents/export-coretax', [DocumentController::class, 'exportCoretax'])->name('documents.export_coretax');
@@ -88,7 +89,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/documents/{id}/pdf', [DocumentController::class, 'downloadPdf'])->name('documents.pdf');
         Route::get('/documents/{id}/delivery-note', [DocumentController::class, 'downloadDeliveryNote'])->name('documents.delivery_note');
         Route::get('/documents/{id}/kwitansi', [DocumentController::class, 'downloadKwitansi'])->name('documents.kwitansi');
-        Route::post('/documents/{id}/duplicate', [DocumentController::class, 'duplicate'])->name('documents.duplicate');
+        Route::get('/documents/{id}/duplicate', [DocumentController::class, 'duplicate'])->name('documents.duplicate');
         Route::post('/documents/{document}/attach-transactions', [InvoiceCostController::class, 'attach'])->middleware('module:invoice_margin')->name('documents.attach-transactions');
         Route::post('/documents/{document}/transactions/{transaction}/detach', [InvoiceCostController::class, 'detach'])->middleware('module:invoice_margin')->name('documents.detach-transaction');
     });

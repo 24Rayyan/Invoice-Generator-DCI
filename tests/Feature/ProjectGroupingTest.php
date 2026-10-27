@@ -80,7 +80,7 @@ class ProjectGroupingTest extends TestCase
         ]);
     }
 
-    public function test_projects_can_be_created_and_assigned_to_invoices(): void
+    public function test_projects_are_assigned_to_invoices_after_document_creation(): void
     {
         $project = $this->makeProject();
 
@@ -96,25 +96,41 @@ class ProjectGroupingTest extends TestCase
             ->assertDontSee('name="project_id"', false)
             ->assertDontSee('ERP Rollout');
 
+        $documentInput = [
+            'customer_id' => $this->customer->id,
+            'type' => 'INVOICE',
+            'document_number' => 'INV-PROJECT/FORM',
+            'item_desc' => ['Implementation milestone'],
+            'item_type' => ['B'],
+            'item_qty' => [1],
+            'item_unit' => ['Lot'],
+            'item_price' => [2000000],
+        ];
+
         $this->actingAs($this->admin)
-            ->post(route('documents.store'), [
-                'customer_id' => $this->customer->id,
-                'project_id' => $project->id,
-                'type' => 'INVOICE',
-                'document_number' => 'INV-PROJECT/FORM',
-                'item_desc' => ['Implementation milestone'],
-                'item_qty' => [1],
-                'item_unit' => ['Lot'],
-                'item_price' => [2000000],
-            ])
+            ->post(route('documents.store'), $documentInput + ['project_id' => $project->id])
+            ->assertSessionHasErrors(['project_id']);
+
+        $this->assertDatabaseMissing('documents', ['document_number' => 'INV-PROJECT/FORM']);
+
+        $this->actingAs($this->admin)
+            ->post(route('documents.store'), $documentInput)
             ->assertRedirect(route('documents.index'));
 
         $this->assertDatabaseHas('documents', [
             'document_number' => 'INV-PROJECT/FORM',
-            'project_id' => $project->id,
+            'project_id' => null,
         ]);
 
         $invoice = Document::where('document_number', 'INV-PROJECT/FORM')->firstOrFail();
+        $this->actingAs($this->admin)
+            ->post(route('projects.attach-invoices', $project), [
+                'invoice_ids' => [$invoice->id],
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame($project->id, $invoice->fresh()->project_id);
         $invoice->update(['status' => 'PAID']);
         app(TransactionService::class)->syncInvoicePaidTransaction($invoice->load('customer'));
         $this->assertDatabaseHas('transactions', [

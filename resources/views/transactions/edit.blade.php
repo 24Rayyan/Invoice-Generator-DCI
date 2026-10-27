@@ -62,7 +62,7 @@
                         <!-- Kategori Akun (COA) -->
                         <div class="col-md-4">
                             <label class="form-label fw-bold text-dark font-sm">Kategori Akun (COA) <span class="text-danger">*</span></label>
-                            <select name="category_id" id="categorySelect" class="form-select" required onchange="onCategoryChange()">
+                            <select name="category_id" id="categorySelect" class="form-select smooth-dropdown" data-placeholder="Pilih akun kategori..." required onchange="onCategoryChange()">
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id }}" 
                                         data-type="{{ $cat->type }}"
