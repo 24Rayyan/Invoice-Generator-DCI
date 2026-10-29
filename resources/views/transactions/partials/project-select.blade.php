@@ -1,6 +1,6 @@
 <div class="col-md-6">
     <label for="project_id" class="form-label fw-bold text-dark font-sm">Relasikan ke Project</label>
-    <select name="project_id" id="project_id" class="form-select select2-project">
+    <select name="project_id" id="project_id" class="form-select smooth-dropdown">
         <option value="">-- Umum / Operasional (tidak terikat project) --</option>
         @foreach($projects as $project)
             <option value="{{ $project->id }}" {{ (string) old('project_id', $selectedProjectId ?? '') === (string) $project->id ? 'selected' : '' }}>

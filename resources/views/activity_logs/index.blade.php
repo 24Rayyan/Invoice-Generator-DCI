@@ -374,22 +374,20 @@
     }
 
     .al-input,
-    .al-select {
+    .al-select + .ts-wrapper {
         width: 100%;
-        border: 1px solid var(--al-border);
-        border-radius: 9px;
-        padding: 9px 12px;
+    }
+
+    .al-select + .ts-wrapper .ts-control {
         font-size: 0.82rem;
         color: var(--al-dark);
-        background-color: #fff;
-        outline: none;
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .al-input::placeholder { color: #94a3b8; }
 
     .al-input:focus,
-    .al-select:focus {
+    .al-select + .ts-wrapper.focus .ts-control {
         border-color: var(--al-blue);
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }

@@ -236,8 +236,6 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2').not('#customer_select').select2({ theme: 'bootstrap-5', width: '100%' });
-
         $('#document_type').on('change', function() {
             let number = $(this).val() === 'PO'
                 ? $('#document_number').data('po-number')
@@ -266,7 +264,7 @@
             let selectedOption = $(this).find('option:selected');
             let taxCode = selectedOption.data('tax-code');
             if (taxCode) {
-                $('#tax_transaction_code').val(taxCode);
+                $('#tax_transaction_code')[0].tomselect.setValue(taxCode);
             }
         });
 

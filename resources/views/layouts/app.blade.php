@@ -27,9 +27,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     
     
-    <!-- Select2 CSS & Bootstrap 5 Theme -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 
     
@@ -275,6 +272,10 @@
             color: #94a3b8;
         }
 
+        select.is-invalid + .ts-wrapper .ts-control {
+            border-color: #dc3545;
+        }
+
         select.smooth-dropdown.form-select-sm + .ts-wrapper.single .ts-control {
             min-height: 34px;
             padding: 0.3rem 2rem 0.3rem 0.65rem;
@@ -416,34 +417,6 @@
         .btn-primary:hover {
             background-color: var(--erp-primary-hover);
             border-color: var(--erp-primary-hover);
-        }
-
-        /* Status Select & Badges */
-        select.status-select {
-            font-size: 0.775rem !important;
-            font-weight: 700 !important;
-            padding: 0.3rem 1.5rem 0.3rem 0.75rem !important;
-            border-radius: 50rem !important;
-            cursor: pointer;
-            box-shadow: none !important;
-        }
-
-        select.status-select.status-draft {
-            background-color: #f1f5f9 !important;
-            color: #475569 !important;
-            border: 1px solid #cbd5e1 !important;
-        }
-
-        select.status-select.status-sent {
-            background-color: #eff6ff !important;
-            color: #1e40af !important;
-            border: 1px solid #93c5fd !important;
-        }
-
-        select.status-select.status-paid {
-            background-color: #ecfdf5 !important;
-            color: #065f46 !important;
-            border: 1px solid #6ee7b7 !important;
         }
 
         /* Modern Tables */
@@ -710,7 +683,6 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     
     <script>

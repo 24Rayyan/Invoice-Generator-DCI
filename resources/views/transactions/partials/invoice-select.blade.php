@@ -1,6 +1,6 @@
 <div class="col-md-12">
     <label class="form-label fw-bold text-dark font-sm">Relasikan ke Invoice</label>
-    <select name="invoice_id" id="invoiceSelect" class="form-select select2-invoice">
+    <select name="invoice_id" id="invoiceSelect" class="form-select smooth-dropdown">
         <option value="">-- Umum / Operasional (tidak terikat invoice) --</option>
         @foreach($invoices as $invoice)
             <option value="{{ $invoice->id }}" {{ (string) old('invoice_id', $selectedInvoiceId ?? '') === (string) $invoice->id ? 'selected' : '' }}>

@@ -497,27 +497,31 @@
     }
 
     /* Status Select Pill Styles */
-    select.status-select {
+    .ts-wrapper.status-select {
+        width: 125px;
+    }
+
+    .ts-wrapper.status-select .ts-control {
         font-size: 0.75rem !important;
         font-weight: 700 !important;
         padding: 0.3rem 1.75rem 0.3rem 0.75rem !important;
         border-radius: 20px !important;
         box-shadow: none !important;
         cursor: pointer;
-        width: 125px;
+        width: 100%;
         transition: all 0.2s;
     }
-    select.status-select.status-draft {
+    .ts-wrapper.status-select.status-draft .ts-control {
         background-color: #f1f5f9 !important;
         color: #475569 !important;
         border: 1px solid #cbd5e1 !important;
     }
-    select.status-select.status-sent {
+    .ts-wrapper.status-select.status-sent .ts-control {
         background-color: #eff6ff !important;
         color: #1d4ed8 !important;
         border: 1px solid #bfdbfe !important;
     }
-    select.status-select.status-paid {
+    .ts-wrapper.status-select.status-paid .ts-control {
         background-color: #f0fdf4 !important;
         color: #15803d !important;
         border: 1px solid #bbf7d0 !important;
@@ -577,12 +581,26 @@
     function updateSelectColor(elem) {
         let val = $(elem).val();
         $(elem).removeClass('status-draft status-sent status-paid');
+        let wrapper = elem.tomselect && elem.tomselect.wrapper;
+        if (wrapper) {
+            wrapper.classList.remove('status-draft', 'status-sent', 'status-paid');
+        }
+        let statusClass = '';
         if (val === 'DRAFT') {
             $(elem).addClass('status-draft');
+            statusClass = 'status-draft';
         } else if (val === 'SENT') {
             $(elem).addClass('status-sent');
+            statusClass = 'status-sent';
         } else if (val === 'PAID') {
             $(elem).addClass('status-paid');
+            statusClass = 'status-paid';
+        }
+        if (wrapper) {
+            wrapper.classList.add('status-select');
+            if (statusClass) {
+                wrapper.classList.add(statusClass);
+            }
         }
     }
 
@@ -638,6 +656,7 @@
         dataTable.on('draw.dt', function () {
             initTooltips();
             $('.status-select').each(function() {
+                window.initializeSmoothDropdowns(this);
                 updateSelectColor(this);
             });
         });

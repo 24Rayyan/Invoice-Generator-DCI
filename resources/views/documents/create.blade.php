@@ -226,14 +226,12 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2').not('#customer_select').select2({ theme: 'bootstrap-5', width: '100%' });
-
         // Auto-inherit default tax code from selected customer
         $('#customer_select').on('change', function() {
             let selectedOption = $(this).find('option:selected');
             let taxCode = selectedOption.data('tax-code');
             if (taxCode) {
-                $('#tax_transaction_code').val(taxCode);
+                $('#tax_transaction_code')[0].tomselect.setValue(taxCode);
             }
         });
 

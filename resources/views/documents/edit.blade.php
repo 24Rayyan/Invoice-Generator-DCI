@@ -83,7 +83,7 @@
                     @if(auth()->user()->hasAccess('projects'))
                         <div class="col-md-6 invoice-only {{ $document->type === 'PO' ? 'd-none' : '' }}">
                             <label for="project_id" class="form-label fw-semibold text-dark small">Project (Opsional)</label>
-                            <select name="project_id" id="project_id" class="form-select select2" {{ $document->type === 'PO' ? 'disabled' : '' }}>
+                            <select name="project_id" id="project_id" class="form-select smooth-dropdown" {{ $document->type === 'PO' ? 'disabled' : '' }}>
                                 <option value="">-- Tidak terkait project --</option>
                                 @foreach($projects as $project)
                                     <option value="{{ $project->id }}" {{ old('project_id', $document->project_id) == $project->id ? 'selected' : '' }}>
@@ -229,13 +229,11 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        $('.select2').not('#customer_select').select2({ theme: 'bootstrap-5', width: '100%' });
-
         $('#customer_select').on('change', function() {
             let selectedOption = $(this).find('option:selected');
             let taxCode = selectedOption.data('tax-code');
             if (taxCode) {
-                $('#tax_transaction_code').val(taxCode);
+                $('#tax_transaction_code')[0].tomselect.setValue(taxCode);
             }
         });
 

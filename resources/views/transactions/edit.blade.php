@@ -209,18 +209,6 @@
 
     $(document).ready(function() {
         onCategoryChange();
-        $('.select2-invoice').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: '-- Umum / Operasional (tidak terikat invoice) --',
-            allowClear: true
-        });
-        $('.select2-project').select2({
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: '-- Umum / Operasional (tidak terikat project) --',
-            allowClear: true
-        });
     });
 </script>
 @endpush

@@ -3,17 +3,19 @@
         root = root || document;
         let selects = [];
 
-        if (root.matches && root.matches('.smooth-dropdown, .customer-select')) {
+        if (root.matches && root.matches('select:not([data-native-dropdown])')) {
             selects.push(root);
         }
         if (root.querySelectorAll) {
-            selects = selects.concat(Array.from(root.querySelectorAll('.smooth-dropdown, .customer-select')));
+            selects = selects.concat(Array.from(root.querySelectorAll('select:not([data-native-dropdown])')));
         }
 
         selects.forEach(function(select) {
             if (select.tomselect) {
                 return;
             }
+
+            select.classList.add('smooth-dropdown');
 
             let placeholder = select.dataset.placeholder;
             if (!placeholder && select.options.length && select.options[0].value === '') {
@@ -87,5 +89,37 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         window.initializeSmoothDropdowns(document);
+
+        let dropdownObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            window.initializeSmoothDropdowns(node);
+                        }
+                    });
+                    return;
+                }
+
+                let select = mutation.target;
+                let instance = select.tomselect;
+                if (!instance) {
+                    return;
+                }
+
+                if (select.disabled && !instance.isDisabled) {
+                    instance.disable();
+                } else if (!select.disabled && instance.isDisabled) {
+                    instance.enable();
+                }
+            });
+        });
+
+        dropdownObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['disabled'],
+            childList: true,
+            subtree: true
+        });
     });
 </script>
