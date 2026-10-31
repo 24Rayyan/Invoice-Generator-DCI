@@ -48,10 +48,17 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-dark small">Jenis Dokumen <span class="text-danger">*</span></label>
-                        <select name="type" id="document_type" class="form-select" required>
-                            <option value="INVOICE" {{ $documentType === 'INVOICE' ? 'selected' : '' }}>Invoice (Faktur Penjualan)</option>
-                            <option value="PO" {{ $documentType === 'PO' ? 'selected' : '' }}>Purchase Order (PO)</option>
-                        </select>
+                        @if($documentType === 'PO')
+                            <select id="document_type" class="form-select" disabled aria-label="Jenis dokumen">
+                                <option value="PO" selected>Purchase Order (PO)</option>
+                            </select>
+                            <input type="hidden" name="type" value="PO">
+                        @else
+                            <select name="type" id="document_type" class="form-select" required>
+                                <option value="INVOICE" selected>Invoice (Faktur Penjualan)</option>
+                                <option value="PO">Purchase Order (PO)</option>
+                            </select>
+                        @endif
                     </div>
 
                     <div class="col-md-3">
@@ -69,6 +76,11 @@
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-dark small">Nomor Dokumen <span class="badge bg-success bg-opacity-10 text-success ms-1 font-xs">Otomatis</span></label>
                         <input type="text" name="document_number" id="document_number" class="form-control fw-bold text-primary font-monospace" value="{{ old('document_number', $documentType === 'PO' ? $autoPoNumber : $autoInvoiceNumber) }}" data-invoice-number="{{ $autoInvoiceNumber }}" data-po-number="{{ $autoPoNumber }}" required>
+                    </div>
+
+                    <div class="col-12 po-only {{ $documentType === 'PO' ? '' : 'd-none' }}">
+                        <label for="document_description" class="form-label fw-semibold text-dark small">Keterangan (Opsional)</label>
+                        <textarea name="description" id="document_description" class="form-control" rows="2" maxlength="2000" placeholder="Tambahkan keterangan untuk Purchase Order..." {{ $documentType === 'PO' ? '' : 'disabled' }}>{{ old('description') }}</textarea>
                     </div>
 
                     <div class="col-md-3 invoice-only {{ $documentType === 'PO' ? 'd-none' : '' }}">
@@ -293,6 +305,8 @@
             $('.item-specification-input').attr('placeholder', isPurchaseOrder ? 'Spesifikasi barang...' : 'Catatan opsional...');
             $('.invoice-only').toggleClass('d-none', isPurchaseOrder);
             $('.invoice-only input, .invoice-only select, .invoice-only textarea').prop('disabled', isPurchaseOrder);
+            $('.po-only').toggleClass('d-none', !isPurchaseOrder);
+            $('.po-only input, .po-only select, .po-only textarea').prop('disabled', !isPurchaseOrder);
         }
 
         $('#document_type').on('change', updateDocumentTypeFields);

@@ -111,7 +111,7 @@
                         @endif
                         <th width="20%">No. Dokumen</th>
                         <th width="22%">Customer</th>
-                        <th width="16%">Total Tagihan</th>
+                        <th width="16%">{{ $documentType === 'PO' ? 'Keterangan' : 'Total Tagihan' }}</th>
                         <th width="14%">Status</th>
                         <th width="12%" class="text-center">PDF</th>
                         <th width="12%" class="text-center">Aksi</th>
@@ -175,9 +175,15 @@
                             </div>
                         </td>
 
-                        <!-- Total Tagihan / Nominal -->
+                        <!-- PO Keterangan / Invoice Total -->
                         <td>
-                            <span class="fw-bold text-dark">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($doc->total_amount, 0, ',', '.') }}</span>
+                            @if($documentType === 'PO')
+                                <span class="text-dark" title="{{ $doc->description ?: 'Tidak ada keterangan' }}">
+                                    {{ $doc->description ? \Illuminate\Support\Str::limit($doc->description, 40) : '—' }}
+                                </span>
+                            @else
+                                <span class="fw-bold text-dark">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($doc->total_amount, 0, ',', '.') }}</span>
+                            @endif
                         </td>
                         
                         <!-- QUICK CHANGE STATUS VIA AJAX -->
@@ -426,6 +432,37 @@
 
 @push('scripts')
 <style>
+    .swal2-popup.sent-edit-confirmation {
+        width: min(30rem, calc(100vw - 2rem));
+        padding: 1.75rem;
+    }
+
+    .sent-edit-confirmation .swal2-title {
+        margin: 0.75rem 0 0.5rem;
+        font-size: 1.35rem;
+        line-height: 1.35;
+    }
+
+    .sent-edit-confirmation .swal2-html-container {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .sent-edit-confirmation .swal2-actions {
+        gap: 0.5rem;
+        margin-top: 1.25rem;
+    }
+
+    .sent-edit-confirmation .swal2-styled {
+        margin: 0;
+        border-radius: 0.5rem;
+        padding: 0.65rem 1rem;
+        font-weight: 700;
+    }
+
     /* Typography & Layout Rules */
     .tracking-tight { letter-spacing: -0.025em; }
     .tracking-wide { letter-spacing: 0.03em; }
@@ -499,32 +536,95 @@
     /* Status Select Pill Styles */
     .ts-wrapper.status-select {
         width: 125px;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
     }
 
     .ts-wrapper.status-select .ts-control {
+        min-height: 40px !important;
+        height: 40px !important;
         font-size: 0.75rem !important;
         font-weight: 700 !important;
-        padding: 0.3rem 1.75rem 0.3rem 0.75rem !important;
+        padding: 0.35rem 2rem 0.35rem 0.75rem !important;
         border-radius: 20px !important;
         box-shadow: none !important;
         cursor: pointer;
         width: 100%;
+        box-sizing: border-box;
         transition: all 0.2s;
+    }
+    .ts-wrapper.status-select .ts-control > .status-item.item {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        line-height: 1.25;
+    }
+    .ts-wrapper.status-select .ts-control > input {
+        position: absolute !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 1px !important;
+        height: 1px !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+    .ts-wrapper.status-select .status-item,
+    .ts-dropdown .status-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .ts-wrapper.status-select .status-item i,
+    .ts-dropdown .status-option i {
+        width: 0.9rem;
+        text-align: center;
     }
     .ts-wrapper.status-select.status-draft .ts-control {
         background-color: #f1f5f9 !important;
         color: #475569 !important;
         border: 1px solid #cbd5e1 !important;
     }
+    .ts-wrapper.status-select.status-draft .status-item,
+    .ts-wrapper.status-select.status-draft .status-item i {
+        color: #475569 !important;
+    }
+    .ts-dropdown .status-option i.fa-file-pen {
+        color: #64748b;
+    }
+    .ts-dropdown .status-option i.fa-paper-plane {
+        color: #2563eb;
+    }
+    .ts-dropdown .status-option i.fa-circle-check {
+        color: #16a34a;
+    }
     .ts-wrapper.status-select.status-sent .ts-control {
         background-color: #eff6ff !important;
         color: #1d4ed8 !important;
         border: 1px solid #bfdbfe !important;
     }
+    .ts-wrapper.status-select.status-sent .status-item,
+    .ts-wrapper.status-select.status-sent .status-item i {
+        color: #1d4ed8 !important;
+    }
     .ts-wrapper.status-select.status-paid .ts-control {
         background-color: #f0fdf4 !important;
         color: #15803d !important;
         border: 1px solid #bbf7d0 !important;
+    }
+    .ts-wrapper.status-select.status-paid .status-item,
+    .ts-wrapper.status-select.status-paid .status-item i {
+        color: #15803d !important;
     }
 
     /* DataTables Control UI Overhaul */
@@ -630,7 +730,8 @@
 
         // Init Bootstrap Tooltips & Select Colors pada load awal
         initTooltips();
-        $('.status-select').each(function() {
+        $('select.status-select').each(function() {
+            window.initializeSmoothDropdowns(this);
             updateSelectColor(this);
         });
 
@@ -655,7 +756,7 @@
         // Re-initialize Tooltips & Select Colors ketika DataTables me-render ulang halaman
         dataTable.on('draw.dt', function () {
             initTooltips();
-            $('.status-select').each(function() {
+            $('select.status-select').each(function() {
                 window.initializeSmoothDropdowns(this);
                 updateSelectColor(this);
             });
@@ -753,7 +854,7 @@
         });
 
         // Quick status update AJAX (Event Delegation)
-        $('#myTable tbody').on('change', '.status-select', function() {
+        $('#myTable tbody').on('change', 'select.status-select', function() {
             let docId = $(this).data('id');
             let newStatus = $(this).val();
             let selectElem = this;
@@ -881,7 +982,7 @@
             confirmButtonText: '<span class="text-dark fw-bold">Ya, Lanjutkan Edit</span>',
             cancelButtonText: 'Batal',
             customClass: {
-                popup: 'rounded-4 shadow-lg border-0'
+                popup: 'rounded-4 shadow-lg border-0 sent-edit-confirmation'
             }
         }).then((result) => {
             if (result.isConfirmed) {

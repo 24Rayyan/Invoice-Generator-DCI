@@ -3,11 +3,20 @@
         root = root || document;
         let selects = [];
 
-        if (root.matches && root.matches('select:not([data-native-dropdown])')) {
+        if (
+            root.matches &&
+            root.matches('select:not([data-native-dropdown]):not(:disabled)') &&
+            !root.closest('.swal2-popup')
+        ) {
             selects.push(root);
         }
         if (root.querySelectorAll) {
-            selects = selects.concat(Array.from(root.querySelectorAll('select:not([data-native-dropdown])')));
+            selects = selects.concat(
+                Array.from(root.querySelectorAll('select:not([data-native-dropdown]):not(:disabled)'))
+                    .filter(function(select) {
+                        return !select.closest('.swal2-popup');
+                    })
+            );
         }
 
         selects.forEach(function(select) {
@@ -30,9 +39,7 @@
                 dropdownParent: 'body',
                 maxOptions: null,
                 placeholder: placeholder || 'Pilih opsi...',
-                searchField: isCustomerSelect
-                    ? ['text', 'taxId', 'email']
-                    : ['text'],
+                searchField: ['text'],
                 render: {
                     no_results: function() {
                         return '<div class="no-results">Tidak ada hasil yang cocok</div>';
@@ -40,46 +47,68 @@
                 }
             };
 
-            if (select.classList.contains('category-filter-dropdown')) {
-                settings.dropdownClass = 'category-filter-dropdown-menu';
+            if (select.classList.contains('status-select')) {
+                let statusIcons = {
+                    DRAFT: 'fa-file-pen',
+                    SENT: 'fa-paper-plane',
+                    PAID: 'fa-circle-check'
+                };
+                let renderStatus = function(data, escape, className) {
+                    let icon = statusIcons[data.value];
+                    if (!icon) {
+                        return `<div>${escape(data.text)}</div>`;
+                    }
+
+                    return `<div class="${className}">
+                        <i class="fa-solid ${icon}" aria-hidden="true"></i>
+                        <span>${escape(data.text)}</span>
+                    </div>`;
+                };
+
+                settings.searchField = [];
+                settings.render.option = function(data, escape) {
+                    return renderStatus(data, escape, 'status-option');
+                };
+                settings.render.item = function(data, escape) {
+                    return renderStatus(data, escape, 'status-item');
+                };
                 settings.onInitialize = function() {
-                    let instance = this;
-                    Array.from(select.options).forEach(function(option) {
-                        let item = instance.options[option.value];
-                        if (item) {
-                            item.type = option.dataset.type || '';
+                    this.wrapper.classList.remove('form-select');
+                    this.control_input.setAttribute('readonly', 'readonly');
+                    this.control_input.setAttribute('aria-readonly', 'true');
+                };
+            }
+
+            if (select.classList.contains('category-filter-dropdown')) {
+                settings.score = function(search) {
+                    let textScore = this.getScoreFunction(search);
+
+                    return function(data) {
+                        let option = Array.from(select.options).find(function(item) {
+                            return item.value === data.value;
+                        });
+                        let selectedType = select.form
+                            ? select.form.querySelector('input[name="type"]:checked')?.value
+                            : null;
+                        let categoryType = option?.dataset.type?.trim().toLowerCase();
+
+                        if (
+                            selectedType &&
+                            ['income', 'expense'].includes(selectedType) &&
+                            categoryType &&
+                            categoryType !== selectedType
+                        ) {
+                            return 0;
                         }
-                    });
+
+                        return textScore(data);
+                    };
                 };
             }
 
             if (isCustomerSelect) {
                 settings.render.option = function(data, escape) {
-                    let option = Array.from(select.options).find(function(item) {
-                        return item.value === data.value;
-                    });
-                    let details = [];
-                    if (option && option.dataset.taxId) {
-                        details.push(`${option.dataset.taxType || 'NPWP'}: ${option.dataset.taxId}`);
-                    }
-                    if (option && option.dataset.email) {
-                        details.push(option.dataset.email);
-                    }
-
-                    return `<div class="customer-option">
-                        <span class="customer-option-name">${escape(data.text)}</span>
-                        ${details.length ? `<span class="customer-option-meta">${escape(details.join(' · '))}</span>` : ''}
-                    </div>`;
-                };
-                settings.onInitialize = function() {
-                    let instance = this;
-                    Array.from(select.options).forEach(function(option) {
-                        let item = instance.options[option.value];
-                        if (item) {
-                            item.taxId = option.dataset.taxId || '';
-                            item.email = option.dataset.email || '';
-                        }
-                    });
+                    return `<div class="customer-option-name">${escape(data.text)}</div>`;
                 };
             }
 
@@ -103,6 +132,10 @@
 
                 let select = mutation.target;
                 let instance = select.tomselect;
+                if (!instance && !select.disabled) {
+                    window.initializeSmoothDropdowns(select);
+                    return;
+                }
                 if (!instance) {
                     return;
                 }

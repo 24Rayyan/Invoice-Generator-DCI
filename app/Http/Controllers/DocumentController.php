@@ -226,7 +226,9 @@ class DocumentController extends Controller
         $customers = Customer::all();
         $autoInvoiceNumber = $this->generateDocumentNumber('INVOICE');
         $autoPoNumber = $this->generateDocumentNumber('PO');
-        $documentType = old('type', request('type') === 'PO' ? 'PO' : 'INVOICE');
+        $documentType = request()->query('type') === 'PO'
+            ? 'PO'
+            : old('type', request('type') === 'PO' ? 'PO' : 'INVOICE');
 
         $indexRoute = $documentType === 'PO' ? 'purchase-orders.index' : 'documents.index';
 
@@ -240,6 +242,7 @@ class DocumentController extends Controller
             'project_id'           => 'prohibited',
             'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number',
+            'description'          => 'nullable|string|max:2000',
             'item_desc'            => 'required|array|min:1',
             'item_type'            => $request->type === 'INVOICE'
                 ? 'required|array|size:' . count($request->input('item_desc', []))
@@ -298,6 +301,7 @@ class DocumentController extends Controller
             'project_id'           => null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
+            'description'          => $request->type === 'PO' ? $request->description : null,
             'date'                 => $documentDate,
             'total_amount'         => $total_amount_include_ppn,
             'discount'             => $discount,
@@ -361,6 +365,7 @@ class DocumentController extends Controller
             'project_id'           => $canManageProjects ? 'nullable|integer|exists:projects,id' : 'prohibited',
             'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number,' . $id,
+            'description'          => 'nullable|string|max:2000',
             'status'               => 'required',
             'item_desc'            => 'required|array|min:1',
             'item_type'            => $request->type === 'INVOICE'
@@ -418,6 +423,7 @@ class DocumentController extends Controller
                 : null,
             'type'                 => $request->type,
             'document_number'      => $request->document_number,
+            'description'          => $request->type === 'PO' ? $request->description : null,
             'status'               => $request->status,
             'total_amount'         => $total_amount_include_ppn,
             'discount'             => $discount,

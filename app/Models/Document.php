@@ -14,6 +14,7 @@ class Document extends Model
         'project_id',
         'type',
         'document_number',
+        'description',
         'delivery_note_number',
         'receipt_number',
         'date',

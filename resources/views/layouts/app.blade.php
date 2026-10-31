@@ -301,7 +301,8 @@
             transform: translateY(-25%) rotate(225deg);
         }
 
-        .ts-dropdown {
+        body > .ts-dropdown {
+            position: absolute !important;
             z-index: 1070;
             overflow: hidden;
             margin-top: 6px;

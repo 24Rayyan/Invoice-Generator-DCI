@@ -207,12 +207,6 @@
 
         var categorySelect = $('#categorySelect')[0].tomselect;
         if (categorySelect) {
-            Object.keys(categorySelect.options).forEach(function(value) {
-                var option = categorySelect.options[value];
-                categorySelect.updateOption(value, Object.assign({}, option, {
-                    disabled: Boolean(option.type && option.type !== selectedType)
-                }));
-            });
             categorySelect.refreshOptions(false);
         }
     }

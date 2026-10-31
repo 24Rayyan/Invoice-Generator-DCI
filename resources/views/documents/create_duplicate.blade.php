@@ -59,8 +59,8 @@
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-dark small">Jenis Dokumen <span class="text-danger">*</span></label>
                         <select name="type" id="document_type" class="form-select" required>
-                            <option value="INVOICE" {{ $sourceDoc->type == 'INVOICE' ? 'selected' : '' }}>Invoice (Faktur Penjualan)</option>
-                            <option value="PO" {{ $sourceDoc->type == 'PO' ? 'selected' : '' }}>Purchase Order (PO)</option>
+                            <option value="INVOICE" {{ old('type', $sourceDoc->type) == 'INVOICE' ? 'selected' : '' }}>Invoice (Faktur Penjualan)</option>
+                            <option value="PO" {{ old('type', $sourceDoc->type) == 'PO' ? 'selected' : '' }}>Purchase Order (PO)</option>
                         </select>
                     </div>
 
@@ -79,6 +79,11 @@
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-dark small">Nomor Dokumen Baru <span class="badge bg-success bg-opacity-10 text-success ms-1 font-xs">Otomatis</span></label>
                         <input type="text" name="document_number" id="document_number" class="form-control fw-bold text-primary font-monospace" value="{{ $sourceDoc->type === 'PO' ? $autoPoNumber : $autoInvoiceNumber }}" data-invoice-number="{{ $autoInvoiceNumber }}" data-po-number="{{ $autoPoNumber }}" required>
+                    </div>
+
+                    <div class="col-12 po-only {{ old('type', $sourceDoc->type) === 'PO' ? '' : 'd-none' }}">
+                        <label for="document_description" class="form-label fw-semibold text-dark small">Keterangan (Opsional)</label>
+                        <textarea name="description" id="document_description" class="form-control" rows="2" maxlength="2000" placeholder="Tambahkan keterangan untuk Purchase Order..." {{ old('type', $sourceDoc->type) === 'PO' ? '' : 'disabled' }}>{{ old('description', $sourceDoc->description) }}</textarea>
                     </div>
 
                     <div class="col-md-3 invoice-only {{ $sourceDoc->type === 'PO' ? 'd-none' : '' }}">
@@ -256,6 +261,8 @@
             $('.item-specification-input').attr('placeholder', isPurchaseOrder ? 'Spesifikasi barang...' : 'Catatan opsional...');
             $('.invoice-only').toggleClass('d-none', isPurchaseOrder);
             $('.invoice-only input, .invoice-only select, .invoice-only textarea').prop('disabled', isPurchaseOrder);
+            $('.po-only').toggleClass('d-none', !isPurchaseOrder);
+            $('.po-only input, .po-only select, .po-only textarea').prop('disabled', !isPurchaseOrder);
         }
 
         $('#document_type').on('change', updateDocumentTypeFields);
