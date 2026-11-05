@@ -21,6 +21,8 @@ class Document extends Model
         'status',
         'total_amount',
         'discount',
+        'rounding_discount',
+        'price_includes_tax',
         'tax_transaction_code',
         'tax_invoice_date',
         'payment_note',
@@ -31,6 +33,8 @@ class Document extends Model
         'tax_invoice_date' => 'date',
         'total_amount'     => 'decimal:2',
         'discount'         => 'decimal:2',
+        'rounding_discount' => 'decimal:2',
+        'price_includes_tax' => 'boolean',
     ];
 
     // Relasi: 1 Document punya banyak DocumentItem

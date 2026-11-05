@@ -121,8 +121,7 @@
                     @forelse($documents as $doc)
                     @php
                         $rowGross = $doc->items ? $doc->items->sum('subtotal') : 0;
-                        $rowDiscount = $doc->discount ?? 0;
-                        $rowDpp = max(0, $rowGross - $rowDiscount);
+                        $rowDpp = max(0, $rowGross);
                         $rowRawTrx = $doc->tax_transaction_code ?? $doc->customer?->default_tax_transaction_code ?? '040';
                         $rowTrxCode = !empty($rowRawTrx) ? substr(preg_replace('/[^0-9]/', '', $rowRawTrx), 0, 2) : '04';
                         $rowOtherTaxBase = ($rowTrxCode === '04') ? round(($rowDpp * 11) / 12, 2) : $rowDpp;

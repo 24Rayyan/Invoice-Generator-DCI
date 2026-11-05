@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class DocumentController extends Controller
 {
@@ -226,9 +227,7 @@ class DocumentController extends Controller
         $customers = Customer::all();
         $autoInvoiceNumber = $this->generateDocumentNumber('INVOICE');
         $autoPoNumber = $this->generateDocumentNumber('PO');
-        $documentType = request()->query('type') === 'PO'
-            ? 'PO'
-            : old('type', request('type') === 'PO' ? 'PO' : 'INVOICE');
+        $documentType = request()->query('type') === 'PO' ? 'PO' : 'INVOICE';
 
         $indexRoute = $documentType === 'PO' ? 'purchase-orders.index' : 'documents.index';
 
@@ -243,6 +242,7 @@ class DocumentController extends Controller
             'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number',
             'description'          => 'nullable|string|max:2000',
+            'price_mode'           => $request->type === 'INVOICE' ? 'required|in:exclusive,inclusive' : 'nullable|in:exclusive,inclusive',
             'item_desc'            => 'required|array|min:1',
             'item_type'            => $request->type === 'INVOICE'
                 ? 'required|array|size:' . count($request->input('item_desc', []))
@@ -255,7 +255,7 @@ class DocumentController extends Controller
             'item_unit.*'          => $request->type === 'PO' ? 'nullable|string' : 'required|string',
             'item_price'           => $request->type === 'PO' ? 'nullable|array' : 'required|array',
             'item_price.*'         => $request->type === 'PO' ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
-            'discount'             => 'nullable|numeric|min:0',
+            'rounding_discount'    => 'nullable|numeric|min:0',
             'tax_transaction_code' => 'nullable|string|max:10',
             'tax_invoice_date'     => 'nullable|date',
             'payment_note'         => 'nullable|string',
@@ -264,33 +264,8 @@ class DocumentController extends Controller
         $setting = Setting::getSetting();
         $customer = Customer::find($request->customer_id);
 
-        $total_bruto = 0;
-        $items_data = [];
-        
-        for ($i = 0; $i < count($request->item_desc); $i++) {
-            $qty = $request->item_qty[$i];
-            $price = $request->type === 'PO' ? 0 : $request->item_price[$i];
-            $subtotal = $qty * $price;
-            
-            $total_bruto += $subtotal;
-
-            $items_data[] = [
-                'description' => $request->item_desc[$i],
-                'item_type'   => $request->type === 'INVOICE' ? $request->item_type[$i] : null,
-                'notes'       => $request->item_notes[$i] ?? null,
-                'qty'         => $qty,
-                'unit'        => $request->type === 'PO' ? 'Pcs' : ($request->item_unit[$i] ?? 'Pcs'),
-                'price'       => $price,
-                'subtotal'    => $subtotal,
-            ];
-        }
-
-        $discount = $request->type === 'PO' ? 0 : ($request->discount ?? 0);
-        $netto = $total_bruto - $discount;
-        
         $taxRate = ($setting->enable_tax ?? true) ? (($setting->default_tax_rate ?? 11) / 100) : 0;
-        $ppn = $netto * $taxRate;
-        $total_amount_include_ppn = $netto + $ppn;
+        $amounts = $this->calculateDocumentAmounts($request, $taxRate);
 
         $transactionCode = $request->tax_transaction_code 
             ?: ($customer?->default_tax_transaction_code ?: '040');
@@ -303,8 +278,10 @@ class DocumentController extends Controller
             'document_number'      => $request->document_number,
             'description'          => $request->type === 'PO' ? $request->description : null,
             'date'                 => $documentDate,
-            'total_amount'         => $total_amount_include_ppn,
-            'discount'             => $discount,
+            'total_amount'         => $amounts['total'],
+            'discount'             => 0,
+            'rounding_discount'    => $amounts['rounding_discount'],
+            'price_includes_tax'   => $request->type === 'INVOICE' && $request->input('price_mode') === 'inclusive',
             'tax_transaction_code' => $transactionCode,
             'tax_invoice_date'     => $request->tax_invoice_date ?? date('Y-m-d'),
             'payment_note'         => $request->type === 'INVOICE' && filled($request->payment_note)
@@ -326,12 +303,56 @@ class DocumentController extends Controller
 
         $document = Document::create($documentData);
 
-        foreach ($items_data as $item) {
+        foreach ($amounts['items'] as $item) {
             DocumentItem::create(array_merge($item, ['document_id' => $document->id]));
         }
 
         return redirect()->route($request->type === 'PO' ? 'purchase-orders.index' : 'documents.index')
             ->with('success', 'Dokumen berhasil dibuat');
+    }
+
+    private function calculateDocumentAmounts(Request $request, float $taxRate): array
+    {
+        $items = [];
+        $gross = 0;
+        $priceIncludesTax = $request->type === 'INVOICE' && $request->input('price_mode') === 'inclusive';
+
+        foreach ($request->item_desc as $index => $description) {
+            $qty = (float) $request->item_qty[$index];
+            $price = $request->type === 'PO' ? 0 : (float) $request->item_price[$index];
+            if ($priceIncludesTax && $taxRate > 0) {
+                $price /= 1 + $taxRate;
+            }
+            $price = round($price, 2);
+            $subtotal = round($qty * $price, 2);
+            $gross += $subtotal;
+
+            $items[] = [
+                'description' => $description,
+                'item_type'   => $request->type === 'INVOICE' ? $request->item_type[$index] : null,
+                'notes'       => $request->item_notes[$index] ?? null,
+                'qty'         => $qty,
+                'unit'        => $request->type === 'PO' ? 'Pcs' : ($request->item_unit[$index] ?? 'Pcs'),
+                'price'       => $price,
+                'subtotal'    => $subtotal,
+            ];
+        }
+
+        $net = round($gross, 2);
+        $tax = round($net * $taxRate, 2);
+        $totalBeforeRounding = round($net + $tax, 2);
+        $roundingDiscount = $request->type === 'PO' ? 0 : round((float) ($request->input('rounding_discount') ?? 0), 2);
+        if ($roundingDiscount > $totalBeforeRounding) {
+            throw ValidationException::withMessages([
+                'rounding_discount' => 'Diskon pembulatan tidak boleh melebihi total DPP + PPN.',
+            ]);
+        }
+
+        return [
+            'items' => $items,
+            'rounding_discount' => $roundingDiscount,
+            'total' => round($totalBeforeRounding - $roundingDiscount, 2),
+        ];
     }
 
     public function edit(Document $document)
@@ -366,6 +387,7 @@ class DocumentController extends Controller
             'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number,' . $id,
             'description'          => 'nullable|string|max:2000',
+            'price_mode'           => $request->type === 'INVOICE' ? 'required|in:exclusive,inclusive' : 'nullable|in:exclusive,inclusive',
             'status'               => 'required',
             'item_desc'            => 'required|array|min:1',
             'item_type'            => $request->type === 'INVOICE'
@@ -379,42 +401,20 @@ class DocumentController extends Controller
             'item_unit.*'          => $request->type === 'PO' ? 'nullable|string' : 'required|string',
             'item_price'           => $request->type === 'PO' ? 'nullable|array' : 'required|array',
             'item_price.*'         => $request->type === 'PO' ? 'nullable|numeric|min:0' : 'required|numeric|min:0',
-            'discount'             => 'nullable|numeric|min:0',
+            'rounding_discount'    => 'nullable|numeric|min:0',
             'tax_transaction_code' => 'nullable|string|max:10',
             'tax_invoice_date'     => 'nullable|date',
             'payment_note'         => 'nullable|string',
         ]);
 
         $setting = Setting::getSetting();
-        $total_bruto = 0;
-        
-        $document->items()->delete();
-
-        for ($i = 0; $i < count($request->item_desc); $i++) {
-            $qty = $request->item_qty[$i];
-            $price = $request->type === 'PO' ? 0 : $request->item_price[$i];
-            $subtotal = $qty * $price;
-            
-            $total_bruto += $subtotal;
-
-            DocumentItem::create([
-                'document_id' => $document->id,
-                'description' => $request->item_desc[$i],
-                'item_type'   => $request->type === 'INVOICE' ? $request->item_type[$i] : null,
-                'notes'       => $request->item_notes[$i] ?? null,
-                'qty'         => $qty,
-                'unit'        => $request->type === 'PO' ? 'Pcs' : ($request->item_unit[$i] ?? 'Pcs'),
-                'price'       => $price,
-                'subtotal'    => $subtotal,
-            ]);
-        }
-
-        $discount = $request->type === 'PO' ? 0 : ($request->discount ?? 0);
-        $netto = $total_bruto - $discount;
-        
         $taxRate = ($setting->enable_tax ?? true) ? (($setting->default_tax_rate ?? 11) / 100) : 0;
-        $ppn = $netto * $taxRate;
-        $total_amount_include_ppn = $netto + $ppn;
+        $amounts = $this->calculateDocumentAmounts($request, $taxRate);
+
+        $document->items()->delete();
+        foreach ($amounts['items'] as $item) {
+            DocumentItem::create(array_merge($item, ['document_id' => $document->id]));
+        }
 
         $documentData = [
             'customer_id'          => $request->customer_id,
@@ -425,8 +425,10 @@ class DocumentController extends Controller
             'document_number'      => $request->document_number,
             'description'          => $request->type === 'PO' ? $request->description : null,
             'status'               => $request->status,
-            'total_amount'         => $total_amount_include_ppn,
-            'discount'             => $discount,
+            'total_amount'         => $amounts['total'],
+            'discount'             => 0,
+            'rounding_discount'    => $amounts['rounding_discount'],
+            'price_includes_tax'   => $request->type === 'INVOICE' && $request->input('price_mode') === 'inclusive',
             'tax_transaction_code' => $request->tax_transaction_code ?? $document->tax_transaction_code ?? '040',
             'tax_invoice_date'     => $request->tax_invoice_date ?? $document->tax_invoice_date ?? $document->date,
             'payment_note'         => $request->type === 'INVOICE' && filled($request->payment_note)

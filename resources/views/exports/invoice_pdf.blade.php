@@ -383,14 +383,13 @@
     <!-- KALKULASI AKUNTANSI DINAMIS -->
     @php
         $bruto = $document->items->sum('subtotal');
-        $potongan = $document->discount ?? 0;
-        $pembulatan = 0; 
-        $netto = $bruto - $potongan + $pembulatan;
+        $pembulatan = $document->rounding_discount ?? 0;
+        $netto = $bruto;
         $dpp = $netto;
         
         $taxRatePercent = $setting->enable_tax ? ($setting->default_tax_rate ?? 11) : 0;
-        $ppn = $dpp * ($taxRatePercent / 100);
-        $total_tagihan = $netto + $ppn;
+        $ppn = round($dpp * ($taxRatePercent / 100), 2);
+        $total_tagihan = round($netto + $ppn - $pembulatan, 2);
         $currencySymbol = $setting->currency_symbol ?? 'Rp';
     @endphp
     
@@ -434,12 +433,6 @@
                         <td style="color: #475569;">Jumlah Bruto</td>
                         <td class="text-right">{{ number_format($bruto, 0, ',', '.') }}</td>
                     </tr>
-                    @if($potongan > 0)
-                    <tr>
-                        <td style="color: #475569;">Potongan (Diskon)</td>
-                        <td class="text-right">-{{ number_format($potongan, 0, ',', '.') }}</td>
-                    </tr>
-                    @endif
                     <tr class="summary-netto">
                         <td><strong>Jumlah Netto (DPP)</strong></td>
                         <td class="text-right"><strong>{{ number_format($netto, 0, ',', '.') }}</strong></td>
@@ -448,6 +441,12 @@
                         <td style="color: #475569;">PPN ({{ $taxRatePercent }}%)</td>
                         <td class="text-right">{{ number_format($ppn, 0, ',', '.') }}</td>
                     </tr>
+                    @if($pembulatan > 0)
+                    <tr>
+                        <td style="color: #475569;">Diskon Pembulatan</td>
+                        <td class="text-right">-{{ number_format($pembulatan, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
                     <tr class="summary-total">
                         <td>JUMLAH TAGIHAN</td>
                         <td class="text-right">{{ $currencySymbol }} {{ number_format($total_tagihan, 0, ',', '.') }}</td>

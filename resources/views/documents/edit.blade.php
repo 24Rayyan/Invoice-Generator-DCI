@@ -144,8 +144,8 @@
                                 <th width="7%" class="py-2.5 item-quantity-heading">QTY</th>
                                 <th width="12%" class="py-2.5 item-type-column {{ $document->type === 'PO' ? 'd-none' : '' }}">Tipe</th>
                                 <th width="9%" class="py-2.5 item-unit-column {{ $document->type === 'PO' ? 'd-none' : '' }}">Satuan</th>
-                                <th width="14%" class="py-2.5 item-price-column {{ $document->type === 'PO' ? 'd-none' : '' }}">Harga Satuan</th>
-                                <th width="16%" class="py-2.5 item-subtotal-column {{ $document->type === 'PO' ? 'd-none' : '' }}">Subtotal</th>
+                                <th width="14%" class="py-2.5 item-price-column item-price-heading {{ $document->type === 'PO' ? 'd-none' : '' }}">Harga Satuan</th>
+                                <th width="16%" class="py-2.5 item-subtotal-column item-subtotal-heading {{ $document->type === 'PO' ? 'd-none' : '' }}">Subtotal</th>
                                 <th width="3%" class="text-center py-2.5"></th>
                             </tr>
                         </thead>
@@ -175,7 +175,7 @@
                                 <td class="item-price-column {{ $document->type === 'PO' ? 'd-none' : '' }}">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text border-0 bg-light text-muted">{{ $setting->currency_symbol ?? 'Rp' }}</span>
-                                        <input type="number" name="item_price[]" class="form-control border-0 bg-light item-price" value="{{ $item->price }}" {{ $document->type === 'PO' ? 'disabled' : 'required' }} min="0" step="any">
+                                        <input type="number" name="item_price[]" class="form-control border-0 bg-light item-price" value="{{ old('item_price.' . $index, $document->price_includes_tax ? round($item->price * (1 + (($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) / 100 : 0)), 2) : $item->price) }}" {{ $document->type === 'PO' ? 'disabled' : 'required' }} min="0" step="any">
                                     </div>
                                 </td>
                                 <td class="item-subtotal-column {{ $document->type === 'PO' ? 'd-none' : '' }}">
@@ -196,7 +196,50 @@
                 </div>
             </div>
 
-            <!-- Section 3: Catatan Kwitansi & Diskon -->
+            <div class="card border bg-light mt-3 invoice-only {{ $document->type === 'PO' ? 'd-none' : '' }}" id="calculation-preview"
+                 data-tax-rate="{{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) : 0 }}"
+                 data-currency="{{ $setting->currency_symbol ?? 'Rp' }}">
+                <div class="card-body p-3 p-lg-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-calculator text-primary me-1"></i> Simulasi Perhitungan</h6>
+                        <div>
+                            <label class="form-label fw-bold text-dark small mb-1">Mode Harga</label>
+                            <div class="btn-group d-flex" role="group" aria-label="Pilih mode harga">
+                                <input type="radio" class="btn-check" name="price_mode" id="price_mode_exclusive" value="exclusive" {{ old('price_mode', $document->price_includes_tax ? 'inclusive' : 'exclusive') === 'exclusive' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary btn-sm" for="price_mode_exclusive">DPP / Belum Termasuk PPN</label>
+                                <input type="radio" class="btn-check" name="price_mode" id="price_mode_inclusive" value="inclusive" {{ old('price_mode', $document->price_includes_tax ? 'inclusive' : 'exclusive') === 'inclusive' ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary btn-sm" for="price_mode_inclusive">Harga Termasuk PPN</label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="rounding_discount" class="form-label fw-bold text-warning-emphasis small mb-1"><i class="fa-solid fa-scissors me-1"></i> Diskon Pembulatan</label>
+                            <div class="input-group shadow-sm rounded-3">
+                                <span class="input-group-text bg-white border-0 text-muted">{{ $setting->currency_symbol ?? 'Rp' }}</span>
+                                <input type="number" name="rounding_discount" id="rounding_discount" class="form-control border-0 fw-bold text-warning-emphasis" value="{{ old('rounding_discount', $document->rounding_discount ?? 0) }}" min="0" step="any">
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mb-3">Diskon pembulatan mengurangi total setelah PPN.</small>
+                    <div class="row g-2 small">
+                        <div class="col-7 text-muted" id="preview-input-label">Total harga input</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-input-total">Rp 0</div>
+                        <div class="col-7 text-muted">Total DPP</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-gross">Rp 0</div>
+                        <div class="col-7 text-muted">DPP</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-net">Rp 0</div>
+                        <div class="col-7 text-muted">PPN ({{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) : 0 }}%)</div>
+                        <div class="col-5 text-end fw-semibold" id="preview-tax">Rp 0</div>
+                        <div class="col-7 text-muted">Diskon Pembulatan</div>
+                        <div class="col-5 text-end fw-semibold text-warning-emphasis" id="preview-rounding-discount">- Rp 0</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
+                        <span class="fw-bold text-dark">Total (DPP + PPN)</span>
+                        <span class="fs-5 fw-bold text-primary" id="preview-total">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Catatan Kwitansi -->
             <div class="row g-4 mt-2">
                 <div class="col-md-7 invoice-only {{ $document->type === 'PO' ? 'd-none' : '' }}">
                     <div class="card border bg-light h-100 p-3">
@@ -204,18 +247,6 @@
                             <i class="fa-solid fa-receipt me-1 text-primary"></i> Keterangan Khusus Kwitansi (Opsional)
                         </label>
                         <textarea name="payment_note" class="form-control border-0 bg-white shadow-sm" rows="3" placeholder="Keterangan khusus kwitansi..." {{ $document->type === 'PO' ? 'disabled' : '' }}>{{ $document->payment_note }}</textarea>
-                    </div>
-                </div>
-                <div class="col-md-5 invoice-only {{ $document->type === 'PO' ? 'd-none' : '' }}">
-                    <div class="card border bg-light h-100 p-3 d-flex flex-column justify-content-center">
-                        <label class="form-label fw-bold text-danger small mb-2">
-                            <i class="fa-solid fa-tag me-1"></i> Potongan Harga (Diskon)
-                        </label>
-                        <div class="input-group input-group-lg shadow-sm rounded-3">
-                            <span class="input-group-text bg-white border-0 text-muted">{{ $setting->currency_symbol ?? 'Rp' }}</span>
-                            <input type="number" name="discount" class="form-control border-0 fw-bold text-danger" value="{{ $document->discount ?? 0 }}" min="0" step="any">
-                        </div>
-                        <small class="text-muted mt-2 d-block font-xs">*Tarif PPN sistem: <strong>{{ ($setting->enable_tax ?? true) ? ($setting->default_tax_rate ?? 11) . '%' : 'Nonaktif (0%)' }}</strong>.</small>
                     </div>
                 </div>
             </div>
@@ -256,6 +287,45 @@
             row.find('.item-subtotal').val(new Intl.NumberFormat('id-ID').format(subtotal));
         }
 
+        function roundMoney(amount) {
+            return Math.round((amount + Number.EPSILON) * 100) / 100;
+        }
+
+        function updateCalculationPreview() {
+            let enteredTotal = 0;
+            let gross = 0;
+            let taxRate = (parseFloat($('#calculation-preview').data('tax-rate')) || 0) / 100;
+            let isInclusive = $('input[name="price_mode"]:checked').val() === 'inclusive';
+            $('#item-table tbody tr').each(function() {
+                let qty = parseFloat($(this).find('.item-qty').val()) || 0;
+                let price = parseFloat($(this).find('.item-price').val()) || 0;
+                let enteredSubtotal = qty * price;
+                enteredTotal += enteredSubtotal;
+                let dppUnitPrice = isInclusive && taxRate > 0 ? roundMoney(price / (1 + taxRate)) : price;
+                gross += roundMoney(qty * dppUnitPrice);
+            });
+
+            let net = roundMoney(gross);
+            let tax = roundMoney(net * taxRate);
+            let totalBeforeRounding = roundMoney(net + tax);
+            let roundingDiscount = parseFloat($('#rounding_discount').val()) || 0;
+            let total = roundMoney(totalBeforeRounding - roundingDiscount);
+            let currency = $('#calculation-preview').data('currency');
+            let formatter = new Intl.NumberFormat('id-ID');
+            let formatMoney = amount => `${currency} ${formatter.format(amount)}`;
+
+            $('#preview-input-label').text(isInclusive ? 'Total harga input (termasuk PPN)' : 'Total harga input (DPP)');
+            $('#preview-input-total').text(formatMoney(enteredTotal));
+            $('#preview-gross').text(formatMoney(gross));
+            $('#preview-net').text(formatMoney(net));
+            $('#preview-tax').text(formatMoney(tax));
+            $('#preview-rounding-discount').text(`- ${formatMoney(roundingDiscount)}`);
+            $('#preview-total').text(formatMoney(total));
+            $('#rounding_discount').attr('max', Math.max(0, totalBeforeRounding));
+            $('.item-price-heading').text(isInclusive ? 'Harga Satuan (PPN)' : 'Harga Satuan (DPP)');
+            $('.item-subtotal-heading').text(isInclusive ? 'Subtotal (PPN)' : 'Subtotal (DPP)');
+        }
+
         function updateDocumentTypeFields() {
             let isPurchaseOrder = $('#document_type').val() === 'PO';
             $('.item-type-column').toggleClass('d-none', isPurchaseOrder);
@@ -278,7 +348,11 @@
         $('#item-table').on('input', '.item-qty, .item-price', function() {
             let row = $(this).closest('tr');
             calculateRowSubtotal(row);
+            updateCalculationPreview();
         });
+
+        $('#rounding_discount').on('input', updateCalculationPreview);
+        $('input[name="price_mode"]').on('change', updateCalculationPreview);
 
         $('#add-row').on('click', function() {
             let rowCount = $('#item-table tbody tr').length + 1;
@@ -323,12 +397,14 @@
             $('#item-table tbody').append(newRow);
             updateRowNumbers();
             updateDocumentTypeFields();
+            updateCalculationPreview();
         });
 
         $('#item-table').on('click', '.remove-row', function() {
             if($('#item-table tbody tr').length > 1) {
                 $(this).closest('tr').remove();
                 updateRowNumbers();
+                updateCalculationPreview();
             } else {
                 Swal.fire({
                     icon: 'warning',
@@ -340,6 +416,10 @@
         });
 
         updateDocumentTypeFields();
+        $('#item-table tbody tr').each(function() {
+            calculateRowSubtotal($(this));
+        });
+        updateCalculationPreview();
     });
 </script>
 @endpush

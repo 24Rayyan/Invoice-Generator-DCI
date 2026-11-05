@@ -268,11 +268,11 @@
     <!-- KALKULASI NOMINAL KWITANSI -->
     @php
         $bruto = $document->items->sum('subtotal');
-        $potongan = $document->discount ?? 0;
-        $netto = $bruto - $potongan;
+        $netto = $bruto;
+        $pembulatan = $document->rounding_discount ?? 0;
         $taxRatePercent = $setting->enable_tax ? ($setting->default_tax_rate ?? 11) : 0;
-        $ppn = $netto * ($taxRatePercent / 100);
-        $total_tagihan = $netto + $ppn;
+        $ppn = round($netto * ($taxRatePercent / 100), 2);
+        $total_tagihan = round($netto + $ppn - $pembulatan, 2);
         $currencySymbol = $setting->currency_symbol ?? 'Rp';
 
         if (!function_exists('terbilang')) {
