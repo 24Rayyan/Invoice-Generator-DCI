@@ -7,20 +7,20 @@
 @section('content')
 <div class="row mb-4 align-items-center">
     <div class="col-md-7">
-        <h3 class="fw-bold text-dark mb-1">
+        <h1 class="h3 fw-bold text-dark mb-1">
             <i class="fa-solid fa-chart-pie text-success me-2"></i> Laporan Margin Proyek / Invoice
-        </h3>
+        </h1>
         <p class="text-muted mb-0 font-sm">
             Bandingkan pendapatan invoice dengan kas keluar yang terikat, lalu lihat laba bersih dan persentase margin per proyek.
         </p>
     </div>
     <div class="col-md-5 text-md-end">
         <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary btn-sm me-1">
-            <i class="fa-solid fa-diagram-project me-1"></i> Project Grouping
+            <i class="fa-solid fa-diagram-project me-1"></i> Pengelompokan Proyek
         </a>
         @if(auth()->user()->hasAccess('projects'))
             <a href="{{ route('projects.index') }}" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-folder-plus me-1"></i> Kelola Project
+                <i class="fa-solid fa-folder-plus me-1"></i> Kelola Proyek
             </a>
         @endif
     </div>
@@ -30,7 +30,7 @@
     <div class="col-md-3">
         <div class="card border-0 shadow-sm border-start border-4 border-success h-100">
             <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Revenue</span>
+                <span class="text-muted fw-semibold font-xs text-uppercase">Total Pendapatan</span>
                 <h5 class="fw-bold text-success mb-0 mt-1">{{ $currency }} {{ number_format($totals['revenue'], 0, ',', '.') }}</h5>
             </div>
         </div>
@@ -38,7 +38,7 @@
     <div class="col-md-3">
         <div class="card border-0 shadow-sm border-start border-4 border-danger h-100">
             <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Direct Expense</span>
+                <span class="text-muted fw-semibold font-xs text-uppercase">Total Biaya Langsung</span>
                 <h5 class="fw-bold text-danger mb-0 mt-1">{{ $currency }} {{ number_format($totals['direct_expense'], 0, ',', '.') }}</h5>
             </div>
         </div>
@@ -46,15 +46,15 @@
     <div class="col-md-3">
         <div class="card border-0 shadow-sm border-start border-4 border-info h-100">
             <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Net Profit</span>
-                <h5 class="fw-bold {{ $totals['net_profit'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1">{{ $currency }} {{ number_format($totals['net_profit'], 0, ',', '.') }}</h5>
+                <span class="text-muted fw-semibold font-xs text-uppercase">Total Laba Bersih</span>
+                <h5 class="fw-bold {{ $totals['net_profit'] >= 0 ? 'text-success' : 'text-danger' }} mb-0 mt-1">{{ $currency }} {{ number_format($totals['net_profit'], 0, ',', '.') }}</h5>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card border-0 shadow-sm bg-dark text-white h-100">
             <div class="card-body p-3">
-                <span class="text-white-50 fw-semibold font-xs text-uppercase">Blended Net Margin</span>
+                <span class="text-white-50 fw-semibold font-xs text-uppercase">Margin Bersih Gabungan</span>
                 <h5 class="fw-bold text-white mb-0 mt-1">{{ number_format($totals['net_margin'], 2, ',', '.') }}%</h5>
             </div>
         </div>
@@ -65,8 +65,8 @@
     <div class="card-body p-3">
         <form method="GET" action="{{ route('reports.project_margin') }}" class="row g-2 align-items-end">
             <div class="col-md-4">
-                <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Cari Invoice / Customer</label>
-                <input type="text" name="search" class="form-control form-control-sm" value="{{ $search }}" placeholder="Nomor invoice atau nama customer">
+                <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Cari Invoice / Pelanggan</label>
+                <input type="text" name="search" class="form-control form-control-sm" value="{{ $search }}" placeholder="Nomor Invoice atau nama pelanggan">
             </div>
             <div class="col-md-3">
                 <label class="form-label font-xs fw-bold text-muted text-uppercase mb-1">Status</label>
@@ -86,13 +86,13 @@
                     <option value="margin_asc" {{ $sort === 'margin_asc' ? 'selected' : '' }}>Margin terendah</option>
                     <option value="profit_desc" {{ $sort === 'profit_desc' ? 'selected' : '' }}>Laba tertinggi</option>
                     <option value="profit_asc" {{ $sort === 'profit_asc' ? 'selected' : '' }}>Laba terendah</option>
-                    <option value="revenue_desc" {{ $sort === 'revenue_desc' ? 'selected' : '' }}>Revenue tertinggi</option>
-                    <option value="revenue_asc" {{ $sort === 'revenue_asc' ? 'selected' : '' }}>Revenue terendah</option>
+                    <option value="revenue_desc" {{ $sort === 'revenue_desc' ? 'selected' : '' }}>Pendapatan tertinggi</option>
+                    <option value="revenue_asc" {{ $sort === 'revenue_asc' ? 'selected' : '' }}>Pendapatan terendah</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary flex-fill">Filter</button>
-                <a href="{{ route('reports.project_margin') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+                <button type="submit" class="btn btn-sm btn-primary flex-fill">Terapkan</button>
+                <a href="{{ route('reports.project_margin') }}" class="btn btn-sm btn-outline-secondary">Atur Ulang</a>
             </div>
         </form>
     </div>
@@ -105,11 +105,11 @@
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">No. Invoice</th>
-                        <th>Customer</th>
+                        <th>Pelanggan</th>
                         <th>Status</th>
-                        <th class="text-end">Gross Revenue</th>
-                        <th class="text-end">Attached Expenses</th>
-                        <th class="text-end">Net Profit</th>
+                        <th class="text-end">Pendapatan Bruto</th>
+                        <th class="text-end">Biaya Terhubung</th>
+                        <th class="text-end">Laba Bersih</th>
                         <th class="text-end pe-4">Margin %</th>
                     </tr>
                 </thead>

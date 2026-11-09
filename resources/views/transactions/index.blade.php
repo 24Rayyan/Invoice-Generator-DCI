@@ -4,7 +4,7 @@
 <style>
     .cashflow-page {
         --cashflow-ink: #172033;
-        --cashflow-muted: #7b8494;
+        --cashflow-muted: #526071;
         --cashflow-line: #e9edf3;
         color: var(--cashflow-ink);
     }
@@ -54,12 +54,12 @@
     }
 
     .cashflow-page .cashflow-table {
-        min-width: 900px;
+        width: 100%;
     }
 
     .cashflow-page .cashflow-table thead th {
         background: #f8f9fb;
-        color: #747e8d;
+        color: #526071;
         font-size: 0.65rem;
         font-weight: 700;
         letter-spacing: 0.035em;
@@ -89,6 +89,75 @@
 
     .cashflow-page .cashflow-page-link {
         min-width: 32px;
+    }
+
+    .cashflow-page .cashflow-filter-chip {
+        transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .cashflow-page .cashflow-filter-chip:hover:not(.active) {
+        background-color: #eaf1fb;
+        color: #173a68;
+    }
+
+    .cashflow-page .cashflow-filter-chip:active {
+        transform: translateY(1px);
+    }
+
+    @media (max-width: 767.98px) {
+        .cashflow-page .cashflow-table thead {
+            display: none;
+        }
+
+        .cashflow-page .cashflow-table,
+        .cashflow-page .cashflow-table tbody {
+            display: block;
+        }
+
+        .cashflow-page .cashflow-table tbody {
+            display: grid;
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+
+        .cashflow-page .cashflow-table .cashflow-mobile-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            border: 1px solid var(--cashflow-line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .cashflow-page .cashflow-table .cashflow-mobile-card td {
+            display: grid;
+            grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.5fr);
+            align-items: start;
+            gap: 0.75rem;
+            padding: 0.7rem 0.85rem;
+            text-align: left !important;
+            overflow-wrap: anywhere;
+        }
+
+        .cashflow-page .cashflow-table .cashflow-mobile-card td::before {
+            content: attr(data-label);
+            grid-column: 1;
+            color: #526071;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .cashflow-page .cashflow-table .cashflow-mobile-card td > * {
+            grid-column: 2;
+        }
+
+        .cashflow-page .cashflow-table .cashflow-mobile-card td:last-child {
+            border-bottom: 0;
+        }
+
+        .cashflow-page .cashflow-table .cashflow-mobile-empty td {
+            display: block;
+        }
     }
 
     @media (max-width: 575.98px) {
@@ -187,7 +256,7 @@
                     </div>
                     <div class="cashflow-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($netCashflow, 0, ',', '.') }}</div>
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill bg-primary-subtle text-primary">Net Cashflow</span>
+                        <span class="badge rounded-pill bg-primary-subtle text-primary">Arus Kas Bersih</span>
                         <span class="small text-white-50">Kas masuk − kas keluar</span>
                     </div>
                 </div>
@@ -199,7 +268,7 @@
         <div class="card-body p-3 p-lg-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="h6 fw-bold mb-0"><i class="fa-solid fa-sliders me-2 text-primary"></i>Filter Transaksi</h2>
-                <a href="{{ route('transactions.index') }}" class="small fw-semibold text-decoration-none">Reset filter</a>
+                <a href="{{ route('transactions.index') }}" class="small fw-semibold text-decoration-none">Atur ulang filter</a>
             </div>
             <form method="GET" action="{{ route('transactions.index') }}" class="row g-2 align-items-end">
                 <div class="col-sm-6 col-xl-3">
@@ -239,8 +308,8 @@
                     <label for="transactionPaymentMethod" class="form-label small text-muted mb-1">Metode bayar</label>
                     <select id="transactionPaymentMethod" name="payment_method" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Metode">
                         <option value="">Semua Metode</option>
-                        <option value="Bank Transfer" {{ request('payment_method') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                        <option value="Cash" {{ request('payment_method') === 'Cash' ? 'selected' : '' }}>Cash / Tunai</option>
+                        <option value="Bank Transfer" {{ request('payment_method') === 'Bank Transfer' ? 'selected' : '' }}>Transfer Bank</option>
+                        <option value="Cash" {{ request('payment_method') === 'Cash' ? 'selected' : '' }}>Tunai</option>
                         <option value="e-Wallet" {{ request('payment_method') === 'e-Wallet' ? 'selected' : '' }}>e-Wallet / QRIS</option>
                     </select>
                 </div>
@@ -297,8 +366,8 @@
                 </thead>
                 <tbody>
                     @forelse($transactions as $trx)
-                    <tr>
-                        <td class="ps-4">
+                    <tr class="cashflow-mobile-card">
+                        <td class="ps-4" data-label="Transaksi">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="cashflow-transaction-icon rounded-circle {{ $trx->type === 'income' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} d-inline-flex align-items-center justify-content-center">
                                     <i class="fa-solid {{ $trx->type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up' }}" style="font-size: .65rem;"></i>
@@ -309,19 +378,19 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Kategori">
                             <div class="text-truncate fw-medium" style="max-width: 240px;" title="{{ $trx->category?->name }}">
                                 [{{ $trx->category?->code ?? '-' }}] {{ $trx->category?->name ?? 'Tanpa kategori' }}
                             </div>
                             @if($trx->type === 'income')
                                 <span class="cashflow-note small">Pemasukan</span>
                             @elseif($trx->category?->is_tax_deductible)
-                                <span class="cashflow-note small">Deductible</span>
+                                <span class="cashflow-note small">Dapat dikurangkan secara fiskal</span>
                             @else
                                 <span class="cashflow-note small">Koreksi fiskal</span>
                             @endif
                         </td>
-                        <td>
+                        <td data-label="Keterangan">
                             <div class="text-truncate" style="max-width: 270px;" title="{{ $trx->description }}">
                                 {{ $trx->description ?? '-' }}
                             </div>
@@ -348,36 +417,38 @@
                                 <div class="cashflow-note small">Tidak terhubung ke invoice</div>
                             @endif
                         </td>
-                        <td class="text-nowrap">{{ $trx->payment_method ?: '—' }}</td>
-                        <td class="text-end fw-semibold {{ $trx->type === 'income' ? 'text-success' : 'text-danger' }} text-nowrap">
+                        <td class="text-nowrap" data-label="Metode">{{ $trx->payment_method ?: '-' }}</td>
+                        <td class="text-end fw-semibold {{ $trx->type === 'income' ? 'text-success' : 'text-danger' }} text-nowrap" data-label="Jumlah">
                             {{ $trx->type === 'income' ? '+' : '−' }} {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}
                         </td>
-                        <td class="text-end pe-4 text-nowrap">
-                            @if($trx->receipt_file_path)
-                                <a href="{{ route('transactions.receipt', $trx) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Lihat bukti nota">
-                                    <i class="fa-solid fa-receipt"></i>
-                                </a>
-                            @endif
-                            @if($trx->type === 'income' && $trx->invoice_id)
-                                <span class="badge bg-light text-muted border" title="Transaksi pelunasan otomatis dari invoice">
-                                    <i class="fa-solid fa-lock me-1"></i> Auto
-                                </span>
-                            @else
-                                <a href="{{ route('transactions.edit', $trx) }}" class="btn btn-sm btn-outline-primary" title="Edit transaksi">
-                                    <i class="fa-solid fa-pencil"></i>
-                                </a>
-                                <form action="{{ route('transactions.destroy', $trx) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus transaksi ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus transaksi">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
-                            @endif
+                        <td class="text-end pe-4 text-nowrap" data-label="Aksi">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                @if($trx->receipt_file_path)
+                                    <a href="{{ route('transactions.receipt', $trx) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Lihat bukti nota" aria-label="Lihat bukti nota {{ $trx->transaction_number }}">
+                                        <i class="fa-solid fa-receipt"></i>
+                                    </a>
+                                @endif
+                                @if($trx->type === 'income' && $trx->invoice_id)
+                                    <span class="badge bg-light text-muted border" title="Transaksi pelunasan otomatis dari Invoice">
+                                        <i class="fa-solid fa-lock me-1"></i> Otomatis
+                                    </span>
+                                @else
+                                    <a href="{{ route('transactions.edit', $trx) }}" class="btn btn-sm btn-outline-primary" title="Edit transaksi" aria-label="Edit transaksi {{ $trx->transaction_number }}">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </a>
+                                    <form action="{{ route('transactions.destroy', $trx) }}" method="POST" class="d-inline" data-confirm="Transaksi akan dihapus permanen beserta bukti nota-nya." data-confirm-impact="Saldo kas dan laporan keuangan periode terkait akan berubah." data-confirm-title="Hapus Transaksi Kas?" data-confirm-subject="{{ $trx->transaction_number }}, Rp {{ number_format($trx->amount, 0, ',', '.') }}" data-confirm-button="Ya, Hapus">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus transaksi" aria-label="Hapus transaksi {{ $trx->transaction_number }}">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="cashflow-mobile-empty">
                         <td colspan="6" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-receipt fs-2 mb-2 d-block text-secondary"></i>
                             Tidak ada transaksi kas yang cocok dengan filter yang dipilih.

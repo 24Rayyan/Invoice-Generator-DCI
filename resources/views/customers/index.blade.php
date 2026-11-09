@@ -6,16 +6,16 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Dashboard</a></li>
-                <li class="breadcrumb-item active small fw-semibold" aria-current="page">Direktori Customer</li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Ringkasan</a></li>
+                <li class="breadcrumb-item active small fw-semibold" aria-current="page">Direktori Pelanggan</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-0 tracking-tight">Direktori Customer & Lawan Transaksi</h3>
-        <p class="text-muted small mb-0">Master data rekanan, kontak penagihan, serta identitas perpajakan untuk impor Coretax DJP.</p>
+        <h1 class="h3 fw-bold text-dark mb-0 tracking-tight">Direktori Pelanggan</h1>
+        <p class="text-muted small mb-0">Data pelanggan, kontak penagihan, serta identitas perpajakan untuk impor Coretax DJP.</p>
     </div>
     <div>
         <a href="{{ route('customers.create') }}" class="btn btn-primary px-3.5 py-2 shadow-sm fw-bold">
-            <i class="fa-solid fa-plus me-1.5"></i> Tambah Customer Baru
+            <i class="fa-solid fa-plus me-1.5"></i> Tambah Pelanggan
         </a>
     </div>
 </div>
@@ -29,7 +29,7 @@
                 <thead>
                     <tr>
                         <th width="4%" class="text-center">No</th>
-                        <th width="24%">Nama Customer / Perusahaan</th>
+                        <th width="24%">Nama Pelanggan / Perusahaan</th>
                         <th width="22%">Identitas Pajak (Coretax)</th>
                         <th width="20%">Kontak & WhatsApp</th>
                         <th width="20%">Alamat Penagihan</th>
@@ -89,15 +89,15 @@
                         <td class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1">
                                 <!-- Tombol Edit -->
-                                <a href="{{ route('customers.edit', $c->id) }}" class="btn btn-sm btn-light text-warning p-1.5 rounded-2 border" title="Edit Customer">
+                                <a href="{{ route('customers.edit', $c->id) }}" class="btn btn-sm btn-light text-warning p-1.5 rounded-2 border" title="Edit Pelanggan" aria-label="Edit pelanggan {{ $c->name }}">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
 
-                                <!-- Form Hapus Customer -->
+                                <!-- Form Hapus Pelanggan -->
                                 <form action="{{ route('customers.destroy', $c->id) }}" method="POST" class="d-inline form-delete">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-light text-danger p-1.5 rounded-2 border btn-delete" title="Hapus Customer">
+                                    <button type="button" class="btn btn-sm btn-light text-danger p-1.5 rounded-2 border btn-delete" title="Hapus Pelanggan" aria-label="Hapus pelanggan {{ $c->name }}">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
@@ -118,11 +118,11 @@
         const customerTable = $('#customerTable').DataTable({
             language: {
                 search: "_INPUT_",
-                searchPlaceholder: "Cari customer...",
+                searchPlaceholder: "Cari pelanggan...",
                 lengthMenu: "Tampilkan _MENU_ data",
-                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ customer",
-                infoEmpty: "Tidak ada data customer",
-                zeroRecords: "Data customer tidak ditemukan",
+                info: "Menampilkan _START_ s/d _END_ dari _TOTAL_ pelanggan",
+                infoEmpty: "Tidak ada data pelanggan",
+                zeroRecords: "Data pelanggan tidak ditemukan",
                 paginate: {
                     previous: "<i class='fa-solid fa-chevron-left'></i>",
                     next: "<i class='fa-solid fa-chevron-right'></i>"
@@ -142,8 +142,8 @@
             let form = $(this).closest('form');
             
             Swal.fire({
-                title: 'Hapus Customer?',
-                text: "Customer ini beserta riwayat data terkait akan dihapus!",
+                title: 'Hapus Pelanggan?',
+                text: "Pelanggan ini beserta riwayat data terkait akan dihapus!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',

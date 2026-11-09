@@ -5,9 +5,9 @@
     <div class="col-lg-10">
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
-                <h3 class="fw-bold text-dark mb-1">
+                <h1 class="h3 fw-bold text-dark mb-1">
                     <i class="fa-solid fa-plus-circle text-primary me-2"></i> Catat Transaksi Keuangan Baru
-                </h3>
+                </h1>
                 <p class="text-muted mb-0 font-sm">
                     Pencatatan kas masuk / keluar, pemisahan akun biaya fiskal, dan lampiran struk.
                 </p>
@@ -19,7 +19,7 @@
 
         @if($errors->any())
         <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
-            <h6 class="fw-bold mb-1"><i class="fa-solid fa-circle-exclamation me-1.5"></i> Terjadi Kesalahan Input:</h6>
+            <h2 class="h6 fw-bold mb-1"><i class="fa-solid fa-circle-exclamation me-1.5"></i> Terjadi Kesalahan Input:</h2>
             <ul class="mb-0 ps-3 font-sm">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -49,13 +49,13 @@
                                 <div class="form-check form-check-inline p-3 border rounded-3 flex-fill text-center bg-light">
                                     <input class="form-check-input" type="radio" name="type" id="typeExpense" value="expense" {{ old('type', $defaultType) == 'expense' ? 'checked' : '' }} onchange="onTypeChange()">
                                     <label class="form-check-label fw-bold text-danger ms-1" for="typeExpense">
-                                        <i class="fa-solid fa-arrow-up-right me-1"></i> Pengeluaran (Expense)
+                                        <i class="fa-solid fa-arrow-up-right me-1"></i> Pengeluaran
                                     </label>
                                 </div>
                                 <div class="form-check form-check-inline p-3 border rounded-3 flex-fill text-center bg-light">
                                     <input class="form-check-input" type="radio" name="type" id="typeIncome" value="income" {{ old('type', $defaultType) == 'income' ? 'checked' : '' }} onchange="onTypeChange()">
                                     <label class="form-check-label fw-bold text-success ms-1" for="typeIncome">
-                                        <i class="fa-solid fa-arrow-down-left me-1"></i> Pemasukan (Income)
+                                        <i class="fa-solid fa-arrow-down-left me-1"></i> Pemasukan
                                     </label>
                                 </div>
                             </div>
@@ -71,15 +71,15 @@
                         <div class="col-md-3">
                             <label class="form-label fw-bold text-dark font-sm">Metode Pembayaran <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select" required>
-                                <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer (BCA / Mandiri)</option>
-                                <option value="Cash" {{ old('payment_method') == 'Cash' ? 'selected' : '' }}>Cash / Kas Tunai</option>
+                                <option value="Bank Transfer" {{ old('payment_method') == 'Bank Transfer' ? 'selected' : '' }}>Transfer Bank (BCA / Mandiri)</option>
+                                <option value="Cash" {{ old('payment_method') == 'Cash' ? 'selected' : '' }}>Tunai</option>
                                 <option value="e-Wallet" {{ old('payment_method') == 'e-Wallet' ? 'selected' : '' }}>e-Wallet / QRIS</option>
                             </select>
                         </div>
 
                         <!-- Kategori Akun (COA) -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark font-sm">Kategori Akun (Chart of Accounts) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold text-dark font-sm">Kategori Akun (COA) <span class="text-danger">*</span></label>
                             <select name="category_id" id="categorySelect" class="form-select smooth-dropdown category-filter-dropdown" data-placeholder="Pilih akun kategori..." required onchange="onCategoryChange()">
                                 <option value="">-- Pilih Akun Kategori --</option>
                                 @foreach($categories as $cat)
@@ -88,7 +88,7 @@
                                         data-code="{{ $cat->code }}"
                                         data-deductible="{{ $cat->is_tax_deductible ? '1' : '0' }}"
                                         {{ old('category_id') == $cat->id ? 'selected' : '' }}>
-                                        [{{ $cat->code }}] {{ $cat->name }} {{ $cat->type == 'expense' ? ($cat->is_tax_deductible ? '(Deductible)' : '(Non-Deductible)') : '' }}
+                                        [{{ $cat->code }}] {{ $cat->name }} {{ $cat->type == 'expense' ? ($cat->is_tax_deductible ? '(Dapat dikurangkan)' : '(Koreksi fiskal)') : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -138,14 +138,14 @@
                 <div class="card-header bg-warning bg-opacity-10 py-3 px-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-bold text-dark">
-                            <i class="fa-solid fa-champagne-glasses text-warning me-2"></i> 2. Lampiran Khusus: Daftar Nominatif Entertainment (DJP)
+                            <i class="fa-solid fa-champagne-glasses text-warning me-2"></i> 2. Lampiran Khusus: Daftar Nominatif Jamuan (DJP)
                         </span>
                         <span class="badge bg-warning text-dark font-xs">Wajib Menurut Peraturan Dirjen Pajak</span>
                     </div>
                 </div>
                 <div class="card-body p-4">
                     <p class="text-muted font-sm mb-3">
-                        <i class="fa-solid fa-circle-info text-primary me-1"></i> Biaya Jamuan/Entertainment hanya dapat diakui sebagai <strong>Biaya Pengurang Pajak (Deductible)</strong> jika dilengkapi dengan Daftar Nominatif Pihak Ketiga yang dijamu.
+                        <i class="fa-solid fa-circle-info text-primary me-1"></i> Biaya jamuan dapat diakui sebagai pengurang pajak jika dilengkapi dengan Daftar Nominatif pihak ketiga yang dijamu.
                     </p>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -202,7 +202,7 @@
                 $('#categorySelect').val('');
             }
             $('#categoryBadgeInfo').html('');
-            $('#entertainmentSection').slideUp();
+            $('#entertainmentSection').hide();
         }
 
         var categorySelect = $('#categorySelect')[0].tomselect;
@@ -219,15 +219,15 @@
 
         if (!selectedOpt.val()) {
             $('#categoryBadgeInfo').html('');
-            $('#entertainmentSection').slideUp();
+            $('#entertainmentSection').hide();
             return;
         }
 
         if (catType === 'expense') {
             if (isDeductible == '1') {
-                $('#categoryBadgeInfo').html('<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-check me-1"></i> Beban Fiskal (Deductible Expense - Pengurang Penghasilan Kena Pajak)</span>');
+                $('#categoryBadgeInfo').html('<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-check me-1"></i> Beban yang dapat dikurangkan dari penghasilan kena pajak</span>');
             } else {
-                $('#categoryBadgeInfo').html('<span class="badge bg-warning-subtle text-dark border border-warning-subtle"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Non-Deductible Expense (Koreksi Fiskal Positif pada SPT Tahunan)</span>');
+                $('#categoryBadgeInfo').html('<span class="badge bg-warning-subtle text-dark border border-warning-subtle"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Koreksi fiskal positif pada SPT Tahunan</span>');
             }
         } else {
             $('#categoryBadgeInfo').html('<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fa-solid fa-arrow-down-left me-1"></i> Pendapatan Usaha Bruto</span>');
@@ -235,9 +235,9 @@
 
         // Jika kode 5-201 (Entertainment / Jamuan)
         if (code === '5-201') {
-            $('#entertainmentSection').slideDown();
+            $('#entertainmentSection').show();
         } else {
-            $('#entertainmentSection').slideUp();
+            $('#entertainmentSection').hide();
         }
     }
 

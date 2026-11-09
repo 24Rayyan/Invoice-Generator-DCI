@@ -4,7 +4,7 @@
 <style>
     .coa-page {
         --coa-ink: #172033;
-        --coa-muted: #7b8494;
+        --coa-muted: #526071;
         --coa-line: #e9edf3;
         color: var(--coa-ink);
     }
@@ -33,12 +33,12 @@
     }
 
     .coa-page .coa-table {
-        min-width: 1000px;
+        width: 100%;
     }
 
     .coa-page .coa-table thead th {
         background: #f8f9fb;
-        color: #747e8d;
+        color: #526071;
         font-size: 0.65rem;
         font-weight: 700;
         letter-spacing: 0.035em;
@@ -68,13 +68,25 @@
     }
 
     .coa-page .coa-action-button {
-        width: 42px;
-        height: 30px;
+        width: 44px;
+        min-height: 44px;
         padding: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         border-radius: 8px;
+    }
+
+    .coa-page .coa-table .bg-success-subtle.text-success {
+        color: #146c43 !important;
+    }
+
+    .coa-page .coa-table .bg-primary-subtle.text-primary {
+        color: #084298 !important;
+    }
+
+    .coa-page .text-warning {
+        color: #805600 !important;
     }
 
     .coa-page .coa-pagination .pagination {
@@ -84,6 +96,62 @@
     .coa-page .coa-modal-body {
         max-height: min(70vh, 650px);
         overflow-y: auto;
+    }
+
+    @media (max-width: 767.98px) {
+        .coa-page .coa-table thead {
+            display: none;
+        }
+
+        .coa-page .coa-table,
+        .coa-page .coa-table tbody {
+            display: block;
+        }
+
+        .coa-page .coa-table tbody {
+            display: grid;
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+
+        .coa-page .coa-table .coa-mobile-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            border: 1px solid var(--coa-line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .coa-page .coa-table .coa-mobile-card td {
+            display: grid;
+            grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.4fr);
+            align-items: start;
+            gap: 0.75rem;
+            padding: 0.7rem 0.85rem;
+            text-align: left !important;
+            overflow-wrap: anywhere;
+        }
+
+        .coa-page .coa-table .coa-mobile-card td::before {
+            content: attr(data-label);
+            grid-column: 1;
+            color: #526071;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .coa-page .coa-table .coa-mobile-card td > * {
+            grid-column: 2;
+        }
+
+        .coa-page .coa-table .coa-mobile-card td:last-child {
+            border-bottom: 0;
+        }
+
+        .coa-page .coa-table .coa-mobile-empty td {
+            display: block;
+        }
     }
 
     @media (max-width: 575.98px) {
@@ -103,7 +171,7 @@
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
     <div>
         <div class="coa-eyebrow small fw-semibold text-uppercase mb-1">Master Data Keuangan</div>
-        <h1 class="coa-title fw-bold mb-1">Chart of Accounts & Kategori Pajak</h1>
+        <h1 class="coa-title fw-bold mb-1">Bagan Akun & Kategori Pajak</h1>
         <p class="coa-subtitle small mb-0">Kelola klasifikasi akun dan perlakuan fiskal untuk pembukuan serta laporan pajak.</p>
     </div>
     <button type="button" class="btn btn-primary shadow-sm rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
@@ -144,7 +212,7 @@
         <div class="card coa-kpi p-3 h-100 bg-white">
             <div class="d-flex justify-content-between align-items-center gap-2">
                 <div>
-                    <span class="text-muted fw-semibold font-xs text-uppercase">Beban Fiskal (Deductible)</span>
+                    <span class="text-muted fw-semibold font-xs text-uppercase">Beban Dapat Dikurangkan</span>
                     <h4 class="fw-bold text-success mb-0 mt-1">
                         {{ $stats['deductible'] }} Akun
                     </h4>
@@ -164,7 +232,7 @@
                     <h4 class="fw-bold text-warning mb-0 mt-1">
                         {{ $stats['non_deductible'] }} Akun
                     </h4>
-                    <small class="text-muted font-xs">Non-Deductible pada SPT Tahunan</small>
+                    <small class="text-muted font-xs">Tidak dapat dikurangkan pada SPT Tahunan</small>
                 </div>
                 <div class="bg-warning bg-opacity-10 text-warning p-3 rounded-3">
                     <i class="fa-solid fa-hand-holding-dollar fs-5"></i>
@@ -203,9 +271,9 @@
                 </select>
             </div>
             <div class="col-12 col-md-2 col-lg-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary flex-grow-1 rounded-3"><i class="fa-solid fa-filter me-1"></i>Filter</button>
+                <button type="submit" class="btn btn-primary flex-grow-1 rounded-3"><i class="fa-solid fa-filter me-1"></i>Terapkan</button>
                 @if(request()->filled('search') || request()->filled('type'))
-                    <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary rounded-3" title="Reset filter" aria-label="Reset filter">
+                    <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary rounded-3" title="Atur ulang filter" aria-label="Atur ulang filter">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
@@ -241,19 +309,19 @@
                 </thead>
                 <tbody>
                     @forelse($categories as $category)
-                    <tr>
-                        <td class="ps-4">
+                    <tr class="coa-mobile-card">
+                        <td class="ps-4" data-label="Kode Akun">
                             <span class="badge bg-dark bg-opacity-75 font-mono px-2.5 py-1.5 fw-bold">
                                 {{ $category->code }}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="Nama Akun">
                             <span class="fw-bold text-dark">{{ $category->name }}</span>
                             @if($category->code === '5-201')
                                 <span class="badge bg-primary ms-1" style="font-size: 0.675rem;">Wajib Nominatif</span>
                             @endif
                         </td>
-                        <td>
+                        <td data-label="Tipe Akun">
                             @if($category->type === 'income')
                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
                                     <i class="fa-solid fa-arrow-down-left me-1"></i> Pendapatan
@@ -264,30 +332,30 @@
                                 </span>
                             @endif
                         </td>
-                        <td>
+                        <td data-label="Status Fiskal">
                             @if($category->type === 'income')
                                 <span class="text-muted font-xs">
                                     <i class="fa-solid fa-check text-success me-1"></i> Penghasilan Bruto
                                 </span>
                             @elseif($category->is_tax_deductible)
                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
-                                    <i class="fa-solid fa-circle-check me-1"></i> Deductible (Biaya Fiskal)
+                                    <i class="fa-solid fa-circle-check me-1"></i> Dapat dikurangkan
                                 </span>
                             @else
                                 <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1">
-                                    <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Non-Deductible (Koreksi Fiskal)
+                                    <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Koreksi fiskal positif
                                 </span>
                             @endif
                         </td>
-                        <td class="text-muted font-xs">
+                        <td class="text-muted font-xs" data-label="Keterangan">
                             {{ $category->description ?? '-' }}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Jumlah Transaksi">
                             <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
                                 {{ $category->transactions_count }}
                             </span>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center" data-label="Aksi">
                             <div class="coa-action-stack">
                                 <button type="button" class="btn btn-light text-primary border coa-action-button btn-edit-category"
                                     data-id="{{ $category->id }}"
@@ -299,7 +367,7 @@
                                     title="Edit akun {{ $category->code }}" aria-label="Edit akun {{ $category->code }}">
                                     <i class="fa-solid fa-pencil"></i>
                                 </button>
-                                <form action="{{ route('categories.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $category->code }} - {{ $category->name }}?')">
+                                <form action="{{ route('categories.destroy', $category->id) }}" method="POST" data-confirm="Akun kategori ini akan dihapus permanen." data-confirm-title="Hapus Akun Kategori?" data-confirm-subject="{{ $category->code }} - {{ $category->name }}" data-confirm-button="Ya, Hapus">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-light text-danger border coa-action-button"
@@ -312,7 +380,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="coa-mobile-empty">
                         <td colspan="7" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-folder-open fs-2 mb-2 d-block text-secondary"></i>
                             Belum ada akun kategori yang dibuat.
@@ -378,8 +446,8 @@
                         <div class="col-md-7">
                             <label class="form-label fw-bold text-dark font-sm">Tipe Akun <span class="text-danger">*</span></label>
                             <select name="type" class="form-select" required>
-                                <option value="expense">Beban / Pengeluaran (Expense)</option>
-                                <option value="income">Pendapatan (Income)</option>
+                                <option value="expense">Beban / Pengeluaran</option>
+                                <option value="income">Pendapatan</option>
                             </select>
                         </div>
                         <div class="col-12">
@@ -392,14 +460,14 @@
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" name="is_tax_deductible" id="deductibleYes" value="1" checked>
                                     <label class="form-check-label fw-semibold text-success font-sm" for="deductibleYes">
-                                        <i class="fa-solid fa-check-circle me-1"></i> Deductible Expense (Dapat Mengurangi Penghasilan Kena Pajak)
+                                        <i class="fa-solid fa-check-circle me-1"></i> Dapat mengurangi penghasilan kena pajak
                                     </label>
                                     <div class="text-muted font-xs ms-4">Biaya operasional 3M (Mendapatkan, Menagih, Memelihara penghasilan) yang sah secara pajak.</div>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="is_tax_deductible" id="deductibleNo" value="0">
                                     <label class="form-check-label fw-semibold text-warning-emphasis font-sm" for="deductibleNo">
-                                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Non-Deductible (Koreksi Fiskal Positif pada SPT)
+                                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Koreksi fiskal positif pada SPT
                                     </label>
                                     <div class="text-muted font-xs ms-4">Biaya pribadi, denda pajak, sumbangan non-daftar, atau biaya tanpa bukti sah.</div>
                                 </div>
@@ -444,8 +512,8 @@
                         <div class="col-md-7">
                             <label class="form-label fw-bold text-dark font-sm">Tipe Akun <span class="text-danger">*</span></label>
                             <select name="type" id="edit_type" class="form-select" required>
-                                <option value="expense">Beban / Pengeluaran (Expense)</option>
-                                <option value="income">Pendapatan (Income)</option>
+                                <option value="expense">Beban / Pengeluaran</option>
+                                <option value="income">Pendapatan</option>
                             </select>
                         </div>
                         <div class="col-12">
@@ -458,13 +526,13 @@
                                 <div class="form-check mb-2">
                                     <input class="form-check-input" type="radio" name="is_tax_deductible" id="edit_deductibleYes" value="1">
                                     <label class="form-check-label fw-semibold text-success font-sm" for="edit_deductibleYes">
-                                        <i class="fa-solid fa-check-circle me-1"></i> Deductible Expense (Dapat Mengurangi Penghasilan Kena Pajak)
+                                        <i class="fa-solid fa-check-circle me-1"></i> Dapat mengurangi penghasilan kena pajak
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="is_tax_deductible" id="edit_deductibleNo" value="0">
                                     <label class="form-check-label fw-semibold text-warning-emphasis font-sm" for="edit_deductibleNo">
-                                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Non-Deductible (Koreksi Fiskal Positif)
+                                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i> Koreksi fiskal positif
                                     </label>
                                 </div>
                             </div>

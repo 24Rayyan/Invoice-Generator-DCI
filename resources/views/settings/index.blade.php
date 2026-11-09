@@ -6,11 +6,11 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Ringkasan</a></li>
                 <li class="breadcrumb-item active small fw-semibold" aria-current="page">Pengaturan Sistem</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-0 tracking-tight">Pusat Konfigurasi Mini ERP</h3>
+        <h1 class="h3 fw-bold text-dark mb-0 tracking-tight">Pengaturan Mini ERP</h1>
         <p class="text-muted small mb-0">Kelola identitas perusahaan, format nomor dokumen, perpajakan, pejabat penandatangan, dan template catatan penagihan.</p>
     </div>
 </div>
@@ -188,7 +188,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Prefix Purchase Order (PO) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold text-dark small">Prefix PO <span class="text-danger">*</span></label>
                             <input type="text" name="po_prefix" class="form-control fw-bold font-monospace text-info" value="{{ old('po_prefix', $setting->po_prefix ?? 'PO') }}" required placeholder="PO">
                             <small class="text-muted font-xs">Contoh: <code>001/<strong>PO</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
                         </div>
@@ -453,7 +453,7 @@
         color: #64748b;
         border: none;
         border-bottom: 2px solid transparent;
-        transition: all 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
     }
     .settings-nav-tabs .nav-link:hover {
         color: #1e40af;

@@ -12,10 +12,10 @@
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
         <div class="btn-group shadow-sm">
-            <a href="{{ route('reports.profit_loss.pdf', ['year' => $year, 'month' => $month]) }}" class="btn btn-danger" target="_blank">
+            <a data-download href="{{ route('reports.profit_loss.pdf', ['year' => $year, 'month' => $month]) }}" class="btn btn-danger" target="_blank">
                 <i class="fa-solid fa-file-pdf me-1.5"></i> Cetak PDF SPT
             </a>
-            <a href="{{ route('reports.profit_loss.excel', ['year' => $year, 'month' => $month]) }}" class="btn btn-success">
+            <a data-download href="{{ route('reports.profit_loss.excel', ['year' => $year, 'month' => $month]) }}" class="btn btn-success">
                 <i class="fa-solid fa-file-excel me-1.5"></i> Export Excel
             </a>
         </div>

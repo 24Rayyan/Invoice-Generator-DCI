@@ -4,7 +4,7 @@
 <style>
     .finance-dashboard {
         --dashboard-ink: #172033;
-        --dashboard-muted: #7b8494;
+        --dashboard-muted: #526071;
         --dashboard-line: #e9edf3;
         --dashboard-blue: #0878f9;
         color: var(--dashboard-ink);
@@ -63,12 +63,12 @@
     }
 
     .finance-dashboard .dashboard-table {
-        min-width: 690px;
+        width: 100%;
     }
 
     .finance-dashboard .dashboard-table thead th {
         background: #f8f9fb;
-        color: #747e8d;
+        color: #526071;
         font-size: 0.65rem;
         font-weight: 700;
         letter-spacing: 0.035em;
@@ -110,6 +110,74 @@
         font-weight: 700;
     }
 
+    .finance-dashboard .dashboard-status.bg-success-subtle {
+        color: #146c43 !important;
+    }
+
+    .finance-dashboard .dashboard-status.bg-primary-subtle {
+        color: #084298 !important;
+    }
+
+    .finance-dashboard .dashboard-status.bg-light.text-secondary {
+        color: #526071 !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .finance-dashboard .dashboard-table thead {
+            display: none;
+        }
+
+        .finance-dashboard .dashboard-table,
+        .finance-dashboard .dashboard-table tbody {
+            display: block;
+        }
+
+        .finance-dashboard .dashboard-table tbody {
+            display: grid;
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+
+        .finance-dashboard .dashboard-table .dashboard-mobile-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            border: 1px solid var(--dashboard-line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .finance-dashboard .dashboard-table .dashboard-mobile-card td {
+            display: grid;
+            grid-template-columns: minmax(6.25rem, 0.75fr) minmax(0, 1.5fr);
+            align-items: start;
+            gap: 0.75rem;
+            padding: 0.7rem 0.85rem;
+            text-align: left !important;
+            overflow-wrap: anywhere;
+        }
+
+        .finance-dashboard .dashboard-table .dashboard-mobile-card td::before {
+            content: attr(data-label);
+            grid-column: 1;
+            color: #526071;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .finance-dashboard .dashboard-table .dashboard-mobile-card td > * {
+            grid-column: 2;
+        }
+
+        .finance-dashboard .dashboard-table .dashboard-mobile-card td:last-child {
+            border-bottom: 0;
+        }
+
+        .finance-dashboard .dashboard-table .dashboard-mobile-empty td {
+            display: block;
+        }
+    }
+
     @media (max-width: 575.98px) {
         .finance-dashboard .dashboard-kpi {
             min-height: 112px;
@@ -135,7 +203,7 @@
 <div class="finance-dashboard">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h1 class="dashboard-heading fw-bold mb-1">Dashboard Keuangan</h1>
+            <h1 class="dashboard-heading fw-bold mb-1">Ringkasan Keuangan</h1>
             <p class="dashboard-subtitle small mb-0">Ringkasan bisnis, tagihan, dan transaksi kas dalam satu tempat.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
@@ -148,18 +216,18 @@
         </div>
     </div>
 
-    <div class="dashboard-eyebrow fw-semibold mb-2">Executive Summary</div>
+    <div class="dashboard-eyebrow fw-semibold mb-2">Ringkasan Utama</div>
     <div class="row g-3 mb-4">
         <div class="col-6 col-xl-3">
             <div class="dashboard-kpi card h-100">
                 <div class="card-body p-3 p-lg-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="dashboard-kpi-label small text-muted">Total Omset</span>
+                        <span class="dashboard-kpi-label small text-muted">Total Pendapatan</span>
                         <i class="dashboard-kpi-icon fa-regular fa-file-lines"></i>
                     </div>
                     <div class="dashboard-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($totalOmset, 0, ',', '.') }}</div>
                     <span class="badge rounded-pill bg-success-subtle text-success dashboard-status">
-                        <i class="fa-solid fa-circle-check me-1"></i> Lunas
+                        <i class="fa-solid fa-circle-check me-1"></i> PAID
                     </span>
                 </div>
             </div>
@@ -173,7 +241,7 @@
                     </div>
                     <div class="dashboard-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($totalPiutang, 0, ',', '.') }}</div>
                     <span class="badge rounded-pill bg-warning-subtle text-dark dashboard-status">
-                        <i class="fa-solid fa-clock me-1"></i> Belum Lunas
+                        <i class="fa-solid fa-clock me-1"></i> Belum dibayar
                     </span>
                 </div>
             </div>
@@ -187,7 +255,7 @@
                     </div>
                     <div class="dashboard-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($totalExpense, 0, ',', '.') }}</div>
                     <span class="badge rounded-pill bg-danger-subtle text-danger dashboard-status">
-                        <i class="fa-solid fa-arrow-down me-1"></i> Expense
+                        <i class="fa-solid fa-arrow-down me-1"></i> Pengeluaran
                     </span>
                 </div>
             </div>
@@ -201,7 +269,7 @@
                     </div>
                     <div class="dashboard-kpi-value fw-bold mb-2">{{ $currency }} {{ number_format($netProfit, 0, ',', '.') }}</div>
                     <span class="badge rounded-pill bg-primary-subtle text-primary dashboard-status">
-                        <i class="fa-solid fa-chart-line me-1"></i> Net Profit
+                        <i class="fa-solid fa-chart-line me-1"></i> Laba Bersih
                     </span>
                 </div>
             </div>
@@ -212,7 +280,7 @@
         <div class="dashboard-section-header card-header bg-white border-0 px-4 py-3 d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="h6 fw-bold mb-1">Dokumen Invoice & PO Terbaru</h2>
-                <p class="dashboard-footnote small mb-0">Pantau tagihan dan status pembayaran customer.</p>
+                <p class="dashboard-footnote small mb-0">Pantau tagihan dan status pembayaran pelanggan.</p>
             </div>
             <a href="{{ route('documents.index') }}" class="link-primary text-decoration-none small fw-semibold">
                 Lihat Semua <i class="fa-solid fa-arrow-right ms-1"></i>
@@ -223,15 +291,15 @@
                 <thead>
                     <tr>
                         <th class="ps-4">No. Dokumen</th>
-                        <th>Customer</th>
+                        <th>Pelanggan</th>
                         <th class="text-end">Tagihan</th>
                         <th class="text-center pe-4">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($recentDocuments as $doc)
-                    <tr>
-                        <td class="ps-4">
+                    <tr class="dashboard-mobile-card">
+                        <td class="ps-4" data-label="No. Dokumen">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="dashboard-row-icon rounded d-inline-flex align-items-center justify-content-center">
                                     <i class="fa-regular fa-file-lines"></i>
@@ -239,9 +307,9 @@
                                 <span class="font-monospace text-dark">{{ $doc->document_number }}</span>
                             </div>
                         </td>
-                        <td>{{ $doc->customer?->name ?? '-' }}</td>
-                        <td class="text-end fw-semibold">{{ $currency }} {{ number_format($doc->total_amount, 0, ',', '.') }}</td>
-                        <td class="text-center pe-4">
+                        <td data-label="Pelanggan">{{ $doc->customer?->name ?? '-' }}</td>
+                        <td class="text-end fw-semibold" data-label="Tagihan">{{ $currency }} {{ number_format($doc->total_amount, 0, ',', '.') }}</td>
+                        <td class="text-center pe-4" data-label="Status">
                             <span class="dashboard-status badge rounded-pill {{ $statusClasses[$doc->status] ?? 'bg-secondary-subtle text-secondary' }}">
                                 <i class="fa-solid {{ $doc->status === 'PAID' ? 'fa-check' : ($doc->status === 'SENT' ? 'fa-paper-plane' : 'fa-file-lines') }} me-1"></i>
                                 {{ $doc->status }}
@@ -249,7 +317,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="dashboard-mobile-empty">
                         <td colspan="4" class="text-center text-muted py-4">Belum ada invoice untuk ditampilkan.</td>
                     </tr>
                     @endforelse
@@ -258,14 +326,13 @@
         </div>
         <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 px-4 py-3 border-top">
             <span class="dashboard-footnote small">Menampilkan {{ $recentDocuments->count() }} invoice terbaru</span>
-            <span class="dashboard-footnote small">PAID · Lunas &nbsp;&nbsp; SENT · Terkirim</span>
         </div>
     </section>
 
     <section class="dashboard-section card">
         <div class="dashboard-section-header card-header bg-white border-0 px-4 py-3 d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="h6 fw-bold mb-1">Transaksi Kas & Jurnal Terbaru</h2>
+                <h2 class="h6 fw-bold mb-1">Transaksi Kas Terbaru</h2>
                 <p class="dashboard-footnote small mb-0">Rincian pengeluaran dan klasifikasi fiskal.</p>
             </div>
             <a href="{{ route('transactions.index') }}" class="link-primary text-decoration-none small fw-semibold">
@@ -275,7 +342,7 @@
         <div class="table-responsive">
             <table class="dashboard-table table align-middle mb-0">
                 <thead>
-                    <tr>
+                    <tr class="dashboard-mobile-card">
                         <th class="ps-4">No. Transaksi</th>
                         <th>Kategori / Akun</th>
                         <th class="text-end">Nominal</th>
@@ -285,7 +352,7 @@
                 <tbody>
                     @forelse($recentTransactions as $trx)
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-4" data-label="No. Transaksi">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="dashboard-expense-icon rounded-circle d-inline-flex align-items-center justify-content-center">
                                     <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: .62rem;"></i>
@@ -293,24 +360,24 @@
                                 <span class="font-monospace text-dark">{{ $trx->transaction_number }}</span>
                             </div>
                         </td>
-                        <td>
+                        <td data-label="Kategori">
                             <div class="text-truncate" style="max-width: 360px;" title="{{ $trx->category?->name }}">
                                 [{{ $trx->category?->code ?? '-' }}] {{ $trx->category?->name ?? 'Tanpa kategori' }}
                             </div>
                         </td>
-                        <td class="text-end fw-semibold text-danger">
+                        <td class="text-end fw-semibold text-danger" data-label="Nominal">
                             - {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}
                         </td>
-                        <td class="text-center pe-4">
+                        <td class="text-center pe-4" data-label="Fiskal">
                             @if($trx->category?->is_tax_deductible)
-                                <span class="dashboard-status badge rounded-pill bg-light text-secondary">Deductible</span>
+                                <span class="dashboard-status badge rounded-pill bg-light text-secondary">Dapat dikurangkan</span>
                             @else
                                 <span class="dashboard-status badge rounded-pill bg-light text-secondary">Koreksi</span>
                             @endif
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="dashboard-mobile-empty">
                         <td colspan="4" class="text-center text-muted py-4">Belum ada pengeluaran kas tercatat.</td>
                     </tr>
                     @endforelse

@@ -6,11 +6,11 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('customers.index') }}" class="text-decoration-none text-muted small">Data Customer</a></li>
-                <li class="breadcrumb-item active small fw-semibold" aria-current="page">Tambah Customer</li>
+                <li class="breadcrumb-item"><a href="{{ route('customers.index') }}" class="text-decoration-none text-muted small">Data Pelanggan</a></li>
+                <li class="breadcrumb-item active small fw-semibold" aria-current="page">Tambah Pelanggan</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-0 tracking-tight">Tambah Customer Baru</h3>
+        <h1 class="h3 fw-bold text-dark mb-0 tracking-tight">Tambah Pelanggan Baru</h1>
     </div>
     <div>
         <a href="{{ route('customers.index') }}" class="btn btn-light border btn-sm px-3">
@@ -103,14 +103,14 @@
                             <div class="col-12">
                                 <label class="form-label fw-semibold text-dark small">Default Kode Transaksi Faktur Pajak PPN <span class="text-danger">*</span></label>
                                 <select name="default_tax_transaction_code" class="form-select fw-semibold" required>
-                                    <option value="040" {{ old('default_tax_transaction_code', '040') == '040' ? 'selected' : '' }}>040 — DPP Nilai Lain (Default Utama Jasa/AC/Freight/Lainnya)</option>
-                                    <option value="020" {{ old('default_tax_transaction_code') == '020' ? 'selected' : '' }}>020 — Pemungut Bendaharawan Pemerintah (WAPU)</option>
-                                    <option value="010" {{ old('default_tax_transaction_code') == '010' ? 'selected' : '' }}>010 — Penyerahan BKP / JKP kepada Selain Pemungut PPN (Umum)</option>
-                                    <option value="030" {{ old('default_tax_transaction_code') == '030' ? 'selected' : '' }}>030 — Pemungut PPN BUMN / Badan Usaha Tertentu</option>
-                                    <option value="050" {{ old('default_tax_transaction_code') == '050' ? 'selected' : '' }}>050 — Penyerahan dengan Besaran Tertentu (Pasal 9A UU PPN)</option>
-                                    <option value="070" {{ old('default_tax_transaction_code') == '070' ? 'selected' : '' }}>070 — Penyerahan PPN Tidak Dipungut (Fasilitas Khusus/Kawasan Berikat)</option>
-                                    <option value="080" {{ old('default_tax_transaction_code') == '080' ? 'selected' : '' }}>080 — Penyerahan PPN Dibebaskan</option>
-                                    <option value="090" {{ old('default_tax_transaction_code') == '090' ? 'selected' : '' }}>090 — Penyerahan Aktiva (Pasal 16D UU PPN)</option>
+                                    <option value="040" {{ old('default_tax_transaction_code', '040') == '040' ? 'selected' : '' }}>040: DPP Nilai Lain (Default Utama Jasa/AC/Freight/Lainnya)</option>
+                                    <option value="020" {{ old('default_tax_transaction_code') == '020' ? 'selected' : '' }}>020: Pemungut Bendaharawan Pemerintah (WAPU)</option>
+                                    <option value="010" {{ old('default_tax_transaction_code') == '010' ? 'selected' : '' }}>010: Penyerahan BKP / JKP kepada Selain Pemungut PPN (Umum)</option>
+                                    <option value="030" {{ old('default_tax_transaction_code') == '030' ? 'selected' : '' }}>030: Pemungut PPN BUMN / Badan Usaha Tertentu</option>
+                                    <option value="050" {{ old('default_tax_transaction_code') == '050' ? 'selected' : '' }}>050: Penyerahan dengan Besaran Tertentu (Pasal 9A UU PPN)</option>
+                                    <option value="070" {{ old('default_tax_transaction_code') == '070' ? 'selected' : '' }}>070: Penyerahan PPN Tidak Dipungut (Fasilitas Khusus/Kawasan Berikat)</option>
+                                    <option value="080" {{ old('default_tax_transaction_code') == '080' ? 'selected' : '' }}>080: Penyerahan PPN Dibebaskan</option>
+                                    <option value="090" {{ old('default_tax_transaction_code') == '090' ? 'selected' : '' }}>090: Penyerahan Aktiva (Pasal 16D UU PPN)</option>
                                 </select>
                                 <small class="text-muted font-xs">Setiap invoice baru untuk customer ini akan otomatis menggunakan kode transaksi ini (dapat diubah per invoice).</small>
                             </div>
@@ -120,7 +120,7 @@
                     <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
                         <a href="{{ route('customers.index') }}" class="btn btn-light border px-4">Batal</a>
                         <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
-                            <i class="fa-solid fa-floppy-disk me-1.5"></i> Simpan Customer
+                            <i class="fa-solid fa-floppy-disk me-1.5"></i> Simpan Pelanggan
                         </button>
                     </div>
                 </form>

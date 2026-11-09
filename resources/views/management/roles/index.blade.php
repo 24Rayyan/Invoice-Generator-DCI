@@ -8,17 +8,17 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 position-relative z-1">
             <div>
                 <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-secondary bg-opacity-25 border border-secondary border-opacity-50 rounded-pill text-xs font-semibold text-info mb-2" style="font-size: 0.75rem;">
-                    <i class="fa-solid fa-key"></i> RBAC Security Architecture
+                    <i class="fa-solid fa-key"></i> Kontrol Akses Berbasis Peran
                 </div>
-                <h1 class="h3 fw-bold tracking-tight text-white m-0">Role & Module Access Matrix</h1>
+                <h1 class="h3 fw-bold tracking-tight text-white m-0">Matriks Peran & Hak Akses Modul</h1>
                 <p class="text-secondary small mt-1 mb-0" style="max-width: 600px;">
-                    Atur role dan izin akses setiap modul aplikasi secara terpisah, termasuk invoice, proyek, transaksi, dan laporan.
+                    Atur peran dan hak akses setiap modul aplikasi, termasuk Invoice, proyek, transaksi, dan laporan.
                 </p>
             </div>
 
             <a href="{{ route('management.users.index') }}" 
                class="btn btn-outline-light border-secondary border-opacity-50 rounded-pill px-4 py-2 text-xs font-semibold shadow-sm d-inline-flex align-items-center gap-2 text-white">
-                <i class="fa-solid fa-arrow-left small"></i> Kembali ke Kelola User
+                <i class="fa-solid fa-arrow-left small"></i> Kembali ke Manajemen Pengguna
             </a>
         </div>
     </div>
@@ -50,7 +50,7 @@
 
     @if($errors->any())
         <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger rounded-4 p-3 mb-4 shadow-sm">
-            <div class="fw-semibold small mb-1">Periksa kembali data role:</div>
+            <div class="fw-semibold small mb-1">Periksa kembali data peran:</div>
             <ul class="small mb-0 ps-3">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -67,7 +67,7 @@
                         <i class="fa-solid fa-user-shield"></i>
                     </div>
                     <div>
-                        <div class="small text-muted">Total Role</div>
+                        <div class="small text-muted">Total Peran</div>
                         <div class="h5 fw-bold text-dark mb-0">{{ $roles->count() }}</div>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                     <img src="{{ asset('images/business-management.png') }}" alt="" width="24" height="24" class="object-fit-contain">
                 </div>
                 <div>
-                    <h2 class="h6 fw-bold text-dark m-0">Tambah Role Baru</h2>
+                    <h2 class="h6 fw-bold text-dark m-0">Tambah Peran Baru</h2>
                     <p class="small text-muted mb-0">Buat tingkatan atau kategori hak akses baru untuk staf.</p>
                 </div>
             </div>
@@ -109,7 +109,7 @@
                 <!-- Key Role Field -->
                 <div class="col-12 col-md-4">
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
-                        Key Role <span class="text-danger">*</span>
+                        Kode Peran <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="name" value="{{ old('name') }}" placeholder="Contoh: manager" required 
                         class="form-control form-control-sm rounded-3 py-2 px-3 @error('name') is-invalid @enderror">
@@ -119,9 +119,9 @@
                 <!-- Display Name Field -->
                 <div class="col-12 col-md-4">
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
-                        Display Name <span class="text-danger">*</span>
+                        Nama Tampilan <span class="text-danger">*</span>
                     </label>
-                    <input type="text" name="display_name" value="{{ old('display_name') }}" placeholder="Contoh: Operational Manager" required 
+                    <input type="text" name="display_name" value="{{ old('display_name') }}"                     placeholder="Contoh: Manajer Operasional" required
                         class="form-control form-control-sm rounded-3 py-2 px-3 @error('display_name') is-invalid @enderror">
                     @error('display_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
@@ -131,7 +131,7 @@
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
                         Deskripsi Peran
                     </label>
-                    <input type="text" name="description" value="{{ old('description') }}" placeholder="Catatan tugas/otoritas role" 
+                    <input type="text" name="description" value="{{ old('description') }}" placeholder="Catatan tugas dan kewenangan peran"
                         class="form-control form-control-sm rounded-3 py-2 px-3 @error('description') is-invalid @enderror">
                     @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
@@ -140,7 +140,7 @@
 
             <div class="mt-4 d-flex justify-content-end">
                 <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 text-sm fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
-                    <i class="fa-solid fa-plus small"></i> Simpan Role
+                    <i class="fa-solid fa-plus small"></i> Simpan Peran
                 </button>
             </div>
         </form>
@@ -204,7 +204,7 @@
                                     <h3 class="h6 fw-bold text-dark mb-0">{{ $role->display_name }}</h3>
                                     <span class="badge bg-secondary bg-opacity-10 text-secondary border font-monospace" style="font-size: 0.68rem;">{{ $role->name }}</span>
                                     @if($isSystemRole)
-                                        <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill" style="font-size: 0.66rem;">Role Sistem</span>
+                                        <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill" style="font-size: 0.66rem;">Peran Sistem</span>
                                     @endif
                                 </div>
                                 <p class="text-muted small mb-0 mt-1">{{ $role->description ?? 'Tidak ada deskripsi peran.' }}</p>
@@ -213,7 +213,7 @@
                             <div class="d-flex flex-wrap align-items-center gap-2">
                             @if($isFullAccess)
                                 <span class="badge bg-dark text-white px-3 py-2 rounded-pill fw-bold" style="font-size: 0.72rem;">
-                                    Full Access Guaranteed
+                                    Akses Penuh
                                 </span>
                             @else
                                 <!-- Counter Badge -->
@@ -229,23 +229,23 @@
                                 </button>
                             @endif
 
-                                <span class="badge bg-white border text-secondary rounded-pill px-3 py-2" title="Jumlah user dengan role ini">
-                                    <i class="fa-solid fa-users me-1"></i>{{ $role->users_count }} User
+                                <span class="badge bg-white border text-secondary rounded-pill px-3 py-2" title="Jumlah pengguna dengan peran ini">
+                                    <i class="fa-solid fa-users me-1"></i>{{ $role->users_count }} pengguna
                                 </span>
 
                                 @if(!$isSystemRole)
                                     @if($role->users_count > 0)
                                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2" disabled
-                                                title="Pindahkan user yang menggunakan role ini sebelum menghapusnya">
-                                            <i class="fa-solid fa-lock me-1"></i>Role Digunakan
+                                                title="Pindahkan pengguna yang memakai peran ini sebelum menghapusnya">
+                                            <i class="fa-solid fa-lock me-1"></i>Peran Digunakan
                                         </button>
                                     @else
                                         <form action="{{ route('management.roles.destroy', $role) }}" method="POST"
-                                              onsubmit="return confirm('Hapus role ini secara permanen? Hak akses modul yang terkait juga akan dihapus.')">
+                                              data-confirm="Peran akan dihapus permanen beserta hak akses modul yang terkait." data-confirm-title="Hapus Peran?" data-confirm-subject="{{ $role->name }}" data-confirm-button="Ya, Hapus">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-2">
-                                                <i class="fa-solid fa-trash-can me-1"></i>Hapus Role
+                                                <i class="fa-solid fa-trash-can me-1"></i>Hapus Peran
                                             </button>
                                         </form>
                                     @endif
@@ -346,7 +346,7 @@
         cursor: pointer;
     }
     .transition-all {
-        transition: all 0.15s ease-in-out;
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
     </style>
 

@@ -69,13 +69,18 @@
             padding: 7px 16px !important;
             box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
             border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .navbar-brand-logo {
             max-height: 26px;
             width: auto;
             object-fit: contain;
+        }
+
+        /* Keep the wide item table scrollable without widening the mobile page. */
+        .document-items-table-container {
+            contain: paint;
         }
 
         .brand-text {
@@ -91,8 +96,9 @@
             font-weight: 600;
             font-size: 0.84rem;
             padding: 0.45rem 1.1rem !important;
+            min-height: 44px;
             border-radius: 9999px;
-            transition: all 0.2s ease-in-out;
+            transition: color 0.2s ease, background-color 0.2s ease;
             margin: 0 2px;
             display: inline-flex;
             align-items: center;
@@ -103,10 +109,31 @@
             background-color: #f1f5f9;
         }
 
+        .nav-link-custom:active,
+        .dropdown-menu-custom .dropdown-item:active {
+            transform: translateY(1px);
+        }
+
         .nav-link-custom.active {
             color: #ffffff !important;
             background-color: #2563eb;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .navbar-floating .text-info {
+            color: #055160 !important;
+        }
+
+        .navbar-floating .text-warning {
+            color: #805600 !important;
+        }
+
+        .bg-success-subtle.text-success {
+            color: #146c43 !important;
+        }
+
+        .bg-primary-subtle.text-primary {
+            color: #084298 !important;
         }
 
         .action-buttons-wrapper .nav-link-custom.active {
@@ -130,7 +157,7 @@
             font-weight: 600;
             border-radius: 10px;
             padding: 8px 14px;
-            transition: all 0.15s ease;
+            transition: color 0.15s ease, background-color 0.15s ease;
         }
 
         .dropdown-menu-custom .dropdown-item:hover {
@@ -141,32 +168,6 @@
         .dropdown-menu-custom .dropdown-item.active {
             background-color: #eff6ff !important;
             color: #2563eb !important;
-        }
-
-        /* Pulse Indicator */
-        .pulse-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background-color: #10b981;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            animation: pulse-green 2s infinite;
-        }
-
-        @keyframes pulse-green {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            }
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
-            }
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-            }
         }
 
         /* Responsive Navbar Mobile Adjustments */
@@ -187,7 +188,7 @@
             border-radius: 14px;
             background: var(--erp-surface);
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-            transition: all 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .card-header {
@@ -204,13 +205,12 @@
             font-size: 0.875rem;
             border-radius: 8px;
             color: #0f172a;
-            transition: all 0.15s ease-in-out;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-            outline: none;
         }
 
         .smooth-dropdown + .ts-wrapper {
@@ -324,7 +324,6 @@
             border: 1px solid #dbe4f0;
             border-radius: 8px;
             padding: 7px 10px;
-            outline: none;
             box-shadow: none;
         }
 
@@ -392,6 +391,17 @@
                 opacity: 0;
                 transform: translateY(-3px);
             }
+
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    scroll-behavior: auto !important;
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -403,7 +413,7 @@
             font-weight: 600;
             padding: 0.5rem 1.15rem;
             font-size: 0.875rem;
-            transition: all 0.15s ease-in-out;
+            transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -418,6 +428,27 @@
         .btn-primary:hover {
             background-color: var(--erp-primary-hover);
             border-color: var(--erp-primary-hover);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        :where(a[href], button, input, select, textarea, [tabindex]):focus-visible {
+            outline: 3px solid #1d4ed8;
+            outline-offset: 2px;
+        }
+
+        :where(a[href], button, select, input[type="checkbox"], input[type="radio"], label[for]) {
+            cursor: pointer;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+        }
+
+        :where(button, select, input, textarea):disabled {
+            cursor: not-allowed;
         }
 
         /* Modern Tables */
@@ -467,6 +498,20 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        @media (max-width: 767.98px) {
+            .btn,
+            .btn-sm,
+            .form-control,
+            .form-select {
+                min-height: 44px;
+            }
+
+            .form-check-input {
+                width: 1.25rem;
+                height: 1.25rem;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -483,10 +528,10 @@
                     @if(isset($globalSetting) && $globalSetting->company_logo && file_exists(public_path('storage/' . $globalSetting->company_logo)))
                         <img src="{{ asset('storage/' . $globalSetting->company_logo) }}" alt="Logo" class="navbar-brand-logo">
                     @else
-                        <img src="{{ asset('images/navbar-user.png') }}" alt="User" class="navbar-brand-logo" style="width: 32px; height: 32px;">
+                        <img src="{{ asset('images/navbar-user.png') }}" alt="Profil pengguna" class="navbar-brand-logo" style="width: 32px; height: 32px;">
                     @endif
                     <span class="fw-semibold text-dark fs-6 ms-3">
-                        Hello {{ Auth::user()->username ?? 'User' }} !
+                        Halo {{ Auth::user()->username ?? 'Pengguna' }}!
                     </span>
                 </a>
 
@@ -507,7 +552,7 @@
                             @if(auth()->user()->hasAccess('dashboard'))
                                 <li class="nav-item">
                                     <a class="nav-link nav-link-custom {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                                        <i class="fa-solid fa-chart-pie me-2"></i> Dashboard
+                                        <i class="fa-solid fa-chart-pie me-2"></i> Ringkasan
                                     </a>
                                 </li>
                             @endif
@@ -515,7 +560,7 @@
                             @if(auth()->user()->hasAccess('invoices') || auth()->user()->hasAccess('customers') || auth()->user()->hasAccess('projects'))
                                     <li class="nav-item dropdown">
                                         <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('documents.*') || request()->routeIs('purchase-orders.*') || request()->routeIs('customers.*') || request()->routeIs('projects.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fa-solid fa-file-invoice-dollar me-2"></i> Invoicing & PO
+                                            <i class="fa-solid fa-file-invoice-dollar me-2"></i> Invoice & PO
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 250px;">
                                             @if(auth()->user()->hasAccess('invoices'))
@@ -533,7 +578,7 @@
                                             @if(auth()->user()->hasAccess('customers'))
                                                 <li>
                                                     <a class="dropdown-item py-2 {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
-                                                        <i class="fa-solid fa-users me-2 text-success"></i> Master Customer
+                                                        <i class="fa-solid fa-users me-2 text-success"></i> Data Pelanggan
                                                     </a>
                                                 </li>
                                             @endif
@@ -608,18 +653,18 @@
                             @if(auth()->user()->hasAccess('user_management') || auth()->user()->hasAccess('activity_logs'))
                                 <li class="nav-item dropdown">
                                     <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('management.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-user-gear me-2"></i> User Management
+                                        <i class="fa-solid fa-user-gear me-2"></i> Manajemen Pengguna
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 220px;">
                                         @if(auth()->user()->hasAccess('user_management'))
                                             <li>
                                                 <a class="dropdown-item py-2 {{ request()->routeIs('management.users.*') ? 'active' : '' }}" href="{{ route('management.users.index') }}">
-                                                    <i class="fa-solid fa-users-gear me-2 text-primary"></i> Kelola User
+                                                    <i class="fa-solid fa-users-gear me-2 text-primary"></i> Kelola Pengguna
                                                 </a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item py-2 {{ request()->routeIs('management.roles.*') ? 'active' : '' }}" href="{{ route('management.roles.index') }}">
-                                                    <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Kelola Role & Hak Akses
+                                                    <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Kelola Peran & Hak Akses
                                                 </a>
                                             </li>
                                         @endif
@@ -643,7 +688,7 @@
                                 @if(auth()->user()->hasAccess('settings'))
                                     <a class="nav-link nav-link-custom rounded-circle d-flex align-items-center justify-content-center {{ request()->routeIs('settings.*') ? 'active bg-white text-primary shadow-sm' : 'text-secondary' }}" 
                                     href="{{ route('settings.index') }}" 
-                                    style="width: 36px; height: 36px; transition: all 0.2s ease;" 
+                                    style="width: 44px; height: 44px; transition: color 0.2s ease, background-color 0.2s ease;"
                                     data-bs-toggle="tooltip" 
                                     data-bs-placement="bottom" 
                                     title="Pengaturan Perusahaan">
@@ -655,10 +700,10 @@
                                     @csrf
                                     <button type="submit" 
                                             class="btn btn-link nav-link-custom rounded-circle d-flex align-items-center justify-content-center text-danger border-0 p-0" 
-                                            style="width: 36px; height: 36px; transition: all 0.2s ease;" 
+                                            style="width: 44px; height: 44px; transition: color 0.2s ease, background-color 0.2s ease;"
                                             data-bs-toggle="tooltip" 
                                             data-bs-placement="bottom" 
-                                            title="Keluar / Logout">
+                                            title="Keluar">
                                         <i class="fa-solid fa-right-from-bracket fs-6"></i>
                                     </button>
                                 </form>
@@ -704,6 +749,7 @@
     </script>
 
     @include('partials.smooth_dropdown_script')
+    @include('partials.ui_feedback')
     @stack('scripts')
 </body>
 </html>

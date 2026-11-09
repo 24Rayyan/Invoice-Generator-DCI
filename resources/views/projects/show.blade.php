@@ -24,19 +24,19 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}" class="text-decoration-none text-muted">Projects</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}" class="text-decoration-none text-muted">Proyek</a></li>
                 <li class="breadcrumb-item active">{{ $project->project_name }}</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-1">{{ $project->project_name }}</h3>
-        <p class="text-muted mb-0">{{ $project->client?->name ?? 'Client belum ditentukan' }} · Status: {{ str_replace('_', ' ', ucfirst($project->status)) }}</p>
+        <h1 class="h3 fw-bold text-dark mb-1">{{ $project->project_name }}</h1>
+        <p class="text-muted mb-0">{{ $project->client?->name ?? 'Pelanggan belum ditentukan' }} · Status: {{ ['active' => 'Aktif', 'on_hold' => 'Ditunda', 'completed' => 'Selesai'][$project->status] ?? $project->status }}</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="#project-settings" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square me-1"></i>Edit Project</a>
+        <a href="#project-settings" class="btn btn-outline-primary"><i class="fa-solid fa-pen-to-square me-1"></i>Edit Proyek</a>
         @if(auth()->user()->hasAccess('project_margin'))
             <a href="{{ route('reports.projects') }}" class="btn btn-outline-primary"><i class="fa-solid fa-chart-pie me-1"></i>Laporan Margin</a>
         @endif
-        <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Daftar Project</a>
+        <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Daftar Proyek</a>
     </div>
 </div>
 
@@ -45,20 +45,20 @@
 @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
 <div class="row g-3 mb-4">
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-success"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Total Revenue</span><h4 class="fw-bold text-success mt-2 mb-0">{{ $currency }} {{ number_format($revenue, 0, ',', '.') }}</h4><small class="text-muted">Total semua invoice project</small></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-danger"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Total Direct Expense</span><h4 class="fw-bold text-danger mt-2 mb-0">{{ $currency }} {{ number_format($directExpense, 0, ',', '.') }}</h4><small class="text-muted">Kas keluar yang terhubung ke project</small></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-info"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Net Profit</span><h4 class="fw-bold {{ $netProfit >= 0 ? 'text-info' : 'text-danger' }} mt-2 mb-0">{{ $currency }} {{ number_format($netProfit, 0, ',', '.') }}</h4><small class="text-muted">Revenue dikurangi direct expense</small></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm bg-dark text-white h-100"><div class="card-body"><span class="small text-white-50 fw-bold text-uppercase">Net Margin</span><h4 class="fw-bold mt-2 mb-0">{{ number_format($netMargin, 2, ',', '.') }}%</h4><small class="text-white-50">{{ $revenue > 0 ? 'Net profit / revenue' : 'Revenue 0 — margin ditampilkan 0%' }}</small></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-success"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Total Pendapatan</span><h4 class="fw-bold text-success mt-2 mb-0">{{ $currency }} {{ number_format($revenue, 0, ',', '.') }}</h4><small class="text-muted">Total semua Invoice proyek</small></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-danger"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Total Biaya Langsung</span><h4 class="fw-bold text-danger mt-2 mb-0">{{ $currency }} {{ number_format($directExpense, 0, ',', '.') }}</h4><small class="text-muted">Kas keluar yang terhubung ke proyek</small></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-info"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Laba Bersih</span><h4 class="fw-bold {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }} mt-2 mb-0">{{ $currency }} {{ number_format($netProfit, 0, ',', '.') }}</h4><small class="text-muted">Pendapatan dikurangi biaya langsung</small></div></div></div>
+    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm bg-dark text-white h-100"><div class="card-body"><span class="small text-white-50 fw-bold text-uppercase">Margin Bersih</span><h4 class="fw-bold mt-2 mb-0">{{ number_format($netMargin, 2, ',', '.') }}%</h4><small class="text-white-50">{{ $revenue > 0 ? 'Laba bersih / pendapatan' : 'Pendapatan 0, margin ditampilkan 0%' }}</small></div></div></div>
 </div>
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-        <div><h6 class="fw-bold mb-1"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Invoice dalam Project</h6><small class="text-muted">Pendapatan dari semua invoice yang dikelompokkan di project ini.</small></div>
+        <div><h2 class="h6 fw-bold mb-1"><i class="fa-solid fa-file-invoice me-2 text-primary"></i>Invoice dalam Proyek</h2><small class="text-muted">Pendapatan dari semua Invoice yang dikelompokkan di proyek ini.</small></div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachProjectInvoices"><i class="fa-solid fa-link me-1"></i>Hubungkan Invoice</button>
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light"><tr><th class="ps-4">No. Invoice</th><th>Customer</th><th>Tanggal</th><th>Status</th><th class="text-end">Nilai Invoice</th><th class="text-end pe-4">Aksi</th></tr></thead>
+            <thead class="bg-light"><tr><th class="ps-4">No. Invoice</th><th>Pelanggan</th><th>Tanggal</th><th>Status</th><th class="text-end">Nilai Invoice</th><th class="text-end pe-4">Aksi</th></tr></thead>
             <tbody>
                 @forelse($project->invoices as $invoice)
                     <tr>
@@ -69,14 +69,14 @@
                                 <span class="fw-bold">{{ $invoice->document_number }}</span>
                             @endif
                         </td>
-                        <td>{{ $invoice->customer?->name ?? '—' }}</td>
+                        <td>{{ $invoice->customer?->name ?? '-' }}</td>
                         <td>{{ $invoice->date?->format('d/m/Y') }}</td>
                         <td><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>
                         <td class="text-end fw-semibold">{{ $currency }} {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
                         <td class="text-end pe-4">
-                            <form method="POST" action="{{ route('projects.detach-invoice', [$project, $invoice]) }}" onsubmit="return confirm('Lepas invoice ini dari project? Invoice tidak dihapus.')">
+                            <form method="POST" action="{{ route('projects.detach-invoice', [$project, $invoice]) }}" data-confirm="Invoice tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Invoice dari Proyek?" data-confirm-subject="{{ $invoice->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
-                                <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Detach</button>
+                                <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Lepas</button>
                             </form>
                         </td>
                     </tr>
@@ -94,16 +94,16 @@
             <form class="project-attach-modal-form" method="POST" action="{{ route('projects.attach-invoices', $project) }}">
                 @csrf
                 <div class="modal-header">
-                    <div><h5 class="modal-title fw-bold" id="attachProjectInvoicesLabel">Hubungkan Invoice ke Project</h5><small class="text-muted">Hanya menampilkan invoice yang belum terikat ke project mana pun.</small></div>
+                    <div><h5 class="modal-title fw-bold" id="attachProjectInvoicesLabel">Hubungkan Invoice ke Proyek</h5><small class="text-muted">Hanya menampilkan Invoice yang belum terikat ke proyek mana pun.</small></div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
                     @if($unallocatedInvoices->isEmpty())
-                        <p class="text-center text-muted py-4 mb-0">Tidak ada invoice yang belum terhubung ke project.</p>
+                        <p class="text-center text-muted py-4 mb-0">Tidak ada Invoice yang belum terhubung ke proyek.</p>
                     @else
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
-                                <label for="projectInvoiceSearch" class="form-label small fw-semibold mb-1">Cari Invoice / Customer</label>
+                                <label for="projectInvoiceSearch" class="form-label small fw-semibold mb-1">Cari Invoice / Pelanggan</label>
                                 <input type="search" id="projectInvoiceSearch" class="form-control form-control-sm" placeholder="Nomor invoice atau nama customer">
                             </div>
                             <div class="col-md-3">
@@ -117,17 +117,17 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small text-muted"><span id="projectInvoiceVisibleCount">{{ $unallocatedInvoices->count() }}</span> invoice tersedia</span>
-                            <button type="button" id="resetProjectInvoiceFilters" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i>Reset filter</button>
+                            <button type="button" id="resetProjectInvoiceFilters" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i>Atur ulang filter</button>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle">
-                                <thead class="bg-light"><tr><th><input class="form-check-input" type="checkbox" id="selectAllProjectInvoices" aria-label="Pilih invoice yang tampil"></th><th>No. Invoice</th><th>Customer</th><th>Tanggal</th><th>Status</th><th class="text-end">Nilai</th></tr></thead>
+                                <thead class="bg-light"><tr><th><input class="form-check-input" type="checkbox" id="selectAllProjectInvoices" aria-label="Pilih Invoice yang tampil"></th><th>No. Invoice</th><th>Pelanggan</th><th>Tanggal</th><th>Status</th><th class="text-end">Nilai</th></tr></thead>
                                 <tbody>
                                     @foreach($unallocatedInvoices as $invoice)
                                         <tr data-project-invoice-search="{{ \Illuminate\Support\Str::lower($invoice->document_number . ' ' . ($invoice->customer?->name ?? '') . ' ' . $invoice->status . ' ' . $invoice->total_amount . ' ' . number_format($invoice->total_amount, 0, ',', '.')) }}" data-project-invoice-date="{{ $invoice->date?->format('Y-m-d') }}">
                                             <td><input class="form-check-input project-invoice-checkbox" type="checkbox" name="invoice_ids[]" value="{{ $invoice->id }}"></td>
                                             <td class="fw-semibold">{{ $invoice->document_number }}</td>
-                                            <td>{{ $invoice->customer?->name ?? '—' }}</td>
+                                            <td>{{ $invoice->customer?->name ?? '-' }}</td>
                                             <td>{{ $invoice->date?->format('d/m/Y') }}</td>
                                             <td><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>
                                             <td class="text-end">{{ $currency }} {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
@@ -147,7 +147,7 @@
 
 <div class="card border-0 shadow-sm mb-5">
     <div class="card-header bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-        <div><h6 class="fw-bold mb-1"><i class="fa-solid fa-money-bill-transfer me-2 text-danger"></i>Kas Keluar Project</h6><small class="text-muted">Biaya operasional dengan project_id kosong tidak dihitung.</small></div>
+        <div><h2 class="h6 fw-bold mb-1"><i class="fa-solid fa-money-bill-transfer me-2 text-danger"></i>Kas Keluar Proyek</h2><small class="text-muted">Biaya operasional yang tidak terhubung ke proyek tidak dihitung.</small></div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachProjectExpenses"><i class="fa-solid fa-link me-1"></i>Hubungkan Kas</button>
     </div>
     <div class="table-responsive">
@@ -158,18 +158,18 @@
                     <tr>
                         <td class="ps-4 fw-semibold">{{ $transaction->transaction_number }}</td>
                         <td>{{ $transaction->transaction_date?->format('d/m/Y') }}</td>
-                        <td>{{ $transaction->category?->name ?? '—' }}</td>
-                        <td>{{ $transaction->description ?? '—' }}</td>
+                        <td>{{ $transaction->category?->name ?? '-' }}</td>
+                        <td>{{ $transaction->description ?? '-' }}</td>
                         <td class="text-end text-danger fw-semibold">{{ $currency }} {{ number_format($transaction->amount, 0, ',', '.') }}</td>
                         <td class="text-end pe-4">
-                            <form method="POST" action="{{ route('projects.detach-expense', [$project, $transaction]) }}" onsubmit="return confirm('Lepas transaksi kas ini dari project?')">
+                            <form method="POST" action="{{ route('projects.detach-expense', [$project, $transaction]) }}" data-confirm="Transaksi kas tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Transaksi dari Proyek?" data-confirm-subject="{{ $transaction->transaction_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
-                                <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Detach</button>
+                                <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Lepas</button>
                             </form>
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada kas keluar yang terhubung ke project ini.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada kas keluar yang terhubung ke proyek ini.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -181,7 +181,7 @@
         <div class="modal-content project-attach-modal-content border-0 rounded-4 shadow">
             <form class="project-attach-modal-form" method="POST" action="{{ route('projects.attach-expenses', $project) }}">
                 @csrf
-                <div class="modal-header"><div><h5 class="modal-title fw-bold" id="attachProjectExpensesLabel">Hubungkan Kas ke Project</h5><small class="text-muted">Hanya kas keluar yang belum terhubung ke invoice maupun project.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header"><div><h5 class="modal-title fw-bold" id="attachProjectExpensesLabel">Hubungkan Kas ke Proyek</h5><small class="text-muted">Hanya kas keluar yang belum terhubung ke Invoice maupun proyek.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
                 <div class="modal-body">
                     @if($unallocatedExpenses->isEmpty())
                         <p class="text-center text-muted py-4 mb-0">Tidak ada transaksi kas keluar yang belum terhubung ke invoice maupun project.</p>
@@ -202,7 +202,7 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small text-muted"><span id="projectExpenseVisibleCount">{{ $unallocatedExpenses->count() }}</span> transaksi tersedia</span>
-                            <button type="button" id="resetProjectExpenseFilters" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i>Reset filter</button>
+                            <button type="button" id="resetProjectExpenseFilters" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i>Atur ulang filter</button>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle">
@@ -232,12 +232,12 @@
 <form id="project-settings" method="POST" action="{{ route('projects.update', $project) }}" class="card border-0 shadow-sm mb-5">
     @csrf
     @method('PUT')
-    <div class="card-header bg-white py-3"><h6 class="fw-bold mb-0">Pengaturan Project</h6></div>
+    <div class="card-header bg-white py-3"><h2 class="h6 fw-bold mb-0">Pengaturan Proyek</h2></div>
     <div class="card-body row g-3 align-items-end">
-        <div class="col-md-5"><label class="form-label fw-semibold" for="edit_project_name">Nama Project</label><input id="edit_project_name" class="form-control" name="project_name" value="{{ $project->project_name }}" required></div>
-        <div class="col-md-4"><label class="form-label fw-semibold" for="edit_client_id">Client</label><select id="edit_client_id" class="form-select" name="client_id"><option value="">-- Tanpa client --</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" {{ $project->client_id == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>@endforeach</select></div>
+        <div class="col-md-5"><label class="form-label fw-semibold" for="edit_project_name">Nama Proyek</label><input id="edit_project_name" class="form-control" name="project_name" value="{{ $project->project_name }}" required></div>
+        <div class="col-md-4"><label class="form-label fw-semibold" for="edit_client_id">Pelanggan</label><select id="edit_client_id" class="form-select" name="client_id"><option value="">-- Tanpa pelanggan --</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" {{ $project->client_id == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>@endforeach</select></div>
         <div class="col-md-2"><label class="form-label fw-semibold" for="edit_status">Status</label><select id="edit_status" class="form-select" name="status"><option value="active" {{ $project->status === 'active' ? 'selected' : '' }}>Aktif</option><option value="on_hold" {{ $project->status === 'on_hold' ? 'selected' : '' }}>Ditunda</option><option value="completed" {{ $project->status === 'completed' ? 'selected' : '' }}>Selesai</option></select></div>
-        <div class="col-md-1 d-grid"><button class="btn btn-outline-primary" type="submit" aria-label="Simpan project"><i class="fa-solid fa-floppy-disk"></i></button></div>
+        <div class="col-md-1 d-grid"><button class="btn btn-outline-primary" type="submit" aria-label="Simpan proyek"><i class="fa-solid fa-floppy-disk"></i></button></div>
     </div>
 </form>
 @endsection

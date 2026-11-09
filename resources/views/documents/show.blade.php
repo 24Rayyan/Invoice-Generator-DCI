@@ -9,14 +9,14 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{{ route($indexRoute) }}" class="text-decoration-none text-muted small">{{ $document->type === 'PO' ? 'Purchase Order' : 'Invoice' }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Ringkasan</a></li>
+                <li class="breadcrumb-item"><a href="{{ route($indexRoute) }}" class="text-decoration-none text-muted small">{{ $document->type === 'PO' ? 'PO' : 'Invoice' }}</a></li>
                 <li class="breadcrumb-item active small fw-semibold" aria-current="page">{{ $document->document_number }}</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-1">{{ $document->document_number }}</h3>
+        <h1 class="h3 fw-bold text-dark mb-1">{{ $document->document_number }}</h1>
         <p class="text-muted mb-0 font-sm">
-            {{ $document->customer->name ?? 'Tanpa Customer' }}
+            {{ $document->customer->name ?? 'Tanpa Pelanggan' }}
             @if($document->project && auth()->user()->hasAccess('projects'))
                 · <a href="{{ route('projects.show', $document->project) }}" class="text-decoration-none">{{ $document->project->project_name }}</a>
             @endif
@@ -26,7 +26,7 @@
         </p>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <a href="{{ route('documents.pdf', $document->id) }}" class="btn btn-outline-danger">
+        <a data-download href="{{ route('documents.pdf', $document->id) }}" class="btn btn-outline-danger">
             <i class="fa-solid fa-file-pdf me-1"></i> PDF
         </a>
         @if($document->status !== 'PAID')
@@ -43,14 +43,14 @@
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
     <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
 </div>
 @endif
 
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
     <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ session('error') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
 </div>
 @endif
 
@@ -61,7 +61,7 @@
             <li>{{ $error }}</li>
         @endforeach
     </ul>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
 </div>
 @endif
 
@@ -70,42 +70,42 @@
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
             <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Revenue</span>
+                <span class="text-muted fw-semibold font-xs text-uppercase">Total Pendapatan</span>
                 <h4 class="fw-bold text-success mb-0 mt-1">{{ $currency }} {{ number_format($margin['revenue'], 0, ',', '.') }}</h4>
-                <small class="text-muted font-xs">Nilai invoice (termasuk pajak jika aktif)</small>
+                <small class="text-muted font-xs">Nilai Invoice (termasuk pajak jika aktif)</small>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
             <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Direct Expense</span>
+                <span class="text-muted fw-semibold font-xs text-uppercase">Total Biaya Langsung</span>
                 <h4 class="fw-bold text-danger mb-0 mt-1">{{ $currency }} {{ number_format($margin['direct_expense'], 0, ',', '.') }}</h4>
-                <small class="text-muted font-xs">Kas keluar terikat ke invoice ini</small>
+                <small class="text-muted font-xs">Kas keluar yang terhubung ke Invoice ini</small>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
             <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Net Profit</span>
-                <h4 class="fw-bold {{ $margin['net_profit'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1">
+                <span class="text-muted fw-semibold font-xs text-uppercase">Laba Bersih</span>
+                <h4 class="fw-bold {{ $margin['net_profit'] >= 0 ? 'text-success' : 'text-danger' }} mb-0 mt-1">
                     {{ $currency }} {{ number_format($margin['net_profit'], 0, ',', '.') }}
                 </h4>
-                <small class="text-muted font-xs">Revenue − Direct Expense</small>
+                <small class="text-muted font-xs">Pendapatan dikurangi biaya langsung</small>
             </div>
         </div>
     </div>
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100 bg-dark text-white">
             <div class="card-body p-3">
-                <span class="text-white-50 fw-semibold font-xs text-uppercase">Net Margin</span>
+                <span class="text-white-50 fw-semibold font-xs text-uppercase">Margin Bersih</span>
                 <h4 class="fw-bold text-white mb-0 mt-1">{{ number_format($margin['net_margin'], 2, ',', '.') }}%</h4>
                 <small class="text-white-50 font-xs">
                     @if($margin['revenue'] <= 0)
-                        Revenue 0 — margin ditampilkan 0%
+                        Pendapatan 0, margin ditampilkan 0%
                     @else
-                        (Net Profit / Revenue) × 100
+                        (Laba Bersih / Pendapatan) × 100
                     @endif
                 </small>
             </div>
@@ -116,7 +116,7 @@
 
 <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-header bg-white border-0 py-3 px-4">
-        <h6 class="fw-bold mb-0"><i class="fa-solid fa-list me-2 text-primary"></i> Item Dokumen</h6>
+        <h2 class="h6 fw-bold mb-0"><i class="fa-solid fa-list me-2 text-primary"></i> Item Dokumen</h2>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -128,7 +128,7 @@
                             <th>Spesifikasi</th>
                             <th>Kuantitas</th>
                         @else
-                            <th>Qty</th>
+                            <th>Kuantitas</th>
                             <th>Satuan</th>
                             <th class="text-end">Harga</th>
                             <th class="text-end pe-4">Subtotal</th>
@@ -170,8 +170,8 @@
 <div class="card border-0 shadow-sm rounded-4 mb-5">
     <div class="card-header bg-white border-0 py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div>
-            <h6 class="fw-bold mb-0"><i class="fa-solid fa-link me-2 text-danger"></i> Kas Keluar Terikat (Direct Expense)</h6>
-            <small class="text-muted">Biaya operasional umum (invoice_id kosong) tidak masuk perhitungan margin ini.</small>
+            <h2 class="h6 fw-bold mb-0"><i class="fa-solid fa-link me-2 text-danger"></i> Biaya Langsung Terhubung</h2>
+            <small class="text-muted">Biaya operasional umum yang tidak terhubung ke Invoice tidak masuk perhitungan margin ini.</small>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachKasModal">
             <i class="fa-solid fa-link me-1"></i> Hubungkan Kas
@@ -201,10 +201,10 @@
                         <td class="font-sm">{{ $trx->description ?? '-' }}</td>
                         <td class="text-end fw-bold text-danger">- {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}</td>
                         <td class="text-end pe-4">
-                            <form action="{{ route('documents.detach-transaction', [$document, $trx]) }}" method="POST" class="d-inline" onsubmit="return confirm('Lepas relasi transaksi ini dari invoice? Transaksi tidak dihapus, hanya menjadi biaya operasional umum.');">
+                            <form action="{{ route('documents.detach-transaction', [$document, $trx]) }}" method="POST" class="d-inline" data-confirm="Transaksi tidak dihapus, hanya dilepas dari invoice ini." data-confirm-impact="Transaksi menjadi biaya operasional umum dan tidak lagi dihitung dalam margin invoice ini." data-confirm-title="Lepas Transaksi dari Invoice?" data-confirm-subject="{{ $document->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-outline-warning">
-                                    <i class="fa-solid fa-unlink me-1"></i> Detach
+                                    <i class="fa-solid fa-unlink me-1"></i> Lepas
                                 </button>
                             </form>
                         </td>
@@ -232,7 +232,7 @@
                         <h5 class="modal-title fw-bold" id="attachKasModalLabel">Hubungkan Kas ke Invoice</h5>
                         <p class="text-muted font-sm mb-0">Hanya menampilkan kas keluar yang belum terhubung ke invoice maupun project.</p>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body overflow-y-auto" style="min-height: 0;">
                     @if($unallocatedExpenses->isEmpty())

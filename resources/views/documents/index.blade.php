@@ -6,17 +6,17 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Dashboard</a></li>
-                <li class="breadcrumb-item active small fw-semibold" aria-current="page">{{ $documentType === 'PO' ? 'Purchase Order' : 'Invoice' }}</li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Ringkasan</a></li>
+                <li class="breadcrumb-item active small fw-semibold" aria-current="page">{{ $documentType === 'PO' ? 'PO' : 'Invoice' }}</li>
             </ol>
         </nav>
-        <h3 class="fw-bold text-dark mb-0 tracking-tight">Kelola {{ $documentType === 'PO' ? 'Purchase Order (PO)' : 'Invoice' }}</h3>
+        <h1 class="h3 fw-bold text-dark mb-0 tracking-tight">Kelola {{ $documentType === 'PO' ? 'PO' : 'Invoice' }}</h1>
     </div>
     <div class="d-flex align-items-center gap-2">
         @if(auth()->user()->hasAccess('projects'))
             <a href="{{ route('projects.index') }}" class="btn btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
                 <i class="fa-solid fa-diagram-project"></i>
-                <span>Projects</span>
+                <span>Proyek</span>
             </a>
         @endif
         <a href="{{ route('documents.create', ['type' => $documentType]) }}" class="btn btn-primary px-3.5 py-2 rounded-3 shadow-sm fw-semibold d-inline-flex align-items-center gap-2">
@@ -32,7 +32,7 @@
     <div class="card-body p-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
         <div class="d-flex align-items-center gap-3">
             <div class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
-                <span id="selectedCount">0</span> Faktur Dipilih
+                <span id="selectedCount">0</span> Invoice Dipilih
             </div>
             <span class="text-light small d-none d-md-inline">Pilih beberapa invoice untuk diekspor ke Format Resmi Coretax DJP.</span>
         </div>
@@ -42,7 +42,7 @@
             </button>
             <button type="button" class="btn btn-sm btn-primary rounded-3 fw-bold px-3 d-inline-flex align-items-center gap-2 shadow-sm" id="btnOpenCoretaxModal">
                 <i class="fa-solid fa-file-code"></i>
-                <span>Export Template Coretax (XML / Excel)</span>
+                <span>Ekspor Template Coretax (XML / Excel)</span>
             </button>
         </div>
     </div>
@@ -75,16 +75,16 @@
 
                 <!-- Filter Status Badge Chips -->
                 <div class="d-flex align-items-center bg-white p-1 rounded-3 border shadow-sm">
-                    <button type="button" onclick="setFilter('status', '')" class="btn btn-sm rounded-2 py-1 px-2.5 border-0 fw-semibold transition-all {{ !request('status') ? 'btn-primary text-white shadow-sm' : 'text-secondary hover-bg-light' }}">
+                    <button type="button" onclick="setFilter('status', '')" class="btn btn-sm status-filter-chip rounded-2 py-1 px-2.5 border-0 fw-semibold {{ !request('status') ? 'btn-primary text-white shadow-sm' : 'text-secondary' }}">
                         Semua
                     </button>
-                    <button type="button" onclick="setFilter('status', 'DRAFT')" class="btn btn-sm rounded-2 py-1 px-2.5 border-0 fw-semibold transition-all {{ request('status') == 'DRAFT' ? 'btn-warning text-dark shadow-sm' : 'text-secondary hover-bg-light' }}">
+                    <button type="button" onclick="setFilter('status', 'DRAFT')" class="btn btn-sm status-filter-chip rounded-2 py-1 px-2.5 border-0 fw-semibold {{ request('status') == 'DRAFT' ? 'btn-warning text-dark shadow-sm' : 'text-secondary' }}">
                         DRAFT
                     </button>
-                    <button type="button" onclick="setFilter('status', 'SENT')" class="btn btn-sm rounded-2 py-1 px-2.5 border-0 fw-semibold transition-all {{ request('status') == 'SENT' ? 'btn-info text-white shadow-sm' : 'text-secondary hover-bg-light' }}">
+                    <button type="button" onclick="setFilter('status', 'SENT')" class="btn btn-sm status-filter-chip rounded-2 py-1 px-2.5 border-0 fw-semibold {{ request('status') == 'SENT' ? 'btn-info text-dark shadow-sm' : 'text-secondary' }}">
                         SENT
                     </button>
-                    <button type="button" onclick="setFilter('status', 'PAID')" class="btn btn-sm rounded-2 py-1 px-2.5 border-0 fw-semibold transition-all {{ request('status') == 'PAID' ? 'btn-success text-white shadow-sm' : 'text-secondary hover-bg-light' }}">
+                    <button type="button" onclick="setFilter('status', 'PAID')" class="btn btn-sm status-filter-chip rounded-2 py-1 px-2.5 border-0 fw-semibold {{ request('status') == 'PAID' ? 'btn-success text-white shadow-sm' : 'text-secondary' }}">
                         PAID
                     </button>
                 </div>
@@ -93,7 +93,7 @@
                 @if(request('period') || request('status'))
                     <a href="{{ route($indexRoute) }}" class="btn btn-sm btn-danger-subtle text-danger border border-danger-subtle fw-semibold d-flex align-items-center gap-1.5 ms-md-1 px-2.5 py-1.5 rounded-3" data-bs-toggle="tooltip" title="Bersihkan Filter">
                         <i class="fa-solid fa-xmark"></i>
-                        <span class="small">Reset</span>
+                        <span class="small">Atur ulang</span>
                     </a>
                 @endif
 
@@ -106,11 +106,11 @@
                     <tr>
                         @if($documentType === 'INVOICE')
                         <th width="4%" class="text-center">
-                            <input type="checkbox" class="form-check-input" id="selectAllDocs" title="Pilih Semua Faktur">
+                            <input type="checkbox" class="form-check-input" id="selectAllDocs" title="Pilih Semua Invoice" aria-label="Pilih semua Invoice">
                         </th>
                         @endif
                         <th width="20%">No. Dokumen</th>
-                        <th width="22%">Customer</th>
+                        <th width="22%">Pelanggan</th>
                         <th width="16%">{{ $documentType === 'PO' ? 'Keterangan' : 'Total Tagihan' }}</th>
                         <th width="14%">Status</th>
                         <th width="12%" class="text-center">PDF</th>
@@ -131,10 +131,10 @@
                             ? round($rowOtherTaxBase * ($rowVatRate / 100), 2)
                             : round($rowDpp * ($rowVatRate / 100), 2);
                     @endphp
-                    <tr>
+                    <tr class="document-mobile-card">
                         <!-- Checkbox Bulk Export (Invoice Only) -->
                         @if($documentType === 'INVOICE')
-                        <td class="text-center">
+                        <td class="text-center" data-label="Pilih">
                             @if($doc->type == 'INVOICE')
                                 <input type="checkbox" class="form-check-input doc-checkbox" 
                                        value="{{ $doc->id }}" 
@@ -147,13 +147,13 @@
                                        data-total="{{ (float) ($rowDpp + $rowPpn) }}"
                                        data-has-tax-id="{{ (!empty($doc->customer->tax_id_number) || !empty($doc->customer->npwp)) ? '1' : '0' }}">
                             @else
-                                <span class="text-muted small" title="Hanya INVOICE yang dapat diekspor ke Coretax">-</span>
+                                <span class="text-muted small" title="Hanya Invoice yang dapat diekspor ke Coretax">-</span>
                             @endif
                         </td>
                         @endif
 
                         <!-- No. Dokumen + Badge Tipe -->
-                        <td>
+                        <td data-label="No. Dokumen">
                             <div class="d-flex align-items-center gap-2">
                                 @if($doc->type == 'PO')
                                     <span class="badge-type badge-po">PO</span>
@@ -165,7 +165,7 @@
                         </td>
 
                         <!-- Customer -->
-                        <td>
+                        <td data-label="Pelanggan">
                             <div class="d-flex flex-column">
                                 <span class="fw-semibold text-dark">{{ $doc->customer->name ?? 'Tanpa Nama' }}</span>
                                 @if(!empty($doc->customer->tax_id_number))
@@ -175,10 +175,10 @@
                         </td>
 
                         <!-- PO Keterangan / Invoice Total -->
-                        <td>
+                        <td data-label="{{ $documentType === 'PO' ? 'Keterangan' : 'Total Tagihan' }}">
                             @if($documentType === 'PO')
                                 <span class="text-dark" title="{{ $doc->description ?: 'Tidak ada keterangan' }}">
-                                    {{ $doc->description ? \Illuminate\Support\Str::limit($doc->description, 40) : '—' }}
+                                    {{ $doc->description ? \Illuminate\Support\Str::limit($doc->description, 40) : '-' }}
                                 </span>
                             @else
                                 <span class="fw-bold text-dark">{{ $setting->currency_symbol ?? 'Rp' }} {{ number_format($doc->total_amount, 0, ',', '.') }}</span>
@@ -186,8 +186,8 @@
                         </td>
                         
                         <!-- QUICK CHANGE STATUS VIA AJAX -->
-                        <td>
-                            <select class="form-select status-select fw-semibold" data-id="{{ $doc->id }}">
+                        <td data-label="Status">
+                            <select class="form-select status-select fw-semibold" data-id="{{ $doc->id }}" data-docnum="{{ $doc->document_number }}" data-type="{{ $doc->type }}" data-current="{{ $doc->status }}" aria-label="Status {{ $doc->document_number }}">
                                 <option value="DRAFT" {{ $doc->status == 'DRAFT' ? 'selected' : '' }}>DRAFT</option>
                                 <option value="SENT" {{ $doc->status == 'SENT' ? 'selected' : '' }}>SENT</option>
                                 <option value="PAID" {{ $doc->status == 'PAID' ? 'selected' : '' }}>PAID</option>
@@ -195,21 +195,21 @@
                         </td>
                         
                         <!-- PDF EXPORT (Modern Button Group) -->
-                        <td class="text-center">
+                        <td class="text-center" data-label="PDF">
                             <div class="action-btn-group justify-content-center">
                                 <!-- PDF Utama -->
-                                <a href="{{ route('documents.pdf', $doc->id) }}" class="action-icon-btn text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak PDF Utama">
+                                <a href="{{ route('documents.pdf', $doc->id) }}" class="action-icon-btn text-danger" data-download data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak PDF Utama" aria-label="Cetak PDF {{ $doc->document_number }}">
                                     <i class="fa-solid fa-file-pdf"></i>
                                 </a>
 
                                 @if($doc->type == 'INVOICE')
                                     <!-- Surat Jalan -->
-                                    <a href="{{ route('documents.delivery_note', $doc->id) }}" class="action-icon-btn text-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Surat Jalan">
+                                    <a href="{{ route('documents.delivery_note', $doc->id) }}" class="action-icon-btn text-success" data-download data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Surat Jalan" aria-label="Cetak Surat Jalan {{ $doc->document_number }}">
                                         <i class="fa-solid fa-truck-fast"></i>
                                     </a>
 
                                     <!-- Kwitansi -->
-                                    <a href="{{ route('documents.kwitansi', $doc->id) }}" class="action-icon-btn text-warning" data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Kwitansi">
+                                    <a href="{{ route('documents.kwitansi', $doc->id) }}" class="action-icon-btn text-warning" data-download data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak Kwitansi" aria-label="Cetak Kwitansi {{ $doc->document_number }}">
                                         <i class="fa-solid fa-receipt"></i>
                                     </a>
                                 @endif
@@ -217,13 +217,13 @@
                         </td>
                         
                         <!-- ACTIONS (Clean Neutral Design) -->
-                        <td class="text-center">
+                        <td class="text-center" data-label="Aksi">
                             <div class="action-btn-group justify-content-center">
-                                <a href="{{ route('documents.show', $doc->id) }}" class="action-icon-btn text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail & Margin Proyek">
+                                <a href="{{ route('documents.show', $doc->id) }}" class="action-icon-btn text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail & Margin Proyek" aria-label="Lihat detail {{ $doc->document_number }}">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
                                 <!-- Duplicate -->
-                                <a href="{{ route('documents.duplicate', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Duplikasi">
+                                <a href="{{ route('documents.duplicate', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Duplikasi" aria-label="Duplikasi {{ $doc->document_number }}">
                                     <i class="fa-solid fa-copy"></i>
                                 </a>
 
@@ -238,7 +238,7 @@
                                             data-items-count="{{ $doc->items ? $doc->items->count() : 0 }} Item"
                                             data-items='@json($doc->items)'
                                             data-pdf="{{ route('documents.pdf', $doc->id) }}"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail (Terkunci)">
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail (Terkunci)" aria-label="Lihat detail {{ $doc->document_number }}">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
                                 @elseif($doc->status == 'SENT')
@@ -246,21 +246,26 @@
                                     <button type="button" class="action-icon-btn text-warning btn-edit-sent" 
                                             data-url="{{ route('documents.edit', $doc->id) }}" 
                                             data-docnum="{{ $doc->document_number }}"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Edit (Status SENT)">
+                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Edit (Status SENT)" aria-label="Edit {{ $doc->document_number }}">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                 @else
                                     <!-- Status DRAFT: Edit Direct tanpa Warning -->
-                                    <a href="{{ route('documents.edit', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Dokumen">
+                                    <a href="{{ route('documents.edit', $doc->id) }}" class="action-icon-btn text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Dokumen" aria-label="Edit {{ $doc->document_number }}">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
                                 @endif
                                 
                                 <!-- Delete -->
-                                <form action="{{ route('documents.destroy', $doc->id) }}" method="POST" class="d-inline form-delete">
+                                <form action="{{ route('documents.destroy', $doc->id) }}" method="POST" class="d-inline form-delete"
+                                      data-confirm="{{ $doc->type === 'PO' ? 'PO' : 'Invoice' }} ini akan dihapus permanen dan tidak dapat dikembalikan."
+                                      @if($doc->type === 'INVOICE' && $doc->status === 'PAID') data-confirm-impact="Transaksi pemasukan kas hasil pelunasan ikut dihapus, sehingga saldo kas dan laporan keuangan berubah." @elseif($doc->type === 'INVOICE' && $doc->status === 'SENT') data-confirm-impact="Invoice ini memiliki status SENT." @endif
+                                      data-confirm-title="Hapus {{ $doc->type === 'PO' ? 'PO' : 'Invoice' }}?"
+                                      data-confirm-subject="{{ $doc->document_number }}, {{ $doc->customer->name ?? 'Tanpa Pelanggan' }}"
+                                      data-confirm-button="Ya, Hapus">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="action-icon-btn text-danger btn-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus">
+                                    <button type="submit" class="action-icon-btn text-danger btn-delete" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus" aria-label="Hapus {{ $doc->document_number }}">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
@@ -280,24 +285,24 @@
 <div class="modal fade" id="coretaxExportModal" tabindex="-1" aria-labelledby="coretaxExportModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 rounded-4 shadow">
-            <form action="{{ route('documents.export_coretax') }}" method="POST" id="formExportCoretax">
+            <form action="{{ route('documents.export_coretax') }}" method="POST" id="formExportCoretax" data-download>
                 @csrf
                 <div class="modal-header border-0 pb-0 pt-4 px-4">
                     <div>
                         <div class="badge bg-primary-subtle text-primary fw-bold px-2.5 py-1.5 rounded-pill mb-1 small">
                             <i class="fa-solid fa-code"></i>
                         </div>
-                        <h5 class="modal-title fw-bold text-dark" id="coretaxExportModalLabel">Export Faktur Pajak Keluaran (FK)</h5>
+                        <h5 class="modal-title fw-bold text-dark" id="coretaxExportModalLabel">Ekspor Faktur Pajak Keluaran (FK)</h5>
                         <p class="text-muted small mb-0">File XML resmi (TaxInvoiceBulk v1.6.1) atau Spreadsheet Excel multi-sheet (NPWP 16 Digit & NITKU 22 Digit).</p>
                     </div>
-                    <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body p-4">
                     <!-- Quick Stats Cards -->
                     <div class="row g-3 mb-4">
                         <div class="col-sm-4">
                             <div class="p-3 rounded-3 bg-light border text-center">
-                                <span class="text-muted small fw-semibold d-block">Jumlah Faktur</span>
+                                <span class="text-muted small fw-semibold d-block">Jumlah Invoice</span>
                                 <span class="fs-4 fw-bold text-dark" id="modalCount">0</span>
                             </div>
                         </div>
@@ -320,7 +325,7 @@
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-triangle-exclamation text-warning fs-5"></i>
                             <div class="small">
-                                <strong>Perhatian:</strong> Ada <span id="missingTaxIdCount" class="fw-bold">0</span> invoice dengan Customer yang belum memiliki Nomor ID Perpajakan (NPWP/NIK). Sistem akan mengisi default '0000000000000000' (0 16-digit).
+                                <strong>Perhatian:</strong> Ada <span id="missingTaxIdCount" class="fw-bold">0</span> Invoice dengan pelanggan yang belum memiliki Nomor ID Perpajakan (NPWP/NIK). Sistem akan mengisi nilai bawaan '0000000000000000' (16 digit nol).
                             </div>
                         </div>
                     </div>
@@ -368,14 +373,14 @@
                     <h5 class="modal-title fw-bold text-dark" id="detailDocNumber">INV/2026/001</h5>
                     <p class="text-muted small mb-0">Detail ringkasan dokumen yang sudah terkunci (PAID).</p>
                 </div>
-                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close align-self-start" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body p-4">
                 <!-- Info Customer & Total -->
                 <div class="row g-3 mb-4">
                     <div class="col-sm-6">
                         <div class="p-3 rounded-3 bg-light border">
-                            <span class="text-muted small d-block fw-semibold text-uppercase tracking-wide mb-1">Customer</span>
+                            <span class="text-muted small d-block fw-semibold text-uppercase tracking-wide mb-1">Pelanggan</span>
                             <span class="fw-bold text-dark fs-6 d-block" id="detailCustomerName">-</span>
                             <span class="text-muted font-monospace small" id="detailCustomerTax">-</span>
                         </div>
@@ -384,7 +389,7 @@
                         <div class="p-3 rounded-3 bg-light border">
                             <span class="text-muted small d-block fw-semibold text-uppercase tracking-wide mb-1">Total Tagihan</span>
                             <span class="fw-bold text-primary fs-5 d-block" id="detailTotalAmount">Rp 0</span>
-                            <span class="text-muted small" id="detailItemCount">0 Items</span>
+                            <span class="text-muted small" id="detailItemCount">0 item</span>
                         </div>
                     </div>
                 </div>
@@ -517,19 +522,40 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 30px;
-        height: 30px;
+        width: 44px;
+        height: 44px;
         border-radius: 6px;
         border: none;
         background: transparent;
         font-size: 0.875rem;
-        transition: all 0.15s ease-in-out;
+        transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
         text-decoration: none;
     }
     .action-icon-btn:hover {
         background-color: #ffffff;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         transform: translateY(-1px);
+    }
+
+    .action-icon-btn.text-warning {
+        color: #805600 !important;
+    }
+
+    .action-icon-btn.text-info {
+        color: #055160 !important;
+    }
+
+    .modal .text-warning {
+        color: #805600 !important;
+    }
+
+    .status-filter-chip:hover:not(.btn-primary):not(.btn-warning):not(.btn-info):not(.btn-success) {
+        background-color: #eaf1fb;
+        color: #173a68 !important;
+    }
+
+    .status-filter-chip:active {
+        transform: translateY(1px);
     }
 
     /* Status Select Pill Styles */
@@ -541,8 +567,8 @@
     }
 
     .ts-wrapper.status-select .ts-control {
-        min-height: 40px !important;
-        height: 40px !important;
+        min-height: 44px !important;
+        height: 44px !important;
         font-size: 0.75rem !important;
         font-weight: 700 !important;
         padding: 0.35rem 2rem 0.35rem 0.75rem !important;
@@ -551,7 +577,7 @@
         cursor: pointer;
         width: 100%;
         box-sizing: border-box;
-        transition: all 0.2s;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
     }
     .ts-wrapper.status-select .ts-control > .status-item.item {
         display: inline-flex;
@@ -651,7 +677,6 @@
         padding: 0.35rem 1.8rem 0.35rem 0.75rem !important;
         font-size: 0.85rem !important;
         color: #334155 !important;
-        outline: none;
         margin: 0 6px;
     }
     .dataTables_wrapper .dataTables_filter input {
@@ -659,13 +684,89 @@
         border-radius: 8px !important;
         padding: 0.35rem 0.75rem !important;
         font-size: 0.85rem !important;
-        outline: none;
         margin-left: 8px;
     }
     .dataTables_wrapper .dataTables_filter input:focus,
     .dataTables_wrapper .dataTables_length select:focus {
         border-color: #3b82f6 !important;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+    }
+
+    @media (max-width: 767.98px) {
+        .custom-saas-table {
+            display: block;
+            width: 100%;
+        }
+
+        .custom-saas-table thead {
+            display: none;
+        }
+
+        .custom-saas-table tbody {
+            display: grid;
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+
+        .custom-saas-table .document-mobile-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .custom-saas-table .document-mobile-card td {
+            display: grid;
+            grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.5fr);
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            text-align: left !important;
+            overflow-wrap: anywhere;
+        }
+
+        .custom-saas-table .document-mobile-card td::before {
+            content: attr(data-label);
+            color: #526071;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .custom-saas-table .document-mobile-card td[data-label="PDF"],
+        .custom-saas-table .document-mobile-card td[data-label="Aksi"] {
+            grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.5fr);
+        }
+
+        .custom-saas-table .document-mobile-card .action-btn-group {
+            flex-wrap: wrap;
+            justify-content: flex-start !important;
+        }
+
+        .custom-saas-table .document-mobile-card td:last-child {
+            border-bottom: 0;
+        }
+
+        .custom-saas-table tbody tr:not(.document-mobile-card) {
+            display: block;
+        }
+
+        .custom-saas-table tbody tr:not(.document-mobile-card) td {
+            display: block;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .action-icon-btn,
+        .status-filter-chip,
+        .ts-wrapper.status-select .ts-control {
+            transition: none;
+        }
+
+        .action-icon-btn:hover {
+            transform: none;
+        }
     }
 </style>
 
@@ -718,7 +819,7 @@
             Swal.fire({
                 icon: 'info',
                 title: 'Data Tidak Ditemukan',
-                text: 'Tidak ada {{ $documentType === 'PO' ? 'Purchase Order' : 'Invoice' }} yang sesuai dengan filter Periode/Status yang Anda pilih.',
+                text: 'Tidak ada {{ $documentType === 'PO' ? 'PO' : 'Invoice' }} yang sesuai dengan filter periode/status yang Anda pilih.',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#0d6efd',
                 customClass: {
@@ -737,8 +838,27 @@
         // Initialize DataTables
         const dataTable = $('#myTable').DataTable({
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json',
-                emptyTable: "Tidak ada {{ $documentType === 'PO' ? 'Purchase Order' : 'Invoice' }} yang ditemukan untuk periode/status ini."
+                decimal: ',',
+                thousands: '.',
+                processing: 'Sedang memproses...',
+                search: 'Cari:',
+                lengthMenu: 'Tampilkan _MENU_ entri',
+                info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ entri',
+                infoEmpty: 'Menampilkan 0 sampai 0 dari 0 entri',
+                infoFiltered: '(disaring dari _MAX_ total entri)',
+                loadingRecords: 'Sedang memuat...',
+                zeroRecords: 'Tidak ditemukan data yang sesuai',
+                emptyTable: "Tidak ada {{ $documentType === 'PO' ? 'PO' : 'Invoice' }} yang ditemukan untuk periode/status ini.",
+                paginate: {
+                    first: 'Pertama',
+                    last: 'Terakhir',
+                    next: 'Selanjutnya',
+                    previous: 'Sebelumnya'
+                },
+                aria: {
+                    sortAscending: ': aktifkan untuk mengurutkan kolom secara menaik',
+                    sortDescending: ': aktifkan untuk mengurutkan kolom secara menurun'
+                }
             },
             columnDefs: [
                 { orderable: false, targets: {{ $documentType === 'PO' ? '[3, 4, 5]' : '[0, 4, 5, 6]' }} }
@@ -852,62 +972,103 @@
             modal.show();
         });
 
-        // Quick status update AJAX (Event Delegation)
-        $('#myTable tbody').on('change', 'select.status-select', function() {
-            let docId = $(this).data('id');
-            let newStatus = $(this).val();
-            let selectElem = this;
+        // ==========================================
+        // UBAH STATUS CEPAT: konfirmasi -> simpan -> Undo
+        // ==========================================
+        const STATUS_LABEL = { DRAFT: 'DRAFT', SENT: 'SENT', PAID: 'PAID' };
+        const statusToast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            timerProgressBar: true,
+            customClass: { popup: 'shadow' }
+        });
+
+        function statusImpact(type, from, to) {
+            if (type !== 'INVOICE') {
+                return 'Perubahan ini hanya mengubah status dokumen.';
+            }
+            if (to === 'PAID') {
+                return 'Transaksi <strong>pemasukan kas</strong> akan dibuat otomatis, dan dokumen terkunci dari pengeditan.';
+            }
+            if (from === 'PAID') {
+                return 'Transaksi <strong>pemasukan kas</strong> hasil pelunasan akan <strong>dihapus</strong>, sehingga saldo kas dan laporan keuangan berubah.';
+            }
+            return 'Perubahan ini tidak memengaruhi kas.';
+        }
+
+        function setSelectValue(selectElem, value) {
+            if (selectElem.tomselect) {
+                selectElem.tomselect.setValue(value, true);
+            } else {
+                $(selectElem).val(value);
+            }
+            updateSelectColor(selectElem);
+        }
+
+        function sendStatus(selectElem, newStatus, isUndo) {
+            const docId = $(selectElem).data('id');
+            const previous = selectElem.dataset.current;
+            const ts = selectElem.tomselect;
+            if (ts) ts.lock();
+
+            return $.ajax({
+                url: `/documents/${docId}/update-status`,
+                type: 'PATCH',
+                data: { _token: '{{ csrf_token() }}', status: newStatus }
+            }).done(function (response) {
+                selectElem.dataset.current = newStatus;
+                setSelectValue(selectElem, newStatus);
+
+                if (isUndo) {
+                    statusToast.fire({ icon: 'success', title: 'Perubahan status dibatalkan', showConfirmButton: false, timer: 2500 });
+                    return;
+                }
+                statusToast.fire({
+                    icon: 'success',
+                    title: response.message,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Urungkan',
+                    timer: 8000
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        sendStatus(selectElem, previous, true);
+                    }
+                });
+            }).fail(function () {
+                setSelectValue(selectElem, previous);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Status Gagal Diubah',
+                    text: 'Terjadi kesalahan saat memperbarui status dokumen. Status dikembalikan seperti semula.'
+                });
+            }).always(function () {
+                if (ts) ts.unlock();
+            });
+        }
+
+        $('#myTable tbody').on('change', 'select.status-select', function () {
+            const selectElem = this;
+            const newStatus = $(selectElem).val();
+            const previous = selectElem.dataset.current;
+            if (newStatus === previous) return;
+
+            const docNum = selectElem.dataset.docnum || '';
+            const type = selectElem.dataset.type || 'INVOICE';
 
             updateSelectColor(selectElem);
 
-            $.ajax({
-                url: `/documents/${docId}/update-status`,
-                type: 'PATCH',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    status: newStatus
-                },
-                success: function(response) {
-                    const Toast = Swal.mixin({
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2500,
-                        timerProgressBar: true
-                    });
-                    
-                    Toast.fire({
-                        icon: 'success',
-                        title: response.message
-                    });
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal Update',
-                        text: 'Terjadi kesalahan saat memperbarui status dokumen!'
-                    });
-                }
-            });
-        });
-
-        // Event Delegation untuk Tombol Hapus
-        $(document).on('click', '.btn-delete', function(e) {
-            e.preventDefault();
-            let form = $(this).closest('form');
-            
-            Swal.fire({
-                title: 'Apakah Anda Yakin?',
-                text: "Dokumen yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
+            ErpUI.confirm({
+                title: 'Ubah Status Dokumen?',
+                subject: docNum,
+                text: (STATUS_LABEL[previous] || previous) + '  →  ' + (STATUS_LABEL[newStatus] || newStatus),
+                impactHtml: statusImpact(type, previous, newStatus),
+                confirmText: 'Ya, Ubah Status',
+                variant: (newStatus === 'PAID' || previous === 'PAID') ? 'danger' : 'primary'
+            }).then(function (result) {
                 if (result.isConfirmed) {
-                    form.submit();
+                    sendStatus(selectElem, newStatus, false);
+                } else {
+                    setSelectValue(selectElem, previous);
                 }
             });
         });
@@ -972,8 +1133,8 @@
         let docNum = $(this).data('docnum');
 
         Swal.fire({
-            title: 'Edit Dokumen yang Sudah Terkirim?',
-            html: `Dokumen <strong>${docNum}</strong> memiliki status <span class="badge bg-info text-white">SENT</span>. Perubahan data mungkin mempengaruhi informasi yang sudah diterima customer.`,
+            title: 'Edit Dokumen Berstatus SENT?',
+            html: `Dokumen <strong>${docNum}</strong> memiliki status <span class="badge bg-info text-dark">SENT</span>. Perubahan data dapat memengaruhi informasi yang telah diterima pelanggan.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ffc107',

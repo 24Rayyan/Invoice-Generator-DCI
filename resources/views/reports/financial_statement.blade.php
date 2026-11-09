@@ -112,10 +112,10 @@
         <p class="report-subtitle small mb-0">Pantau arus kas, performa penagihan, dan klasifikasi fiskal dalam satu laporan.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
-        <a href="{{ route('reports.financial_statement.pdf', $exportFilters) }}" class="btn btn-sm btn-outline-danger bg-white shadow-sm px-3" target="_blank" rel="noopener">
+        <a data-download href="{{ route('reports.financial_statement.pdf', $exportFilters) }}" class="btn btn-sm btn-outline-danger bg-white shadow-sm px-3" target="_blank" rel="noopener">
             <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
         </a>
-        <a href="{{ route('reports.financial_statement.excel', $exportFilters) }}" class="btn btn-sm btn-primary shadow-sm px-3">
+        <a data-download href="{{ route('reports.financial_statement.excel', $exportFilters) }}" class="btn btn-sm btn-primary shadow-sm px-3">
             <i class="fa-solid fa-file-excel me-1"></i> Export Excel
         </a>
     </div>

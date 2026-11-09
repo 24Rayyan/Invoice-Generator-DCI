@@ -8,17 +8,17 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 position-relative z-1">
             <div>
                 <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-secondary bg-opacity-25 border border-secondary border-opacity-50 rounded-pill text-xs font-semibold text-info mb-2" style="font-size: 0.75rem;">
-                    <i class="fa-solid fa-shield-halved"></i> Access Control & User Identity
+                    <i class="fa-solid fa-shield-halved"></i> Kontrol Akses & Identitas Pengguna
                 </div>
-                <h1 class="h3 fw-bold tracking-tight text-white m-0">Management User System</h1>
+                <h1 class="h3 fw-bold tracking-tight text-white m-0">Manajemen Pengguna</h1>
                 <p class="text-secondary small mt-1 mb-0" style="max-width: 600px;">
-                    Kelola kredensial akun pengguna, tetapkan hirarki role, dan kontrol hak akses modul secara terpusat.
+                    Kelola kredensial akun, tetapkan peran, dan atur hak akses modul.
                 </p>
             </div>
 
             <a href="{{ route('management.roles.index') }}" 
                class="btn btn-primary rounded-pill px-4 py-2 text-xs font-semibold shadow-sm d-inline-flex align-items-center gap-2">
-                <i class="fa-solid fa-sliders"></i> Kelola Role & Modul 
+                <i class="fa-solid fa-sliders"></i> Kelola Peran & Modul
                 <i class="fa-solid fa-arrow-right small ms-1"></i>
             </a>
         </div>
@@ -57,7 +57,7 @@
                     <i class="fa-solid fa-user-plus"></i>
                 </div>
                 <div>
-                    <h2 class="h6 fw-bold text-dark m-0">Buat User Baru</h2>
+                    <h2 class="h6 fw-bold text-dark m-0">Buat Pengguna Baru</h2>
                     <p class="small text-muted mb-0">Tambahkan anggota tim baru ke dalam ekosistem sistem.</p>
                 </div>
             </div>
@@ -68,7 +68,7 @@
             <div class="row g-3">
                 <div class="col-12 col-md-3">
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
-                        Username <span class="text-danger">*</span>
+                        Nama Pengguna <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="username" value="{{ old('username') }}" required 
                         class="form-control form-control-sm rounded-3 py-2 px-3 @error('username') is-invalid @enderror">
@@ -106,10 +106,10 @@
 
                 <div class="col-12 col-md-3">
                     <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
-                        Role / Hak Akses <span class="text-danger">*</span>
+                        Peran / Hak Akses <span class="text-danger">*</span>
                     </label>
                     <select name="role_id" required class="form-select form-select-sm rounded-3 py-2 px-3 @error('role_id') is-invalid @enderror">
-                        <option value="">-- Pilih Role --</option>
+                        <option value="">-- Pilih Peran --</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
                                 {{ $role->display_name ?? ucfirst($role->name) }}
@@ -124,7 +124,7 @@
 
             <div class="mt-4 d-flex justify-content-end">
                 <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 text-sm fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
-                    <i class="fa-solid fa-plus small"></i> Tambah User Baru
+                    <i class="fa-solid fa-plus small"></i> Tambah Pengguna Baru
                 </button>
             </div>
         </form>
@@ -139,11 +139,11 @@
                 </div>
                 <div>
                     <h3 class="h6 fw-bold text-dark m-0">Daftar Pengguna Aktif</h3>
-                    <p class="small text-muted mb-0">Seluruh entitas user terdaftar dalam sistem.</p>
+                    <p class="small text-muted mb-0">Semua pengguna yang terdaftar dalam sistem.</p>
                 </div>
             </div>
             <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-semibold">
-                Total: {{ $users->count() }} User
+                Total: {{ $users->count() }} pengguna
             </span>
         </div>
 
@@ -151,9 +151,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr class="text-uppercase text-secondary fw-bold border-bottom" style="font-size: 0.7rem; letter-spacing: 0.05em;">
-                        <th class="py-3 px-4">User & Identity</th>
+                        <th class="py-3 px-4">Pengguna</th>
                         <th class="py-3 px-4">Email Perusahaan</th>
-                        <th class="py-3 px-4">Akses Role</th>
+                        <th class="py-3 px-4">Akses Peran</th>
                         <th class="py-3 px-4">Status Akun</th>
                         <th class="py-3 px-4 text-center">Tindakan</th>
                     </tr>
@@ -180,7 +180,7 @@
                             <td class="py-3 px-4">
                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1.5 rounded-pill fw-bold" style="font-size: 0.7rem;">
                                     <i class="fa-solid fa-shield me-1"></i>
-                                    {{ $user->role ? ($user->role->display_name ?? $user->role->name) : 'No Role' }}
+                                    {{ $user->role ? ($user->role->display_name ?? $user->role->name) : 'Tanpa Peran' }}
                                 </span>
                             </td>
 
@@ -197,11 +197,16 @@
                                     <button type="button" 
                                             onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->username ?? $user->name) }}', '{{ $user->role_id ?? ($user->role ? $user->role->id : '') }}')" 
                                             class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1" 
-                                            title="Edit User / Role" style="font-size: 0.75rem;">
+                                            title="Edit pengguna / peran" style="font-size: 0.75rem;">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
 
-                                    <form action="{{ route('management.users.toggle-status', $user) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('management.users.toggle-status', $user) }}" method="POST" class="d-inline"
+                                          data-confirm="{{ ($user->is_active ?? true) ? 'Akun ini tidak akan bisa login sampai diaktifkan kembali.' : 'Akun ini akan bisa login kembali.' }}"
+                                          data-confirm-title="{{ ($user->is_active ?? true) ? 'Nonaktifkan pengguna?' : 'Aktifkan pengguna?' }}"
+                                          data-confirm-subject="{{ $user->username }}"
+                                          data-confirm-button="{{ ($user->is_active ?? true) ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan' }}"
+                                          data-confirm-variant="warning">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" 
@@ -215,14 +220,14 @@
                                     <button type="button" 
                                             onclick="openResetModal({{ $user->id }}, '{{ addslashes($user->username ?? $user->name) }}')" 
                                             class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 fw-semibold shadow-sm" 
-                                            title="Reset Password Custom" style="font-size: 0.75rem;">
+                                            title="Atur Ulang Kata Sandi Khusus" style="font-size: 0.75rem;">
                                         <i class="fa-solid fa-key"></i>
                                     </button>
 
-                                    <form action="{{ route('management.users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user {{ $user->username }} secara permanen?')">
+                                    <form action="{{ route('management.users.destroy', $user) }}" method="POST" class="d-inline" data-confirm="User akan dihapus permanen dan tidak dapat login lagi." data-confirm-impact="Riwayat aktivitas user tetap tersimpan di log aktivitas." data-confirm-title="Hapus User?" data-confirm-subject="{{ $user->username }}" data-confirm-button="Ya, Hapus">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" title="Hapus User" style="font-size: 0.75rem;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" title="Hapus pengguna" style="font-size: 0.75rem;">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
@@ -266,17 +271,17 @@
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
-                                Username <span class="text-danger">*</span>
+                                Nama Pengguna <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="edit_username" name="username" required class="form-control rounded-3 py-2 px-3">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label text-uppercase fw-bold text-secondary small tracking-wider mb-1" style="font-size: 0.7rem;">
-                                Role / Hak Akses <span class="text-danger">*</span>
+                                Peran / Hak Akses <span class="text-danger">*</span>
                             </label>
                             <select id="edit_role_id" name="role_id" required class="form-select rounded-3 py-2 px-3">
-                                <option value="" disabled>-- Pilih Role --</option>
+                                <option value="" disabled>-- Pilih Peran --</option>
                                 @foreach($roles as $r)
                                     <option value="{{ $r->id }}">{{ $r->display_name ?? ucfirst($r->name) }}</option>
                                 @endforeach
@@ -309,7 +314,7 @@
                                 <i class="fa-solid fa-key"></i>
                             </div>
                             <div>
-                                <h5 class="modal-title h6 fw-bold text-dark m-0" id="resetPasswordModalLabel">Reset Password</h5>
+                                <h5 class="modal-title h6 fw-bold text-dark m-0" id="resetPasswordModalLabel">Atur Ulang Kata Sandi</h5>
                                 <p class="small text-muted mb-0">Ubah password untuk user: <strong class="text-primary" id="reset_username_text"></strong></p>
                             </div>
                         </div>
@@ -342,7 +347,7 @@
                     <div class="modal-footer border-top p-3 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-light rounded-pill px-4 text-sm font-medium" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-warning rounded-pill px-4 text-sm font-semibold shadow-sm d-inline-flex align-items-center gap-2">
-                            <i class="fa-solid fa-check small"></i> Reset Password
+                            <i class="fa-solid fa-check small"></i> Simpan Kata Sandi
                         </button>
                     </div>
                 </form>
