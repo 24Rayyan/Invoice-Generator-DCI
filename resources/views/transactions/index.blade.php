@@ -11,7 +11,7 @@
 
     .cashflow-page .cashflow-title {
         font-size: clamp(1.55rem, 2.5vw, 2rem);
-        letter-spacing: -0.045em;
+        letter-spacing: -0.025em;
     }
 
     .cashflow-page .cashflow-subtitle,
@@ -29,7 +29,7 @@
 
     .cashflow-page .cashflow-kpi-value {
         font-size: clamp(1.15rem, 2vw, 1.5rem);
-        letter-spacing: -0.04em;
+        letter-spacing: -0.025em;
         overflow-wrap: anywhere;
     }
 

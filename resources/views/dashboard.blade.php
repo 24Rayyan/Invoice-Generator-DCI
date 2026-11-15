@@ -12,7 +12,7 @@
 
     .finance-dashboard .dashboard-heading {
         font-size: clamp(1.55rem, 2.5vw, 2rem);
-        letter-spacing: -0.045em;
+        letter-spacing: -0.025em;
     }
 
     .finance-dashboard .dashboard-subtitle,
@@ -27,14 +27,14 @@
 
     .finance-dashboard .dashboard-kpi {
         min-height: 124px;
-        border: 1px solid #eff1f5;
+        border: 1px solid var(--erp-line);
         border-radius: 16px;
-        box-shadow: 0 5px 18px rgba(20, 34, 58, 0.035);
+        box-shadow: none;
     }
 
     .finance-dashboard .dashboard-kpi-value {
         font-size: clamp(1.2rem, 2vw, 1.55rem);
-        letter-spacing: -0.045em;
+        letter-spacing: -0.025em;
         overflow-wrap: anywhere;
     }
 
@@ -43,8 +43,8 @@
     }
 
     .finance-dashboard .dashboard-kpi-profit {
-        background: #102446;
-        border-color: #102446;
+        background: var(--erp-side-bg);
+        border-color: var(--erp-side-bg);
     }
 
     .finance-dashboard .dashboard-kpi-profit .dashboard-kpi-label,
@@ -55,7 +55,7 @@
     .finance-dashboard .dashboard-section {
         border: 0;
         border-radius: 17px;
-        box-shadow: 0 5px 20px rgba(20, 34, 58, 0.04);
+        box-shadow: none;
     }
 
     .finance-dashboard .dashboard-section-header {
@@ -342,7 +342,7 @@
         <div class="table-responsive">
             <table class="dashboard-table table align-middle mb-0">
                 <thead>
-                    <tr class="dashboard-mobile-card">
+                    <tr>
                         <th class="ps-4">No. Transaksi</th>
                         <th>Kategori / Akun</th>
                         <th class="text-end">Nominal</th>
@@ -351,7 +351,7 @@
                 </thead>
                 <tbody>
                     @forelse($recentTransactions as $trx)
-                    <tr>
+                    <tr class="dashboard-mobile-card">
                         <td class="ps-4" data-label="No. Transaksi">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="dashboard-expense-icon rounded-circle d-inline-flex align-items-center justify-content-center">

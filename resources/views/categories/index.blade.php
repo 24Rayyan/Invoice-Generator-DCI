@@ -11,7 +11,7 @@
 
     .coa-page .coa-title {
         font-size: clamp(1.55rem, 2.5vw, 2rem);
-        letter-spacing: -0.045em;
+        letter-spacing: -0.025em;
     }
 
     .coa-page .coa-subtitle,

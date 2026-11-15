@@ -11,7 +11,7 @@
 
     .professional-report .report-title {
         font-size: clamp(1.55rem, 2.5vw, 2rem);
-        letter-spacing: -0.045em;
+        letter-spacing: -0.025em;
     }
 
     .professional-report .report-subtitle,
@@ -48,7 +48,7 @@
 
     .professional-report .report-kpi-value {
         font-size: clamp(1.15rem, 1.8vw, 1.45rem);
-        letter-spacing: -0.04em;
+        letter-spacing: -0.025em;
         overflow-wrap: anywhere;
     }
 
