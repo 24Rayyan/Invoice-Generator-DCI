@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
     // --- MANAGEMENT DOKUMEN (INVOICE / PO) ---
     Route::middleware(['module:invoices'])->group(function () {
         Route::get('/purchase-orders', [DocumentController::class, 'purchaseOrders'])->name('purchase-orders.index');
+        Route::get('/purchase-orders/{document}/create-invoice', [DocumentController::class, 'createInvoiceFromPurchaseOrder'])->name('purchase-orders.create-invoice');
         Route::resource('documents', DocumentController::class);
         Route::patch('/documents/{id}/update-status', [DocumentController::class, 'updateStatus'])->name('documents.update-status');
         Route::post('/documents/export-coretax', [DocumentController::class, 'exportCoretax'])->name('documents.export_coretax');

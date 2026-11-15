@@ -197,6 +197,17 @@
                         <!-- PDF EXPORT (Modern Button Group) -->
                         <td class="text-center" data-label="PDF">
                             <div class="action-btn-group justify-content-center">
+                                @if($doc->type === 'PO')
+                                    @if($doc->generatedInvoice)
+                                        <a href="{{ route('documents.show', $doc->generatedInvoice) }}" class="action-icon-btn text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Invoice dari PO" aria-label="Lihat Invoice dari PO {{ $doc->document_number }}">
+                                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('purchase-orders.create-invoice', $doc) }}" class="action-icon-btn text-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Buat Invoice dari PO" aria-label="Buat Invoice dari PO {{ $doc->document_number }}">
+                                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                                        </a>
+                                    @endif
+                                @endif
                                 <!-- PDF Utama -->
                                 <a href="{{ route('documents.pdf', $doc->id) }}" class="action-icon-btn text-danger" data-download data-bs-toggle="tooltip" data-bs-placement="top" title="Cetak PDF Utama" aria-label="Cetak PDF {{ $doc->document_number }}">
                                     <i class="fa-solid fa-file-pdf"></i>

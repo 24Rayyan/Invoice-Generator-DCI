@@ -11,6 +11,7 @@ class Document extends Model
 
     protected $fillable = [
         'customer_id',
+        'source_po_id',
         'project_id',
         'type',
         'document_number',
@@ -47,6 +48,16 @@ class Document extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function sourcePurchaseOrder()
+    {
+        return $this->belongsTo(self::class, 'source_po_id');
+    }
+
+    public function generatedInvoice()
+    {
+        return $this->hasOne(self::class, 'source_po_id')->where('type', 'INVOICE');
     }
 
     public function project()

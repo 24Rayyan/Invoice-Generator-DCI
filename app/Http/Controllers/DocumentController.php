@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class DocumentController extends Controller
@@ -141,7 +142,7 @@ class DocumentController extends Controller
     {
         $setting = Setting::first(); // Sesuaikan jika menggunakan helper custom
 
-        $query = Document::with(['customer', 'items'])->latest('date');
+        $query = Document::with(['customer', 'items', 'generatedInvoice'])->latest('date');
 
         // 1. Filter Berdasarkan Periode (YYYY-MM)
         if ($request->filled('period')) {
@@ -196,7 +197,7 @@ class DocumentController extends Controller
 
     public function show(Document $document)
     {
-        $document->load(['customer', 'project', 'items']);
+        $document->load(['customer', 'project', 'items', 'sourcePurchaseOrder']);
         $setting = Setting::getSetting();
         $canViewInvoiceMargin = $document->type === 'INVOICE'
             && auth()->user()->hasAccess('invoice_margin');
@@ -228,16 +229,48 @@ class DocumentController extends Controller
         $autoInvoiceNumber = $this->generateDocumentNumber('INVOICE');
         $autoPoNumber = $this->generateDocumentNumber('PO');
         $documentType = request()->query('type') === 'PO' ? 'PO' : 'INVOICE';
+        $doc = null;
+        $sourcePo = null;
 
         $indexRoute = $documentType === 'PO' ? 'purchase-orders.index' : 'documents.index';
 
-        return view('documents.create', compact('customers', 'autoInvoiceNumber', 'autoPoNumber', 'documentType', 'indexRoute', 'setting'));
+        return view('documents.create', compact('customers', 'autoInvoiceNumber', 'autoPoNumber', 'documentType', 'indexRoute', 'setting', 'doc', 'sourcePo'));
+    }
+
+    public function createInvoiceFromPurchaseOrder(Document $document)
+    {
+        abort_unless($document->type === 'PO', 404);
+
+        if ($document->generatedInvoice()->exists()) {
+            $invoice = $document->generatedInvoice()->firstOrFail();
+
+            return redirect()->route('documents.show', $invoice)
+                ->with('success', 'PO ini sudah memiliki Invoice.');
+        }
+
+        $document->load(['customer', 'items']);
+        $setting = Setting::getSetting();
+        $customers = Customer::orderBy('name')->get();
+        $autoInvoiceNumber = $this->generateDocumentNumber('INVOICE');
+        $autoPoNumber = $this->generateDocumentNumber('PO');
+        $documentType = 'INVOICE';
+        $doc = $document;
+        $sourcePo = $document;
+        $indexRoute = 'documents.index';
+
+        return view('documents.create', compact('customers', 'autoInvoiceNumber', 'autoPoNumber', 'documentType', 'indexRoute', 'setting', 'doc', 'sourcePo'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'customer_id'          => 'required',
+            'customer_id'          => 'required|exists:customers,id',
+            'source_po_id'         => [
+                'nullable',
+                'integer',
+                Rule::exists('documents', 'id')->where('type', 'PO'),
+                Rule::unique('documents', 'source_po_id'),
+            ],
             'project_id'           => 'prohibited',
             'type'                 => 'required|in:INVOICE,PO',
             'document_number'      => 'required|unique:documents,document_number',
@@ -259,6 +292,8 @@ class DocumentController extends Controller
             'tax_transaction_code' => 'nullable|string|max:10',
             'tax_invoice_date'     => 'nullable|date',
             'payment_note'         => 'nullable|string',
+        ], [
+            'source_po_id.unique' => 'PO ini sudah memiliki Invoice.',
         ]);
 
         $setting = Setting::getSetting();
@@ -287,6 +322,7 @@ class DocumentController extends Controller
             'payment_note'         => $request->type === 'INVOICE' && filled($request->payment_note)
                 ? $request->payment_note
                 : ($request->type === 'INVOICE' ? ($setting->receipt_footer_notes ?: null) : null),
+            'source_po_id'         => $request->type === 'INVOICE' ? $request->input('source_po_id') : null,
         ];
         if ($request->type === 'INVOICE') {
             $documentData['delivery_note_number'] = $this->generateAuxiliaryDocumentNumber(
@@ -301,11 +337,15 @@ class DocumentController extends Controller
             );
         }
 
-        $document = Document::create($documentData);
+        $document = DB::transaction(function () use ($documentData, $amounts) {
+            $document = Document::create($documentData);
 
-        foreach ($amounts['items'] as $item) {
-            DocumentItem::create(array_merge($item, ['document_id' => $document->id]));
-        }
+            foreach ($amounts['items'] as $item) {
+                DocumentItem::create(array_merge($item, ['document_id' => $document->id]));
+            }
+
+            return $document;
+        });
 
         return redirect()->route($request->type === 'PO' ? 'purchase-orders.index' : 'documents.index')
             ->with('success', 'Dokumen berhasil dibuat');
@@ -422,6 +462,7 @@ class DocumentController extends Controller
                 ? ($canManageProjects ? $request->project_id : $document->project_id)
                 : null,
             'type'                 => $request->type,
+            'source_po_id'         => $request->type === 'INVOICE' ? $document->source_po_id : null,
             'document_number'      => $request->document_number,
             'description'          => $request->type === 'PO' ? $request->description : null,
             'status'               => $request->status,

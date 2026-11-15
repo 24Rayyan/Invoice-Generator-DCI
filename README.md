@@ -59,6 +59,13 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
+## Membuat Invoice dari PO
+
+1. Buka menu PO, lalu pilih aksi **Buat Invoice dari PO** pada PO yang ingin ditagihkan.
+2. Form Invoice menyalin pelanggan, nama barang, dan kuantitas dari PO. Pelanggan dan rincian tetap dapat diubah.
+3. Isi harga satuan dan lengkapi data Invoice, lalu simpan.
+4. Satu PO hanya dapat ditautkan ke satu Invoice. Setelah dibuat, aksi pada PO membuka Invoice tersebut.
+
 ## Data Demo Lokal
 
 Untuk mengisi data demonstrasi customer, invoice, kategori akun pemasukan/pengeluaran, dan transaksi kas:

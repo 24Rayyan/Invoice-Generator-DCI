@@ -12,6 +12,8 @@
     $isEdit = $mode === 'edit';
     $isDuplicate = $mode === 'duplicate';
     $isCreate = $mode === 'create';
+    $sourcePo = $sourcePo ?? null;
+    $isPoConversion = $isCreate && $sourcePo !== null;
 
     $docType = old('type', $docType);
     $isPo = $docType === 'PO';
@@ -37,9 +39,11 @@
                 'desc' => $item->description,
                 'notes' => $item->notes,
                 'qty' => $item->qty,
-                'type' => $item->item_type,
+                'type' => $doc->type === 'PO' ? 'A' : $item->item_type,
                 'unit' => $item->unit ?? 'Pcs',
-                'price' => $doc->price_includes_tax ? round($item->price * (1 + $taxRate / 100), 2) : $item->price,
+                'price' => $isPoConversion
+                    ? ''
+                    : ($doc->price_includes_tax ? round($item->price * (1 + $taxRate / 100), 2) : $item->price),
             ];
         }
     }
@@ -66,7 +70,9 @@
 
     $listLabel = $isPo ? 'PO' : 'Invoice';
     $formAction = $isEdit ? route('documents.update', $doc->id) : route('documents.store');
-    $submitLabel = $isEdit ? 'Perbarui Dokumen' : ($isDuplicate ? 'Simpan Salinan Dokumen Baru' : 'Simpan Dokumen');
+    $submitLabel = $isEdit
+        ? 'Perbarui Dokumen'
+        : ($isPoConversion ? 'Simpan Invoice' : ($isDuplicate ? 'Simpan Salinan Dokumen Baru' : 'Simpan Dokumen'));
 @endphp
 
 <!-- Header Page & Breadcrumb -->
@@ -108,8 +114,18 @@
     </div>
 @endif
 
+@if($isPoConversion)
+    <div class="alert border-0 bg-info bg-opacity-10 text-dark mb-4 p-3">
+        <strong>Invoice dari PO {{ $sourcePo->document_number }}</strong>
+        <span class="d-block small mt-1">Barang dan kuantitas disalin. Periksa pelanggan, lalu isi harga sebelum menyimpan.</span>
+    </div>
+@endif
+
 <form action="{{ $formAction }}" method="POST" id="document-form">
     @csrf
+    @if($isPoConversion)
+        <input type="hidden" name="source_po_id" value="{{ $sourcePo->id }}">
+    @endif
     @if($isEdit)
         @method('PUT')
     @endif

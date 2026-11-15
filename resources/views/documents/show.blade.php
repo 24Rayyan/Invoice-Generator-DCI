@@ -24,6 +24,11 @@
             · <span class="badge bg-{{ $document->status === 'PAID' ? 'success' : ($document->status === 'SENT' ? 'info' : 'warning') }}-subtle text-{{ $document->status === 'PAID' ? 'success' : ($document->status === 'SENT' ? 'info' : 'dark') }} border">{{ $document->status }}</span>
             · {{ $document->type }}
         </p>
+        @if($document->sourcePurchaseOrder)
+            <p class="small mb-0 mt-1">PO sumber:
+                <a href="{{ route('documents.show', $document->sourcePurchaseOrder) }}" class="text-decoration-none">{{ $document->sourcePurchaseOrder->document_number }}</a>
+            </p>
+        @endif
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <a data-download href="{{ route('documents.pdf', $document->id) }}" class="btn btn-outline-danger">
