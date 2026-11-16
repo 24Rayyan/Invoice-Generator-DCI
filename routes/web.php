@@ -10,6 +10,7 @@ use App\Http\Controllers\InvoiceCostController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SystemMaintenanceController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -166,7 +167,17 @@ Route::middleware(['auth'])->group(function () {
 
     // --- LOG AKTIVITAS / AUDIT TRAIL (AKSES DIATUR VIA MODUL RBAC) ---
     Route::middleware(['module:activity_logs'])->group(function () {
+        Route::get('/activity-logs/archives/{period}/{id}', [ActivityLogController::class, 'showArchived'])->name('activity_logs.archives.show');
         Route::get('/activity-logs', [ActivityLogController::class, 'index'])->name('activity_logs.index');
         Route::get('/activity-logs/{activityLog}', [ActivityLogController::class, 'show'])->name('activity_logs.show');
+    });
+
+    Route::middleware(['module:system_maintenance'])->prefix('system-maintenance')->name('system-maintenance.')->group(function () {
+        Route::get('/', [SystemMaintenanceController::class, 'index'])->name('index');
+        Route::post('/settings', [SystemMaintenanceController::class, 'update'])->name('settings');
+        Route::post('/backups', [SystemMaintenanceController::class, 'createBackup'])->name('backup');
+        Route::get('/backups/{fileName}', [SystemMaintenanceController::class, 'downloadBackup'])->name('backups.download');
+        Route::post('/backups/{fileName}/restore', [SystemMaintenanceController::class, 'restore'])->name('backups.restore');
+        Route::post('/archives', [SystemMaintenanceController::class, 'archiveNow'])->name('archive');
     });
 });

@@ -237,7 +237,7 @@ class ProjectGroupingTest extends TestCase
         $this->assertSame($invoice->id, $invoiceLinkedExpense->fresh()->invoice_id);
         $this->assertDatabaseHas('activity_logs', [
             'module_name' => 'Project Management',
-            'action' => ActivityLog::ACTION_UPDATE,
+            'action' => ActivityLog::ACTION_ATTACH,
             'description' => 'User project_group_admin menghubungkan 1 transaksi kas ke project "ERP Rollout".',
         ]);
 
@@ -257,7 +257,7 @@ class ProjectGroupingTest extends TestCase
         $this->assertNull($linkedExpense->fresh()->project_id);
         $this->assertDatabaseHas('activity_logs', [
             'module_name' => 'Project Management',
-            'action' => ActivityLog::ACTION_UPDATE,
+            'action' => ActivityLog::ACTION_DETACH,
             'description' => 'User project_group_admin melepas transaksi kas "'.$linkedExpense->transaction_number.'" dari project "ERP Rollout".',
         ]);
     }
@@ -295,7 +295,7 @@ class ProjectGroupingTest extends TestCase
         $this->assertNotSame($project->id, $invoiceAttachedElsewhere->fresh()->project_id);
         $this->assertDatabaseHas('activity_logs', [
             'module_name' => 'Project Management',
-            'action' => ActivityLog::ACTION_UPDATE,
+            'action' => ActivityLog::ACTION_ATTACH,
             'description' => 'User project_group_admin menghubungkan 2 invoice ke project "ERP Rollout".',
         ]);
 
@@ -306,7 +306,7 @@ class ProjectGroupingTest extends TestCase
         $this->assertNull($unassignedInvoiceA->fresh()->project_id);
         $this->assertDatabaseHas('activity_logs', [
             'module_name' => 'Project Management',
-            'action' => ActivityLog::ACTION_UPDATE,
+            'action' => ActivityLog::ACTION_DETACH,
             'description' => 'User project_group_admin melepas invoice "'.$unassignedInvoiceA->document_number.'" dari project "ERP Rollout".',
         ]);
     }

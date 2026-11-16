@@ -24,6 +24,13 @@
         </a>
     </div>
 
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <a class="btn btn-sm {{ $source === 'active' ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ route('activity_logs.index') }}">Log Aktif</a>
+        @foreach($archivePeriods as $archivePeriod)
+            <a class="btn btn-sm {{ $source === 'archive' && $period === $archivePeriod ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ route('activity_logs.index', ['source' => 'archive', 'period' => $archivePeriod]) }}">Arsip {{ $archivePeriod }}</a>
+        @endforeach
+    </div>
+
     <!-- Statistik -->
     <div class="al-stats">
         <div class="al-stat">
@@ -53,13 +60,24 @@
     <div class="al-card al-filter">
         <div class="al-filter-head">
             <h2 class="al-card-title">Filter aktivitas</h2>
-            <a href="{{ route('activity_logs.index') }}" class="al-reset">Atur ulang</a>
+            <a href="{{ route('activity_logs.index', $source === 'archive' ? ['source' => 'archive', 'period' => $period] : []) }}" class="al-reset">Atur ulang</a>
         </div>
 
         <form method="GET" action="{{ route('activity_logs.index') }}" class="al-filter-grid">
+            <input type="hidden" name="source" value="{{ $source }}">
+            @if($source === 'archive')
+                <div class="al-field">
+                    <label for="archive-period">Periode Arsip</label>
+                    <select id="archive-period" name="period" class="al-select">
+                        @foreach($archivePeriods as $archivePeriod)
+                            <option value="{{ $archivePeriod }}" @selected($period === $archivePeriod)>{{ $archivePeriod }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
             <div class="al-field al-field-search">
-                <label>Pencarian</label>
-                <input type="text" name="search" value="{{ request('search') }}" class="al-input" placeholder=" Cari aktivitas...">
+                <label for="activity-search">Pencarian</label>
+                <input id="activity-search" type="text" name="search" value="{{ request('search') }}" class="al-input" placeholder=" Cari aktivitas...">
             </div>
             <div class="al-field">
                 <label>Aksi</label>
@@ -91,8 +109,12 @@
                 </select>
             </div>
             <div class="al-field">
-                <label>Dari</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="al-input al-date">
+                <label for="date_from">Dari</label>
+                <input id="date_from" type="date" name="date_from" value="{{ request('date_from') }}" class="al-input al-date">
+            </div>
+            <div class="al-field">
+                <label for="date_to">Sampai</label>
+                <input id="date_to" type="date" name="date_to" value="{{ request('date_to') }}" class="al-input al-date">
             </div>
             <div class="al-field al-field-submit">
                 <button type="submit" class="al-btn">
@@ -126,7 +148,7 @@
                 </thead>
                 <tbody>
                     @forelse($logs as $log)
-                        <tr class="al-row" data-id="{{ $log->id }}" title="Klik untuk melihat detail">
+                        <tr class="al-row" data-id="{{ $log->id }}" data-detail-url="{{ $source === 'archive' ? route('activity_logs.archives.show', [$period, $log->id]) : route('activity_logs.show', $log->id) }}" title="Klik untuk melihat detail">
                             <td>
                                 <div class="al-user">
                                     <span class="al-avatar">{{ strtoupper(substr($log->user_name ?? $log->user?->username ?? 'S', 0, 1)) }}</span>
@@ -572,13 +594,11 @@
 
 @push('scripts')
 <script>
-    const activityLogBaseUrl = "{{ url('activity-logs') }}";
-
     $(document).ready(function () {
         $('.al-row').on('click', function () {
-            const id = $(this).data('id');
+            const detailUrl = $(this).data('detail-url');
 
-            $.get(activityLogBaseUrl + '/' + id)
+            $.get(detailUrl)
                 .done(function (data) {
                     $('#log_detail_meta').text('Log #' + data.id);
                     $('#log_detail_description').text(data.description ?? '-');

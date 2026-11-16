@@ -75,3 +75,34 @@ php artisan db:seed --class="Database\Seeders\DemoDataSeeder"
 ```
 
 Seeder ini aman dijalankan ulang dan tidak menghapus data yang sudah ada. Data customer dan transaksi diberi penanda `DEMO`, menggunakan email domain `.test`, dan tidak memakai NPWP sungguhan. Data ini adalah simulasi realistis untuk skenario jasa IT/pengadaan perangkat, bukan catatan transaksi perusahaan sebenarnya. Akun yang dibuat mengikuti model kategori pemasukan/pengeluaran aplikasi saat ini, bukan COA akuntansi penuh.
+# Pemeliharaan Sistem
+
+## Mengaktifkan Fitur Pemeliharaan
+
+Setelah pembaruan kode, terapkan migrasi secara aditif dengan:
+
+```powershell
+php artisan migrate --force
+```
+
+Migrasi menambahkan tabel pengaturan dan riwayat operasi, indeks Activity Log, serta izin
+`system_maintenance`. Jangan gunakan `migrate:fresh` pada database aplikasi.
+
+## Windows Task Scheduler untuk Backup Otomatis
+
+Backup otomatis menggunakan konfigurasi di **Pemeliharaan Sistem**. Aktifkan backup otomatis,
+pilih frekuensi, waktu, hari/tanggal (bila diperlukan), dan retensi. Scheduler Laravel hanya
+membuat backup saat waktu yang tersimpan cocok; backup manual tetap tersedia saat jadwal mati.
+
+Untuk menjalankannya di Windows, buat task di Task Scheduler yang berjalan setiap menit:
+
+- **Program/script:** `C:\php\php.exe`
+- **Add arguments:** `artisan schedule:run`
+- **Start in:** `D:\Rayy\Kampus\Semester 7\Pemrograman Web Lanjut\Mini ERP`
+- **Trigger:** Daily, repeat task every `1 minute`, for a duration of `1 day`
+- Pilih **Run whether user is logged on or not** bila diperlukan dan gunakan akun Windows yang
+  mempunyai akses tulis ke folder proyek dan `storage`.
+
+Task Windows hanya memicu Laravel Scheduler. Status pada halaman tetap **Not Verified** sampai
+heartbeat scheduler benar-benar tercatat. File backup lokal berada di
+`storage\app\system\backups`; arsip log berada terpisah di `storage\app\system\archives`.

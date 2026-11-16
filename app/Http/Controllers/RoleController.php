@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\Module;
+use App\Models\ActivityLog;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,7 @@ class RoleController extends Controller
             ['name' => 'Invoicing & PO', 'icon' => 'fa-file-invoice-dollar', 'keys' => ['invoices', 'customers', 'invoice_margin', 'projects']],
             ['name' => 'Buku Kas & Transaksi', 'icon' => 'fa-money-bill-transfer', 'keys' => ['expenses', 'categories']],
             ['name' => 'Laporan Keuangan', 'icon' => 'fa-chart-line', 'keys' => ['financial_reports', 'profit_loss', 'project_margin']],
-            ['name' => 'User Management', 'icon' => 'fa-user-gear', 'keys' => ['user_management', 'activity_logs']],
+            ['name' => 'User Management', 'icon' => 'fa-user-gear', 'keys' => ['user_management', 'activity_logs', 'system_maintenance']],
             ['name' => 'Pengaturan', 'icon' => 'fa-sliders', 'keys' => ['settings']],
         ])->map(function (array $group) use ($modules) {
             $group['modules'] = $modules
@@ -83,16 +84,19 @@ class RoleController extends Controller
             'modules.*' => ['exists:modules,id'],
         ]);
 
-        // Sync modul yang di-grant ke role
+        $previousModules = $role->modules()->orderBy('key')->pluck('key')->all();
         $role->modules()->sync($request->input('modules', []));
+        $currentModules = $role->modules()->orderBy('key')->pluck('key')->all();
 
-        // Sinkronisasi pivot tidak memicu model event, jadi dicatat manual.
-        ActivityLogger::log(
-            'UPDATE',
-            'User Management',
-            "User " . (auth()->user()->username ?? 'Sistem') . " memperbarui hak akses modul untuk role \"{$role->display_name}\".",
-            ['role_id' => $role->id, 'modules' => $role->modules()->pluck('key')->all()]
-        );
+        if ($previousModules !== $currentModules) {
+            ActivityLogger::logForModel(
+                ActivityLog::ACTION_PERMISSION_CHANGE,
+                'User Management',
+                "User ".(auth()->user()->username ?? 'Sistem')." memperbarui hak akses modul untuk role \"{$role->display_name}\".",
+                $role,
+                ['old' => ['modules' => $previousModules], 'new' => ['modules' => $currentModules]]
+            );
+        }
 
         return back()->with('success', 'Hak akses modul untuk role ' . $role->display_name . ' berhasil diperbarui.');
     }

@@ -77,6 +77,25 @@ class ActivityLogger
         );
     }
 
+    public static function logForModel(
+        string $action,
+        string $module,
+        string $description,
+        Model $model,
+        ?array $properties = null
+    ): ?ActivityLog {
+        return static::write(
+            strtoupper($action),
+            $module,
+            $description,
+            $properties,
+            [
+                'subject_type' => $model->getMorphClass(),
+                'subject_id' => $model->getKey(),
+            ]
+        );
+    }
+
     /**
      * Menulis baris log ke database. Seluruh kegagalan dicatat sebagai
      * warning dan tidak boleh sampai menggagalkan aksi utama user.
@@ -105,7 +124,7 @@ class ActivityLogger
                 'subject_type' => $subject['subject_type'] ?? null,
                 'subject_id'   => $subject['subject_id'] ?? null,
                 'description'  => $description,
-                'properties'   => $properties,
+                'properties'   => static::sanitize($properties),
             ]);
         } catch (\Throwable $e) {
             Log::warning('[ActivityLog] Gagal mencatat aktivitas: ' . $e->getMessage());
@@ -147,7 +166,9 @@ class ActivityLogger
     protected static function properties(string $action, Model $model): ?array
     {
         $hidden = array_merge($model->getHidden(), ['created_at', 'updated_at']);
-        $filter = static fn (array $attributes): array => array_diff_key($attributes, array_flip($hidden));
+        $filter = static fn (array $attributes): array => static::sanitize(
+            array_diff_key($attributes, array_flip($hidden))
+        );
 
         return match ($action) {
             ActivityLog::ACTION_CREATE => [
@@ -167,6 +188,31 @@ class ActivityLogger
             })(),
             default => null,
         };
+    }
+
+    private static function sanitize(?array $properties): ?array
+    {
+        if ($properties === null) {
+            return null;
+        }
+
+        $sensitive = static fn (string $key): bool => preg_match(
+            '/password|token|secret|api[_-]?key|private[_-]?key|authorization|cookie/i',
+            $key
+        ) === 1;
+        $sanitizeArray = function (array $values) use (&$sanitizeArray, $sensitive): array {
+            $clean = [];
+            foreach ($values as $key => $value) {
+                if ($sensitive((string) $key)) {
+                    continue;
+                }
+                $clean[$key] = is_array($value) ? $sanitizeArray($value) : $value;
+            }
+
+            return $clean;
+        };
+
+        return $sanitizeArray($properties);
     }
 
     /**
