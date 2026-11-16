@@ -120,4 +120,47 @@ class DocumentPurchaseOrderConversionTest extends TestCase
             ->assertRedirect(route('documents.show', $invoice))
             ->assertSessionHas('success', 'PO ini sudah memiliki Invoice.');
     }
+
+    public function test_purchase_orders_are_listed_by_creation_time_newest_first(): void
+    {
+        $admin = User::create([
+            'username' => 'po_sort_admin',
+            'name' => 'PO Sort Admin',
+            'email' => 'po-sort@example.test',
+            'password' => Hash::make('password'),
+            'role_id' => Role::where('name', 'super_admin')->firstOrFail()->id,
+            'is_active' => true,
+        ]);
+        $customer = Customer::create(['name' => 'PT PO Sort']);
+
+        $olderPurchaseOrder = Document::create([
+            'customer_id' => $customer->id,
+            'type' => 'PO',
+            'document_number' => '001/PO-SORT/XI/2026',
+            'date' => '2026-11-16',
+            'status' => 'DRAFT',
+            'total_amount' => 0,
+        ]);
+        $olderPurchaseOrder->forceFill([
+            'created_at' => now()->subDay(),
+            'updated_at' => now()->subDay(),
+        ])->save();
+
+        Document::create([
+            'customer_id' => $customer->id,
+            'type' => 'PO',
+            'document_number' => '002/PO-SORT/XI/2026',
+            'date' => '2026-11-15',
+            'status' => 'DRAFT',
+            'total_amount' => 0,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('purchase-orders.index'))
+            ->assertOk()
+            ->assertSeeInOrder([
+                '002/PO-SORT/XI/2026',
+                '001/PO-SORT/XI/2026',
+            ]);
+    }
 }

@@ -153,7 +153,7 @@
                         @endif
 
                         <!-- No. Dokumen + Badge Tipe -->
-                        <td data-label="No. Dokumen">
+                        <td data-label="No. Dokumen" @if($documentType === 'PO') data-order="{{ $doc->created_at->format('Y-m-d H:i:s') }}-{{ str_pad((string) $doc->id, 20, '0', STR_PAD_LEFT) }}" @endif>
                             <div class="d-flex align-items-center gap-2">
                                 @if($doc->type == 'PO')
                                     <span class="badge-type badge-po">PO</span>
@@ -847,7 +847,7 @@
         });
 
         // Initialize DataTables
-        const dataTable = $('#myTable').DataTable({
+        const dataTableOptions = {
             language: {
                 decimal: ',',
                 thousands: '.',
@@ -874,7 +874,11 @@
             columnDefs: [
                 { orderable: false, targets: {{ $documentType === 'PO' ? '[3, 4, 5]' : '[0, 4, 5, 6]' }} }
             ]
-        });
+        };
+        @if($documentType === 'PO')
+            dataTableOptions.order = [[0, 'desc']];
+        @endif
+        const dataTable = $('#myTable').DataTable(dataTableOptions);
 
         const tableWrapper = dataTable.table().node().closest('.dataTables_wrapper');
         const pageLengthSelect = tableWrapper ? tableWrapper.querySelector('.dataTables_length select') : null;

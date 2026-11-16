@@ -142,7 +142,12 @@ class DocumentController extends Controller
     {
         $setting = Setting::first(); // Sesuaikan jika menggunakan helper custom
 
-        $query = Document::with(['customer', 'items', 'generatedInvoice'])->latest('date');
+        $query = Document::with(['customer', 'items', 'generatedInvoice']);
+        if ($documentType === 'PO') {
+            $query->orderByDesc('created_at')->orderByDesc('id');
+        } else {
+            $query->latest('date');
+        }
 
         // 1. Filter Berdasarkan Periode (YYYY-MM)
         if ($request->filled('period')) {
