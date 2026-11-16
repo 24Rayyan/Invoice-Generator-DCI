@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Exports\FinancialStatementExport;
+use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Setting;
 use App\Models\Transaction;
 use App\Services\FinancialReportService;
 use App\Services\ProjectMarginService;
+use App\Services\ActivityLogger;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -69,7 +71,12 @@ class FinancialReportController extends Controller
 
         $fileName = "Laporan_Keuangan_DCI_{$startDate}_sd_{$endDate}.pdf";
 
-        return $pdf->download($fileName);
+        $response = $pdf->download($fileName);
+        ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Laporan Keuangan', 'Laporan posisi keuangan diekspor ke PDF.', [
+            'format' => 'pdf', 'start_date' => $startDate, 'end_date' => $endDate,
+        ]);
+
+        return $response;
     }
 
     /**
@@ -89,11 +96,20 @@ class FinancialReportController extends Controller
 
         // Gunakan Maatwebsite Excel atau Stream Response jika class terdaftar
         try {
-            return Excel::download(new FinancialStatementExport($reportData, $setting), $fileName);
+            $response = Excel::download(new FinancialStatementExport($reportData, $setting), $fileName);
+            ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Laporan Keuangan', 'Laporan posisi keuangan diekspor ke Excel.', [
+                'format' => 'xlsx', 'start_date' => $startDate, 'end_date' => $endDate,
+            ]);
+
+            return $response;
         } catch (\Throwable $e) {
             // Fallback ke styled Spreadsheet (.xls)
             $fileNameXls = "Laporan_Keuangan_DCI_{$startDate}_sd_{$endDate}.xls";
             $content = view('exports.financial_statement_excel', compact('reportData', 'setting'))->render();
+
+            ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Laporan Keuangan', 'Laporan posisi keuangan diekspor ke Excel.', [
+                'format' => 'xls', 'start_date' => $startDate, 'end_date' => $endDate,
+            ]);
 
             return response($content, 200, [
                 'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
@@ -148,7 +164,12 @@ class FinancialReportController extends Controller
         $periodSlug = $month ? "Bulan_{$month}_{$year}" : "Tahun_{$year}";
         $fileName = "Laporan_Laba_Rugi_Fiskal_{$periodSlug}.pdf";
 
-        return $pdf->download($fileName);
+        $response = $pdf->download($fileName);
+        ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Laporan Laba Rugi', 'Laporan laba rugi diekspor ke PDF.', [
+            'format' => 'pdf', 'year' => $year, 'month' => $month,
+        ]);
+
+        return $response;
     }
 
     /**
@@ -166,6 +187,10 @@ class FinancialReportController extends Controller
         $fileName = "Laporan_Laba_Rugi_Fiskal_{$periodSlug}.xls";
 
         $content = view('exports.profit_loss_excel', compact('reportData', 'setting'))->render();
+
+        ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Laporan Laba Rugi', 'Laporan laba rugi diekspor ke Excel.', [
+            'format' => 'xls', 'year' => $year, 'month' => $month,
+        ]);
 
         return response($content, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',

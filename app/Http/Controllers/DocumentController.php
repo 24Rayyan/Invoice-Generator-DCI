@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\DocumentItem;
 use App\Models\Setting;
@@ -11,6 +12,7 @@ use App\Models\Transaction;
 use App\Services\TransactionService;
 use App\Services\ProjectMarginService;
 use App\Services\CoretaxXmlService;
+use App\Services\ActivityLogger;
 use App\Exports\CoretaxFkExport;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -569,6 +571,12 @@ class DocumentController extends Controller
         $xmlContent = $xmlService->generateXml($documents, $setting, $customDate);
         $fileName = 'Coretax_FK_v1.6.1_' . date('Ymd_His') . '.xml';
 
+        ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Invoicing & PO', 'Data faktur pajak Coretax diekspor ke XML.', [
+            'format' => 'xml',
+            'document_ids' => $documents->modelKeys(),
+            'count' => $documents->count(),
+        ]);
+
         return response($xmlContent, 200, [
             'Content-Type'        => 'application/xml; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
@@ -613,7 +621,14 @@ class DocumentController extends Controller
         $customDate = $request->tax_invoice_date;
         $fileName = 'Coretax_FK_Import_' . date('Ymd_His') . '.xlsx';
 
-        return Excel::download(new CoretaxFkExport($documents, $setting, $customDate), $fileName);
+        $response = Excel::download(new CoretaxFkExport($documents, $setting, $customDate), $fileName);
+        ActivityLogger::log(ActivityLog::ACTION_EXPORT, 'Invoicing & PO', 'Data faktur pajak Coretax diekspor ke Excel.', [
+            'format' => 'xlsx',
+            'document_ids' => $documents->modelKeys(),
+            'count' => $documents->count(),
+        ]);
+
+        return $response;
     }
 
     private function hasInvoiceItemsWithoutType($documents): bool
@@ -641,8 +656,16 @@ class DocumentController extends Controller
         
         $safeDocNumber = str_replace(['/', '\\'], '-', $document->document_number);
         $fileName = $document->type . '_' . $safeDocNumber . '.pdf';
-        
-        return $pdf->download($fileName);
+        $response = $pdf->download($fileName);
+        ActivityLogger::logForModel(
+            ActivityLog::ACTION_DOWNLOAD,
+            'Invoicing & PO',
+            "User ".(auth()->user()->username ?? 'Sistem')." mengunduh PDF {$document->type} {$document->document_number}.",
+            $document,
+            ['format' => 'pdf']
+        );
+
+        return $response;
     }
 
     // Download Surat Jalan PDF
@@ -657,8 +680,11 @@ class DocumentController extends Controller
         $pdfDocumentNumber = $document->delivery_note_number ?: $document->document_number;
         $safeDocNumber = str_replace(['/', '\\'], '-', $pdfDocumentNumber);
         $fileName = 'SJ_' . $safeDocNumber . '.pdf';
-        
-        return $pdf->download($fileName);
+        $response = $pdf->download($fileName);
+
+        ActivityLogger::logForModel(ActivityLog::ACTION_DOWNLOAD, 'Invoicing & PO', "User ".(auth()->user()->username ?? 'Sistem')." mengunduh surat jalan {$document->document_number}.", $document, ['format' => 'pdf', 'document' => 'delivery_note']);
+
+        return $response;
     }
 
     // Download Kwitansi PDF
@@ -673,7 +699,10 @@ class DocumentController extends Controller
         $pdfDocumentNumber = $document->receipt_number ?: $document->document_number;
         $safeDocNumber = str_replace(['/', '\\'], '-', $pdfDocumentNumber);
         $fileName = 'KWITANSI_' . $safeDocNumber . '.pdf';
-        
-        return $pdf->download($fileName);
+        $response = $pdf->download($fileName);
+
+        ActivityLogger::logForModel(ActivityLog::ACTION_DOWNLOAD, 'Invoicing & PO', "User ".(auth()->user()->username ?? 'Sistem')." mengunduh kwitansi {$document->document_number}.", $document, ['format' => 'pdf', 'document' => 'receipt']);
+
+        return $response;
     }
 }

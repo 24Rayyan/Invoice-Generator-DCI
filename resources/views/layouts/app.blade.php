@@ -308,10 +308,10 @@
                             @endif
 
 
-                            @if(auth()->user()->hasAccess('user_management') || auth()->user()->hasAccess('activity_logs'))
+                            @if(auth()->user()->hasAccess('user_management') || auth()->user()->hasAccess('activity_logs') || auth()->user()->hasAccess('system_maintenance'))
                                 <li class="nav-item dropdown">
                                     <a class="nav-link nav-link-custom dropdown-toggle {{ request()->routeIs('management.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-user-gear me-2"></i> Manajemen Pengguna
+                                        <i class="fa-solid fa-user-gear me-2"></i> Pengelolaan System
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-custom border-0 shadow-lg" style="min-width: 220px;">
                                         @if(auth()->user()->hasAccess('user_management'))
@@ -330,6 +330,13 @@
                                             <li>
                                                 <a class="dropdown-item py-2 {{ request()->routeIs('activity_logs.*') ? 'active' : '' }}" href="{{ route('activity_logs.index') }}">
                                                     <i class="fa-solid fa-clock-rotate-left me-2"></i> Log Aktivitas
+                                                </a>
+                                            </li>
+                                        @endif
+                                        @if(auth()->user()->hasAccess('system_maintenance'))
+                                            <li>
+                                                <a class="dropdown-item py-2 {{ request()->routeIs('system-maintenance.*') ? 'active' : '' }}" href="{{ route('system-maintenance.index') }}">
+                                                    <i class="fa-solid fa-database me-2 text-secondary"></i> Database &amp; Pemeliharaan
                                                 </a>
                                             </li>
                                         @endif
@@ -353,7 +360,6 @@
                                         <i class="fa-solid fa-sliders fs-6"></i>
                                     </a>
                                 @endif
-
                                 <form method="POST" action="{{ route('logout') }}" class="m-0 p-0">
                                     @csrf
                                     <button type="submit" 

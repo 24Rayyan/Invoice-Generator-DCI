@@ -109,13 +109,14 @@ class ProjectController extends Controller
             }
 
             foreach ($transactions as $transaction) {
-                $transaction->update(['project_id' => $project->id]);
+                $transaction->updateQuietly(['project_id' => $project->id]);
             }
 
-            ActivityLogger::log(
-                ActivityLog::ACTION_UPDATE,
+            ActivityLogger::logForModel(
+                ActivityLog::ACTION_ATTACH,
                 'Project Management',
                 'User '.(auth()->user()->username ?? 'Sistem')." menghubungkan {$transactions->count()} transaksi kas ke project \"{$project->project_name}\".",
+                $project,
                 [
                     'project_id' => $project->id,
                     'project_name' => $project->project_name,
@@ -151,13 +152,14 @@ class ProjectController extends Controller
             }
 
             foreach ($invoices as $invoice) {
-                $invoice->update(['project_id' => $project->id]);
+                $invoice->updateQuietly(['project_id' => $project->id]);
             }
 
-            ActivityLogger::log(
-                ActivityLog::ACTION_UPDATE,
+            ActivityLogger::logForModel(
+                ActivityLog::ACTION_ATTACH,
                 'Project Management',
                 'User '.(auth()->user()->username ?? 'Sistem')." menghubungkan {$invoices->count()} invoice ke project \"{$project->project_name}\".",
+                $project,
                 [
                     'project_id' => $project->id,
                     'project_name' => $project->project_name,
@@ -186,11 +188,12 @@ class ProjectController extends Controller
             return back()->with('error', 'Invoice ini tidak terhubung ke project tersebut.');
         }
 
-        $document->update(['project_id' => null]);
-        ActivityLogger::log(
-            ActivityLog::ACTION_UPDATE,
+        $document->updateQuietly(['project_id' => null]);
+        ActivityLogger::logForModel(
+            ActivityLog::ACTION_DETACH,
             'Project Management',
             'User '.(auth()->user()->username ?? 'Sistem')." melepas invoice \"{$document->document_number}\" dari project \"{$project->project_name}\".",
+            $document,
             [
                 'project_id' => $project->id,
                 'project_name' => $project->project_name,
@@ -211,11 +214,12 @@ class ProjectController extends Controller
             return back()->with('error', 'Transaksi ini tidak terhubung ke project tersebut.');
         }
 
-        $transaction->update(['project_id' => null]);
-        ActivityLogger::log(
-            ActivityLog::ACTION_UPDATE,
+        $transaction->updateQuietly(['project_id' => null]);
+        ActivityLogger::logForModel(
+            ActivityLog::ACTION_DETACH,
             'Project Management',
             'User '.(auth()->user()->username ?? 'Sistem')." melepas transaksi kas \"{$transaction->transaction_number}\" dari project \"{$project->project_name}\".",
+            $project,
             [
                 'project_id' => $project->id,
                 'project_name' => $project->project_name,

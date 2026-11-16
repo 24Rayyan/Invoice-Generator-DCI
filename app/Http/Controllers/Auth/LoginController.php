@@ -30,6 +30,15 @@ class LoginController extends Controller
         if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']], $request->boolean('remember'))) {
             
             if (!Auth::user()->is_active) {
+                $inactiveUser = Auth::user();
+                ActivityLogger::log(
+                    ActivityLog::ACTION_LOGIN_FAILED,
+                    'Autentikasi',
+                    "Percobaan login ditolak untuk akun nonaktif {$inactiveUser->username}.",
+                    ['username' => $inactiveUser->username, 'reason' => 'inactive_account'],
+                    $inactiveUser->id,
+                    $inactiveUser->username
+                );
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
@@ -49,6 +58,13 @@ class LoginController extends Controller
 
             return redirect()->intended('/dashboard');
         }
+
+        ActivityLogger::log(
+            ActivityLog::ACTION_LOGIN_FAILED,
+            'Autentikasi',
+            'Percobaan login gagal untuk username '.(string) $credentials['username'].'.',
+            ['username' => (string) $credentials['username']]
+        );
 
         return back()->withErrors([
             'username' => 'Username atau password yang dimasukkan salah.',

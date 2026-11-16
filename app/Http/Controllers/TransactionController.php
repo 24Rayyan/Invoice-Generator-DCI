@@ -7,7 +7,9 @@ use App\Models\Category;
 use App\Models\Document;
 use App\Models\Project;
 use App\Models\Transaction;
+use App\Models\ActivityLog;
 use App\Services\TransactionService;
+use App\Services\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -285,6 +287,14 @@ class TransactionController extends Controller
         if (!$transaction->receipt_file_path || !Storage::disk('public')->exists($transaction->receipt_file_path)) {
             abort(404, 'Bukti nota/struk tidak ditemukan.');
         }
+
+        ActivityLogger::logForModel(
+            ActivityLog::ACTION_DOWNLOAD,
+            'Buku Kas & Transaksi',
+            "User ".(auth()->user()->username ?? 'Sistem')." mengunduh bukti transaksi {$transaction->transaction_number}.",
+            $transaction,
+            ['document' => 'transaction_receipt']
+        );
 
         return Storage::disk('public')->response($transaction->receipt_file_path);
     }
