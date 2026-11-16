@@ -49,6 +49,29 @@ class RoleManagementTest extends TestCase
             ->assertSee(route('management.roles.destroy', $role));
     }
 
+    public function test_user_edit_modal_is_rendered_outside_main_content(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->get(route('management.users.index'))
+            ->assertOk();
+
+        $this->assertMatchesRegularExpression(
+            '/<\/main>[\s\S]*id="editUserModal"/',
+            $response->getContent()
+        );
+    }
+
+    public function test_user_edit_form_uses_https_when_request_is_forwarded_by_trusted_proxy(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+            ->withHeader('X-Forwarded-Proto', 'https')
+            ->get(route('management.users.index'));
+
+        $response->assertOk()
+            ->assertSee('form.action = "https://localhost/management/users/" + id;', false);
+    }
+
     public function test_role_matrix_includes_granular_project_and_invoice_margin_modules(): void
     {
         $this->actingAs($this->admin)
@@ -114,6 +137,34 @@ class RoleManagementTest extends TestCase
         $this->get(route('reports.financial_statement'))->assertForbidden();
         $this->get(route('reports.profit_loss'))->assertForbidden();
         $this->get(route('projects.index'))->assertForbidden();
+    }
+
+    public function test_system_maintenance_access_is_grantable_and_enforced(): void
+    {
+        $role = Role::create([
+            'name' => 'maintenance_operator',
+            'display_name' => 'Maintenance Operator',
+            'description' => 'Akses pemeliharaan database',
+        ]);
+        $user = User::create([
+            'username' => 'maintenance_operator',
+            'name' => 'Maintenance Operator',
+            'email' => 'maintenance-operator@example.test',
+            'password' => Hash::make('password'),
+            'role_id' => $role->id,
+            'is_active' => true,
+        ]);
+        $maintenanceModule = Module::where('key', 'system_maintenance')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('system-maintenance.index'))
+            ->assertForbidden();
+
+        $role->modules()->attach($maintenanceModule);
+
+        $this->actingAs($user->fresh())
+            ->get(route('system-maintenance.index'))
+            ->assertOk();
     }
 
     public function test_unused_custom_role_can_be_deleted_with_its_module_grants(): void

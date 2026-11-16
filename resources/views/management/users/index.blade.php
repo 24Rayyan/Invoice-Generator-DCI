@@ -246,7 +246,9 @@
             </table>
         </div>
     </div>
+</div>
 
+@push('modals')
     <!-- POP-UP MODAL 1: EDIT USER -->
     <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
@@ -354,8 +356,7 @@
             </div>
         </div>
     </div>
-
-</div>
+@endpush
 
 <script>
 function openEditModal(id, username, roleId) {
