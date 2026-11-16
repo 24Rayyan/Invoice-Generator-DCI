@@ -78,9 +78,9 @@
 
                         <!-- Nominal Transaksi -->
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark font-sm">Nominal Jumlah (Rp) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold text-dark font-sm">Nominal Jumlah ({{ \App\Models\Setting::get('currency_symbol', 'Rp') }}) <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">Rp</span>
+                                <span class="input-group-text bg-light fw-bold">{{ \App\Models\Setting::get('currency_symbol', 'Rp') }}</span>
                                 <input type="number" name="amount" id="amountInput" class="form-control form-control-lg fw-bold" min="1" step="any" value="{{ old('amount', $transaction->amount) }}" required>
                             </div>
                         </div>

@@ -142,7 +142,7 @@ class DocumentController extends Controller
 
     private function documentList(Request $request, string $documentType)
     {
-        $setting = Setting::first(); // Sesuaikan jika menggunakan helper custom
+        $setting = Setting::getSetting();
 
         $query = Document::with(['customer', 'items', 'generatedInvoice']);
         if ($documentType === 'PO') {

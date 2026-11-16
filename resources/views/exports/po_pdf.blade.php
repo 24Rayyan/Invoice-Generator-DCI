@@ -24,8 +24,8 @@
 </head>
 <body>
     <div class="header">
-        @if($setting && $setting->company_logo && file_exists(public_path('storage/' . $setting->company_logo)))
-            <img src="{{ public_path('storage/' . $setting->company_logo) }}" class="logo"><br>
+        @if($setting && $setting->logoPath())
+            <img src="{{ $setting->logoPath() }}" class="logo" alt="Logo perusahaan"><br>
         @else
             <div class="company-title">{{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}</div>
         @endif

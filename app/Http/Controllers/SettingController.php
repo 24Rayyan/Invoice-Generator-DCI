@@ -89,7 +89,9 @@ class SettingController extends Controller
             'company_logo'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'company_stamp'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'company_email'            => 'nullable|email|max:255',
-            'company_phone'            => 'nullable|string|max:50',
+            'company_phone'            => ['nullable', 'string', 'max:50', 'regex:/^[0-9+()\-.\s\/]{5,}$/'],
+            'remove_company_logo'      => 'nullable|boolean',
+            'remove_company_stamp'     => 'nullable|boolean',
             'company_address'          => 'nullable|string',
             'company_city'             => 'nullable|string|max:100',
             'company_bank_account'     => 'nullable|string',
@@ -119,6 +121,10 @@ class SettingController extends Controller
             'company_stamp.mimes'      => 'Stempel harus berformat JPEG, PNG, JPG, atau WEBP.',
             'company_stamp.max'        => 'Ukuran file stempel maksimal 2MB.',
             'company_email.email'      => 'Format email perusahaan tidak valid.',
+            'company_phone.regex'      => 'Nomor telepon hanya boleh berisi angka, spasi, dan tanda + ( ) - . /',
+            'company_npwp16.digits'    => 'NPWP 16 digit harus terdiri dari tepat 16 angka.',
+            'default_tax_rate.required' => 'Tarif PPN wajib diisi.',
+            'default_tax_rate.max'     => 'Tarif PPN maksimal 100%.',
             'invoice_prefix.required'  => 'Prefix Invoice wajib diisi.',
             'po_prefix.required'       => 'Prefix Purchase Order wajib diisi.',
             'default_tax_rate.numeric' => 'Tarif PPN harus berupa angka (persentase).',
@@ -128,7 +134,14 @@ class SettingController extends Controller
         $setting = Setting::getSetting();
 
         // 3. Ambil seluruh data teks selain file dan token CSRF
-        $data = collect($validated)->except(['company_logo', 'company_stamp'])->all();
+        $data = collect($validated)->except(['company_logo', 'company_stamp', 'remove_company_logo', 'remove_company_stamp'])->all();
+
+        // Kolom NOT NULL yang boleh dikosongkan di form: pakai nilai bawaan agar tidak gagal simpan.
+        foreach (['delivery_note_prefix' => 'SJ', 'kwitansi_prefix' => 'KWT', 'currency_symbol' => 'Rp', 'currency_code' => 'IDR', 'term_of_payment' => 0] as $column => $default) {
+            if (blank($data[$column] ?? null)) {
+                $data[$column] = $default;
+            }
+        }
 
         // Clean numeric NPWP 16 & NITKU 22
         if (!empty($data['company_npwp16'])) {
@@ -170,6 +183,16 @@ class SettingController extends Controller
             $data['company_stamp'] = $stampPath;
         }
 
+        // 5b. Hapus logo / stempel bila diminta dan tidak sedang diganti file baru
+        foreach (['company_logo' => 'remove_company_logo', 'company_stamp' => 'remove_company_stamp'] as $column => $flag) {
+            if ($request->boolean($flag) && ! $request->hasFile($column)) {
+                if ($setting->{$column} && Storage::disk('public')->exists($setting->{$column})) {
+                    Storage::disk('public')->delete($setting->{$column});
+                }
+                $data[$column] = null;
+            }
+        }
+
         // 6. Update data ke database
         $setting->update($data);
 
@@ -184,6 +207,6 @@ class SettingController extends Controller
             ['new' => $changes]
         );
 
-        return redirect()->back()->with('success', 'Konfigurasi Mini ERP Terpusat Berhasil Diperbarui!');
+        return redirect()->back()->with('success', 'Pengaturan berhasil diperbarui.');
     }
 }

@@ -320,13 +320,13 @@
                         <div class="col-sm-4">
                             <div class="p-3 rounded-3 bg-light border text-center">
                                 <span class="text-muted small fw-semibold d-block">Total DPP (Dasar Pengenaan)</span>
-                                <span class="fs-5 fw-bold text-primary" id="modalSubtotal">Rp 0</span>
+                                <span class="fs-5 fw-bold text-primary" id="modalSubtotal">{{ $setting->currency_symbol ?? 'Rp' }} 0</span>
                             </div>
                         </div>
                         <div class="col-sm-4">
                             <div class="p-3 rounded-3 bg-light border text-center">
                                 <span class="text-muted small fw-semibold d-block">Total PPN (Pajak)</span>
-                                <span class="fs-5 fw-bold text-success" id="modalTax">Rp 0</span>
+                                <span class="fs-5 fw-bold text-success" id="modalTax">{{ $setting->currency_symbol ?? 'Rp' }} 0</span>
                             </div>
                         </div>
                     </div>
@@ -399,7 +399,7 @@
                     <div class="col-sm-6">
                         <div class="p-3 rounded-3 bg-light border">
                             <span class="text-muted small d-block fw-semibold text-uppercase tracking-wide mb-1">Total Tagihan</span>
-                            <span class="fw-bold text-primary fs-5 d-block" id="detailTotalAmount">Rp 0</span>
+                            <span class="fw-bold text-primary fs-5 d-block" id="detailTotalAmount">{{ $setting->currency_symbol ?? 'Rp' }} 0</span>
                             <span class="text-muted small" id="detailItemCount">0 item</span>
                         </div>
                     </div>
@@ -896,8 +896,10 @@
             });
         });
 
+        const CURRENCY_SYMBOL = @json($setting->currency_symbol ?? 'Rp');
+
         function formatRupiah(number) {
-            return 'Rp ' + new Intl.NumberFormat('id-ID').format(number);
+            return CURRENCY_SYMBOL + ' ' + new Intl.NumberFormat('id-ID').format(number);
         }
 
         function updateBulkBar() {
@@ -1120,8 +1122,8 @@
                             <td class="ps-3 py-2 fw-semibold text-dark">${description}</td>
                             <td class="text-center py-2">${qty}</td>
                             <td class="text-center py-2"><span class="badge bg-light text-secondary border">${unit}</span></td>
-                            <td class="text-end py-2">Rp ${new Intl.NumberFormat('id-ID').format(price)}</td>
-                            <td class="text-end pe-3 py-2 fw-bold text-dark">Rp ${new Intl.NumberFormat('id-ID').format(subtotal)}</td>
+                            <td class="text-end py-2">${CURRENCY_SYMBOL} ${new Intl.NumberFormat('id-ID').format(price)}</td>
+                            <td class="text-end pe-3 py-2 fw-bold text-dark">${CURRENCY_SYMBOL} ${new Intl.NumberFormat('id-ID').format(subtotal)}</td>
                         </tr>
                     `;
                 });

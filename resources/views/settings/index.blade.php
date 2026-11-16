@@ -1,471 +1,479 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Header Page & Breadcrumb -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-    <div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-1">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none text-muted small">Ringkasan</a></li>
-                <li class="breadcrumb-item active small fw-semibold" aria-current="page">Pengaturan Sistem</li>
-            </ol>
-        </nav>
-        <h1 class="h3 fw-bold text-dark mb-0 tracking-tight">Pengaturan Mini ERP</h1>
-        <p class="text-muted small mb-0">Kelola identitas perusahaan, format nomor dokumen, perpajakan, pejabat penandatangan, dan template catatan penagihan.</p>
-    </div>
-</div>
+@php
+    // Penanda field bermasalah: kelas + pesan galat per field.
+    $inv = fn (string $f) => $errors->has($f) ? ' is-invalid' : '';
+    $fb  = fn (string $f) => $errors->has($f) ? '<div class="invalid-feedback">' . e($errors->first($f)) . '</div>' : '';
 
-<form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data">
-    @csrf
+    $sections = [
+        'company'   => 'Profil perusahaan',
+        'branding'  => 'Logo dan stempel',
+        'numbering' => 'Penomoran dokumen',
+        'finance'   => 'Pajak dan keuangan',
+        'signatory' => 'Penandatangan',
+        'notes'     => 'Catatan dokumen',
+    ];
+    // Field -> panel, untuk membuka panel yang berisi galat setelah validasi gagal.
+    $fieldPanel = [
+        'company_name' => 'company', 'company_npwp16' => 'company', 'company_nitku' => 'company', 'company_email' => 'company',
+        'company_phone' => 'company', 'company_city' => 'company', 'company_address' => 'company',
+        'company_logo' => 'branding', 'company_stamp' => 'branding',
+        'invoice_prefix' => 'numbering', 'po_prefix' => 'numbering', 'delivery_note_prefix' => 'numbering', 'kwitansi_prefix' => 'numbering',
+        'default_tax_rate' => 'finance', 'term_of_payment' => 'finance', 'currency_symbol' => 'finance', 'currency_code' => 'finance', 'company_bank_account' => 'finance',
+        'signatory_name' => 'signatory', 'signatory_position' => 'signatory', 'signatory_city' => 'signatory',
+        'invoice_footer_notes' => 'notes', 'receipt_footer_notes' => 'notes', 'delivery_note_footer_notes' => 'notes',
+    ];
+    $errorPanels = collect($errors->keys())->map(fn ($k) => $fieldPanel[$k] ?? null)->filter()->unique()->values();
+    $firstErrorPanel = $errorPanels->first();
 
-    <div class="card border-0 shadow-sm overflow-hidden mb-5">
-        
-        <!-- Tab Navigation Bar -->
-        <div class="card-header bg-white border-bottom p-0">
-            <ul class="nav nav-tabs nav-fill border-0 settings-nav-tabs" id="settingTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active py-3 px-3 fw-bold small text-start text-md-center" id="company-tab" data-bs-toggle="tab" data-bs-target="#tab-company" type="button" role="tab">
-                        <i class="fa-solid fa-building me-2 text-primary"></i> 1. Profil & Identitas
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link py-3 px-3 fw-bold small text-start text-md-center" id="numbering-tab" data-bs-toggle="tab" data-bs-target="#tab-numbering" type="button" role="tab">
-                        <i class="fa-solid fa-hashtag me-2 text-info"></i> 2. Penomoran Dokumen
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link py-3 px-3 fw-bold small text-start text-md-center" id="tax-tab" data-bs-toggle="tab" data-bs-target="#tab-tax" type="button" role="tab">
-                        <i class="fa-solid fa-receipt me-2 text-success"></i> 3. Pajak & Finansial
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link py-3 px-3 fw-bold small text-start text-md-center" id="signatory-tab" data-bs-toggle="tab" data-bs-target="#tab-signatory" type="button" role="tab">
-                        <i class="fa-solid fa-signature me-2 text-warning"></i> 4. Otorisasi & TTD
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link py-3 px-3 fw-bold small text-start text-md-center" id="notes-tab" data-bs-toggle="tab" data-bs-target="#tab-notes" type="button" role="tab">
-                        <i class="fa-solid fa-file-lines me-2 text-secondary"></i> 5. Catatan & Syarat
-                    </button>
-                </li>
+    $logoMissing  = $setting->company_logo && ! $setting->logoPath();
+    $stampMissing = $setting->company_stamp && ! $setting->stampPath();
+@endphp
+
+<div class="st-page">
+
+    <header class="st-head">
+        <div>
+            <h1>Pusat Konfigurasi Mini ERP</h1>
+            <p>Satu sumber data untuk identitas perusahaan, penomoran, pajak, dan tampilan dokumen cetak. Perubahan berlaku pada dokumen yang dibuat atau dicetak setelah disimpan.</p>
+        </div>
+    </header>
+
+    @if(session('success'))
+        <div class="alert alert-success d-flex justify-content-between align-items-start gap-3" role="status">
+            <span>{{ session('success') }}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger" role="alert" id="stErrors">
+            <strong>Pengaturan belum tersimpan. Periksa {{ $errors->count() }} isian berikut:</strong>
+            <ul class="mb-0 mt-1 ps-3">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
             </ul>
         </div>
+    @endif
 
-        <div class="card-body p-4 p-lg-5">
+    <form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data" id="settingsForm" novalidate>
+        @csrf
 
-            <!-- BLOK PESAN ERROR VALIDASI -->
-            @if ($errors->any())
-                <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger rounded-4 mb-4 p-4">
-                    <div class="d-flex align-items-start">
-                        <i class="fa-solid fa-triangle-exclamation fs-4 me-3 mt-1"></i>
-                        <div>
-                            <h6 class="fw-bold mb-1">Terdapat kesalahan pengisian formulir:</h6>
-                            <ul class="mb-0 ps-3 small">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    </div>
+        <div class="st-layout">
+
+            {{-- Navigasi seksi: kolom tetap di desktop, baris yang bisa digeser di layar sempit --}}
+            <nav class="st-nav" aria-label="Seksi pengaturan">
+                <div class="nav flex-lg-column" id="settingTabs" role="tablist" aria-orientation="vertical">
+                    @foreach($sections as $key => $label)
+                        <button type="button" role="tab"
+                                class="st-nav-item {{ ($firstErrorPanel ?? 'company') === $key ? 'active' : '' }} {{ $errorPanels->contains($key) ? 'has-error' : '' }}"
+                                id="tab-btn-{{ $key }}" data-bs-toggle="tab" data-bs-target="#panel-{{ $key }}"
+                                aria-controls="panel-{{ $key }}" aria-selected="{{ ($firstErrorPanel ?? 'company') === $key ? 'true' : 'false' }}">
+                            <span>{{ $label }}</span>
+                            @if($errorPanels->contains($key))<span class="st-nav-flag" title="Ada isian yang perlu diperbaiki">Perbaiki</span>@endif
+                        </button>
+                    @endforeach
                 </div>
-            @endif
+            </nav>
 
-            <!-- Tab Contents -->
-            <div class="tab-content" id="settingTabsContent">
-                
-                <!-- TAB 1: Detail & Profil Perusahaan -->
-                <div class="tab-pane fade show active" id="tab-company" role="tabpanel">
-                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3">
-                            <i class="fa-solid fa-building fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Identitas & Legalitas Usaha</h5>
-                            <small class="text-muted">Informasi resmi perusahaan yang tercantum pada seluruh dokumen transaksi dan laporan keuangan.</small>
-                        </div>
-                    </div>
+            <div class="st-main">
+                <div class="tab-content">
 
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Nama Resmi Perusahaan <span class="text-danger">*</span></label>
-                            <input type="text" name="company_name" class="form-control" value="{{ old('company_name', $setting->company_name ?? '') }}" required placeholder="Contoh: PT Sinar Abadi">
-                            <small class="text-muted font-xs">Nama entitas bisnis resmi yang akan dicetak di Kop Surat & Laporan.</small>
+                    {{-- 1. PROFIL --}}
+                    <section class="tab-pane fade {{ ($firstErrorPanel ?? 'company') === 'company' ? 'show active' : '' }}" id="panel-company" role="tabpanel" aria-labelledby="tab-btn-company" tabindex="0">
+                        <div class="st-panel-head">
+                            <h2>Profil perusahaan</h2>
+                            <p>Dicetak pada kop seluruh dokumen (Invoice, PO, Surat Jalan, Kwitansi) dan laporan PDF.</p>
                         </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-primary small">
-                                <i class="fa-solid fa-file-invoice me-1"></i> NPWP 16 Digit Penjual (Coretax DJP)
-                            </label>
-                            <input type="text" name="company_npwp16" class="form-control font-monospace fw-bold text-primary" maxlength="16" value="{{ old('company_npwp16', $setting->company_npwp16 ?? '') }}" placeholder="16 digit angka (misal: 0123456789012345)">
-                            <small class="text-muted font-xs">NPWP 16 digit format Coretax DJP terbaru.</small>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-primary small">
-                                <i class="fa-solid fa-building-circle-check me-1"></i> NITKU 22 Digit Penjual (Coretax DJP)
-                            </label>
-                            <input type="text" name="company_nitku" class="form-control font-monospace fw-bold text-primary" maxlength="22" value="{{ old('company_nitku', $setting->company_nitku ?? '') }}" placeholder="22 digit NITKU">
-                            <small class="text-muted font-xs">Isi sesuai NITKU resmi perusahaan.</small>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-dark small">Email Resmi Perusahaan</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-envelope"></i></span>
-                                <input type="email" name="company_email" class="form-control" value="{{ old('company_email', $setting->company_email ?? '') }}" placeholder="finance@perusahaan.com">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="company_name" class="form-label">Nama resmi perusahaan <span class="req" aria-hidden="true">*</span></label>
+                                <input type="text" id="company_name" name="company_name" class="form-control{{ $inv('company_name') }}" value="{{ old('company_name', $setting->company_name ?? '') }}" required aria-required="true" placeholder="Contoh: PT Sinar Abadi">
+                                {!! $fb('company_name') !!}
+                                <div class="form-text">Juga tampil di halaman login dan laporan keuangan.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="company_city" class="form-label">Kota kantor</label>
+                                <input type="text" id="company_city" name="company_city" class="form-control{{ $inv('company_city') }}" value="{{ old('company_city', $setting->company_city ?? '') }}" placeholder="Contoh: Jakarta">
+                                {!! $fb('company_city') !!}
+                                <div class="form-text">Cadangan kota tanda tangan bila kota penandatangan kosong.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="company_email" class="form-label">Email</label>
+                                <input type="email" id="company_email" name="company_email" class="form-control{{ $inv('company_email') }}" value="{{ old('company_email', $setting->company_email ?? '') }}" placeholder="finance@perusahaan.com" autocomplete="off">
+                                {!! $fb('company_email') !!}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="company_phone" class="form-label">Telepon / WhatsApp</label>
+                                <input type="text" id="company_phone" name="company_phone" class="form-control{{ $inv('company_phone') }}" value="{{ old('company_phone', $setting->company_phone ?? '') }}" placeholder="08123456789 / (022) 123456" inputmode="tel" autocomplete="off">
+                                {!! $fb('company_phone') !!}
+                            </div>
+                            <div class="col-12">
+                                <label for="company_address" class="form-label">Alamat lengkap</label>
+                                <textarea id="company_address" name="company_address" class="form-control{{ $inv('company_address') }}" rows="3" placeholder="Jalan, nomor, kecamatan, kota, kode pos">{{ old('company_address', $setting->company_address ?? '') }}</textarea>
+                                {!! $fb('company_address') !!}
                             </div>
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-dark small">Telepon / WhatsApp</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-phone"></i></span>
-                                <input type="text" name="company_phone" class="form-control" value="{{ old('company_phone', $setting->company_phone ?? '') }}" placeholder="08123456789 / (022) 123456">
+                        <div class="st-sub">
+                            <h3>Identitas pajak (Coretax DJP)</h3>
+                            <p>Dipakai pada ekspor faktur Coretax dan dicetak di Invoice, Surat Jalan, Kwitansi, serta laporan.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="company_npwp16" class="form-label">NPWP 16 Digit Penjual</label>
+                                <input type="text" id="company_npwp16" name="company_npwp16" class="form-control font-monospace{{ $inv('company_npwp16') }}" maxlength="16" inputmode="numeric" value="{{ old('company_npwp16', $setting->company_npwp16 ?? '') }}" placeholder="16 digit angka">
+                                {!! $fb('company_npwp16') !!}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="company_nitku" class="form-label">NITKU 22 digit</label>
+                                <input type="text" id="company_nitku" name="company_nitku" class="form-control font-monospace{{ $inv('company_nitku') }}" maxlength="22" inputmode="numeric" value="{{ old('company_nitku', $setting->company_nitku ?? '') }}" placeholder="22 digit NITKU">
+                                {!! $fb('company_nitku') !!}
+                                <div class="form-text">Bila dikosongkan, sistem memakai 22 digit nol.</div>
                             </div>
                         </div>
+                    </section>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Kota Domisili Kantor</label>
-                            <input type="text" name="company_city" class="form-control" value="{{ old('company_city', $setting->company_city ?? '') }}" placeholder="Contoh: Jakarta">
-                            <small class="text-muted font-xs">Digunakan otomatis sebagai kota penanggalan kwitansi dan surat resmi.</small>
+                    {{-- 2. LOGO & STEMPEL --}}
+                    <section class="tab-pane fade {{ $firstErrorPanel === 'branding' ? 'show active' : '' }}" id="panel-branding" role="tabpanel" aria-labelledby="tab-btn-branding" tabindex="0">
+                        <div class="st-panel-head">
+                            <h2>Logo dan stempel</h2>
+                            <p>Gambar PNG, JPG, atau WEBP, maksimal 2 MB. PNG transparan memberi hasil cetak terbaik. Tanpa file, dokumen tetap tercetak normal dengan nama perusahaan.</p>
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label fw-semibold text-dark small">Alamat Lengkap Kantor & Operasional</label>
-                            <textarea name="company_address" class="form-control" rows="3" placeholder="Masukkan alamat lengkap kantor, jalan, nomor, kecamatan, kota, dan kode pos...">{{ old('company_address', $setting->company_address ?? '') }}</textarea>
-                        </div>
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2 mt-5 mb-4 pb-2 border-bottom">
-                        <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3">
-                            <i class="fa-solid fa-image fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Logo & Cap Stempel Resmi</h5>
-                            <small class="text-muted">Logo perusahaan yang digunakan pada dokumen cetak.</small>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <!-- Upload Logo -->
-                        <div class="col-md-6">
-                            <div class="card h-100 bg-light border p-3">
-                                <label class="form-label fw-bold text-dark small mb-1">Logo Utama Perusahaan</label>
-                                <p class="text-muted font-xs mb-3">Format PNG/JPG transparan (Resolusi tinggi, maksimal 2MB).</p>
-                                <input type="file" name="company_logo" class="form-control bg-white" accept=".png, .jpg, .jpeg, .webp">
-                                
-                                @if($setting && $setting->company_logo)
-                                    <div class="mt-3 p-3 bg-white rounded-3 border d-flex align-items-center gap-3">
-                                        <img src="{{ asset('storage/' . $setting->company_logo) }}" alt="Logo" class="img-fluid" style="max-height: 50px; max-width: 140px; object-fit: contain;">
-                                        <div>
-                                            <span class="badge bg-success bg-opacity-10 text-success fw-bold font-xs">Logo Terpasang</span>
-                                            <small class="text-muted d-block font-xs mt-1">Muncul di Header PDF & Navbar</small>
-                                        </div>
+                        <div class="st-asset">
+                            <div class="st-asset-preview">
+                                @if($setting->company_logo && ! $logoMissing)
+                                    <img src="{{ asset('storage/' . $setting->company_logo) }}" alt="Logo perusahaan saat ini" width="140" height="50">
+                                @else
+                                    <span>Belum ada logo</span>
+                                @endif
+                            </div>
+                            <div class="st-asset-body">
+                                <label for="company_logo" class="form-label">Logo perusahaan</label>
+                                <input type="file" id="company_logo" name="company_logo" class="form-control{{ $inv('company_logo') }}" accept=".png,.jpg,.jpeg,.webp">
+                                {!! $fb('company_logo') !!}
+                                <div class="form-text">Tampil di navbar, halaman login, kop PDF dokumen, dan PDF laporan.</div>
+                                @if($logoMissing)
+                                    <div class="form-text text-danger">File logo yang tercatat tidak ditemukan di penyimpanan. Dokumen dicetak tanpa logo sampai logo diunggah ulang.</div>
+                                @endif
+                                @if($setting->company_logo)
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_company_logo" id="remove_company_logo" value="1">
+                                        <label class="form-check-label" for="remove_company_logo">Hapus logo saat ini</label>
                                     </div>
                                 @endif
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- TAB 2: Penomoran Dokumen Otomatis -->
-                <div class="tab-pane fade" id="tab-numbering" role="tabpanel">
-                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                        <div class="bg-info bg-opacity-10 text-info p-2 rounded-3">
-                            <i class="fa-solid fa-hashtag fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Format & Monitoring Penomoran Dokumen</h5>
-                            <small class="text-muted">Sistem secara cerdas membuat nomor urut berurutan secara otomatis berdasarkan kode prefix yang Anda tetapkan.</small>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Prefix Penjualan <span class="text-danger">*</span></label>
-                            <input type="text" name="invoice_prefix" class="form-control fw-bold font-monospace text-primary" value="{{ old('invoice_prefix', $setting->invoice_prefix ?? 'INV') }}" required placeholder="INV">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>{{ $setting->invoice_prefix ?: 'INV' }}</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Prefix PO <span class="text-danger">*</span></label>
-                            <input type="text" name="po_prefix" class="form-control fw-bold font-monospace text-info" value="{{ old('po_prefix', $setting->po_prefix ?? 'PO') }}" required placeholder="PO">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>PO</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Prefix Surat Jalan (Delivery Note)</label>
-                            <input type="text" name="delivery_note_prefix" class="form-control fw-bold font-monospace text-dark" value="{{ old('delivery_note_prefix', $setting->delivery_note_prefix ?? 'SJ') }}" placeholder="SJ">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>{{ $setting->delivery_note_prefix ?: 'SJ' }}</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold text-dark small">Prefix Kwitansi Pembayaran</label>
-                            <input type="text" name="kwitansi_prefix" class="form-control fw-bold font-monospace text-dark" value="{{ old('kwitansi_prefix', $setting->kwitansi_prefix ?? 'KWT') }}" placeholder="KWT">
-                            <small class="text-muted font-xs">Contoh: <code>001/<strong>{{ $setting->kwitansi_prefix ?: 'KWT' }}</strong>/{{ $romanMonth }}/{{ $currentYear }}</code></small>
-                        </div>
-                    </div>
-
-                    <!-- Live Monitoring Box -->
-                    <div class="row g-4 mt-2">
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-light rounded-3 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="fw-bold text-success"><i class="fa-solid fa-file-invoice me-1"></i> MONITORING INVOICE</span>
-                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold font-xs">Auto Sequence</span>
-                                </div>
-                                <div class="p-3 bg-white rounded-3 border">
-                                    <span class="text-muted d-block font-xs">Invoice Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
-                                    <strong class="text-dark fs-6 font-monospace">{{ $lastInvoice->document_number ?? 'Belum ada transaksi bulan ini' }}</strong>
-                                </div>
+                        <div class="st-asset">
+                            <div class="st-asset-preview">
+                                @if($setting->company_stamp && ! $stampMissing)
+                                    <img src="{{ asset('storage/' . $setting->company_stamp) }}" alt="Stempel perusahaan saat ini" width="90" height="65">
+                                @else
+                                    <span>Belum ada stempel</span>
+                                @endif
                             </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-light rounded-3 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="fw-bold text-info"><i class="fa-solid fa-cart-shopping me-1"></i> MONITORING PO</span>
-                                    <span class="badge bg-info bg-opacity-10 text-info fw-bold font-xs">Auto Sequence</span>
-                                </div>
-                                <div class="p-3 bg-white rounded-3 border">
-                                    <span class="text-muted d-block font-xs">PO Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
-                                    <strong class="text-dark fs-6 font-monospace">{{ $lastPO->document_number ?? 'Belum ada transaksi bulan ini' }}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-light rounded-3 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="fw-bold text-warning"><i class="fa-solid fa-truck-fast me-1"></i> MONITORING SURAT JALAN</span>
-                                    <span class="badge bg-warning bg-opacity-10 text-dark fw-bold font-xs">Auto Sequence</span>
-                                </div>
-                                <div class="p-3 bg-white rounded-3 border">
-                                    <span class="text-muted d-block font-xs">Surat Jalan Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
-                                    <strong class="text-dark fs-6 font-monospace">{{ $lastDeliveryNote->delivery_note_number ?? 'Belum ada transaksi bulan ini' }}</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-0 bg-light rounded-3 p-4 h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="fw-bold text-secondary"><i class="fa-solid fa-receipt me-1"></i> MONITORING KWITANSI</span>
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold font-xs">Auto Sequence</span>
-                                </div>
-                                <div class="p-3 bg-white rounded-3 border">
-                                    <span class="text-muted d-block font-xs">Kwitansi Terakhir Bulan Ini ({{ $romanMonth }}/{{ $currentYear }}):</span>
-                                    <strong class="text-dark fs-6 font-monospace">{{ $lastReceipt->receipt_number ?? 'Belum ada transaksi bulan ini' }}</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert bg-primary bg-opacity-10 border-0 rounded-3 mt-4 p-3 d-flex align-items-center">
-                        <i class="fa-solid fa-circle-info text-primary fs-5 me-3"></i>
-                        <div class="small">
-                            <strong>Aturan Siklus Penomoran Otomatis:</strong> Penomoran dokumen akan otomatis di-reset ke <code>001</code> pada awal setiap pergantian bulan kalender baru dengan format angka Romawi.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 3: Pajak & Finansial -->
-                <div class="tab-pane fade" id="tab-tax" role="tabpanel">
-                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                        <div class="bg-success bg-opacity-10 text-success p-2 rounded-3">
-                            <i class="fa-solid fa-receipt fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Perpajakan & Parameter Finansial</h5>
-                            <small class="text-muted">Konfigurasi tarif PPN, mata uang default, masa jatuh tempo, dan rekening bank penagihan.</small>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-dark small">Tarif Default PPN (%) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" step="0.01" name="default_tax_rate" class="form-control fw-bold text-success" value="{{ old('default_tax_rate', $setting->default_tax_rate ?? 11) }}" required min="0" max="100">
-                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                            </div>
-                            <small class="text-muted font-xs">Tarif standar PPN (11% atau 12% sesuai regulasi DJP).</small>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-dark small">Masa Jatuh Tempo (Term of Payment)</label>
-                            <div class="input-group">
-                                <input type="number" name="term_of_payment" class="form-control fw-bold text-primary" value="{{ old('term_of_payment', $setting->term_of_payment ?? 30) }}" min="0">
-                                <span class="input-group-text bg-light text-muted fw-bold">Hari</span>
-                            </div>
-                            <small class="text-muted font-xs">Menentukan otomatis tanggal <em>Due Date</em> pada invoice.</small>
-                        </div>
-
-                        <div class="col-md-2">
-                            <label class="form-label fw-semibold text-dark small">Simbol Mata Uang</label>
-                            <input type="text" name="currency_symbol" class="form-control font-monospace fw-bold" value="{{ old('currency_symbol', $setting->currency_symbol ?? 'Rp') }}" placeholder="Rp">
-                        </div>
-
-                        <div class="col-md-2">
-                            <label class="form-label fw-semibold text-dark small">Kode Mata Uang</label>
-                            <input type="text" name="currency_code" class="form-control font-monospace fw-bold" value="{{ old('currency_code', $setting->currency_code ?? 'IDR') }}" placeholder="IDR">
-                        </div>
-
-                        <div class="col-12">
-                            <div class="form-check form-switch p-3 bg-light rounded-3 border">
-                                <input class="form-check-input ms-0 me-3" type="checkbox" name="enable_tax" id="enable_tax" value="1" {{ old('enable_tax', $setting->enable_tax ?? true) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-bold text-dark" for="enable_tax">
-                                    Aktifkan Perhitungan Pajak PPN Otomatis pada Faktur Baru
-                                </label>
-                                <small class="text-muted d-block mt-1">Jika dinonaktifkan, pembuatan dokumen faktur baru akan dihitung tanpa PPN (0%).</small>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold text-dark small">Informasi Rekening Bank & Petunjuk Transfer (Untuk Invoice)</label>
-                            <textarea name="company_bank_account" class="form-control" rows="3" placeholder="Contoh:&#10;Bank: [Nama Bank]&#10;No. Rekening: [Nomor Rekening]&#10;Atas nama: [Nama Pemilik Rekening]">{{ old('company_bank_account', $setting->company_bank_account ?? '') }}</textarea>
-                            <small class="text-muted font-xs">Instruksi ini akan dicetak di kotak <strong>Catatan Pembayaran</strong> pada PDF Invoice.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 4: Otorisasi & Pejabat Penandatangan -->
-                <div class="tab-pane fade" id="tab-signatory" role="tabpanel">
-                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                        <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3">
-                            <i class="fa-solid fa-signature fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Pejabat Penandatangan & Otorisasi Dokumen</h5>
-                            <small class="text-muted">Data pimpinan atau manajer yang namanya dicetak pada kolom pengesahan dokumen resmi.</small>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-md-5">
-                            <label class="form-label fw-semibold text-dark small">Nama Lengkap Pejabat Penandatangan</label>
-                            <input type="text" name="signatory_name" class="form-control fw-bold" value="{{ old('signatory_name', $setting->signatory_name ?? '') }}" placeholder="Nama lengkap pejabat">
-                            <small class="text-muted font-xs">Nama terang yang tertera di atas kolom tanda tangan.</small>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold text-dark small">Jabatan Resmi</label>
-                            <input type="text" name="signatory_position" class="form-control" value="{{ old('signatory_position', $setting->signatory_position ?? '') }}" placeholder="Contoh: Direktur / Manajer Keuangan">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold text-dark small">Kota Tanda Tangan</label>
-                            <input type="text" name="signatory_city" class="form-control" value="{{ old('signatory_city', $setting->signatory_city ?? '') }}" placeholder="Contoh: Jakarta">
-                        </div>
-
-                        <div class="col-12">
-                            <div class="card border rounded-3 p-4">
-                                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-stamp text-primary me-2"></i> Stempel Perusahaan pada Dokumen Cetak</h6>
-                                <p class="text-muted small">Unggah file stempel satu kali, lalu pilih pada dokumen mana stempel akan dicetak. Status awal: Invoice dan Surat Jalan aktif; Kwitansi nonaktif.</p>
-                                <div class="row g-3 align-items-center mb-3">
-                                    <div class="col-md-7">
-                                        <label class="form-label fw-semibold text-dark small">File Stempel</label>
-                                        <input type="file" name="company_stamp" class="form-control" accept=".png,.jpg,.jpeg,.webp">
-                                        <small class="text-muted">PNG transparan disarankan; maksimal 2MB.</small>
+                            <div class="st-asset-body">
+                                <label for="company_stamp" class="form-label">Stempel Perusahaan</label>
+                                <input type="file" id="company_stamp" name="company_stamp" class="form-control{{ $inv('company_stamp') }}" accept=".png,.jpg,.jpeg,.webp">
+                                {!! $fb('company_stamp') !!}
+                                <div class="form-text">Unggah satu kali, lalu pilih dokumen yang mencetaknya. PO tidak memakai stempel.</div>
+                                @if($stampMissing)
+                                    <div class="form-text text-danger">File stempel yang tercatat tidak ditemukan di penyimpanan.</div>
+                                @endif
+                                @if($setting->company_stamp)
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_company_stamp" id="remove_company_stamp" value="1">
+                                        <label class="form-check-label" for="remove_company_stamp">Hapus stempel saat ini</label>
                                     </div>
-                                    <div class="col-md-5">
-                                        @if($setting && $setting->company_stamp)
-                                            <div class="p-2 bg-light rounded-3 d-flex align-items-center gap-3">
-                                                <img src="{{ asset('storage/' . $setting->company_stamp) }}" alt="Pratinjau stempel perusahaan" style="max-width: 90px; max-height: 65px; object-fit: contain;">
-                                                <span class="badge bg-success bg-opacity-10 text-success">Stempel tersimpan</span>
-                                            </div>
-                                        @else
-                                            <span class="text-muted small">Belum ada file stempel.</span>
-                                        @endif
+                                @endif
+                            </div>
+                        </div>
+
+                        <fieldset class="st-sub">
+                            <legend>Cetak stempel pada</legend>
+                            <div class="st-toggles">
+                                @foreach([
+                                    ['stamp_invoice_enabled', 'stamp-invoice', 'Invoice', true],
+                                    ['stamp_delivery_note_enabled', 'stamp-delivery-note', 'Surat Jalan', true],
+                                    ['stamp_receipt_enabled', 'stamp-receipt', 'Kwitansi', false],
+                                ] as [$field, $id, $label, $default])
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" name="{{ $field }}" id="{{ $id }}" value="1" {{ old($field, $setting->{$field} ?? $default) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="{{ $id }}">{{ $label }}</label>
                                     </div>
-                                </div>
-                                <div class="row g-3">
+                                @endforeach
+                            </div>
+                        </fieldset>
+                    </section>
+
+                    {{-- 3. PENOMORAN --}}
+                    <section class="tab-pane fade {{ $firstErrorPanel === 'numbering' ? 'show active' : '' }}" id="panel-numbering" role="tabpanel" aria-labelledby="tab-btn-numbering" tabindex="0">
+                        <div class="st-panel-head">
+                            <h2>Penomoran dokumen</h2>
+                            <p>Format nomor: <span class="font-monospace">urut/PREFIX/bulan romawi/tahun</span>. Urutan kembali ke 001 setiap pergantian bulan. Mengganti prefix memulai urutan baru untuk prefix tersebut; nomor lama tidak berubah.</p>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="st-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Dokumen</th>
+                                        <th scope="col" style="width: 190px;">Prefix</th>
+                                        <th scope="col">Contoh nomor</th>
+                                        <th scope="col">Terakhir bulan ini ({{ $romanMonth }}/{{ $currentYear }})</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                     @foreach([
-                                        ['stamp_invoice_enabled', 'stamp-invoice', 'Invoice', true],
-                                        ['stamp_delivery_note_enabled', 'stamp-delivery-note', 'Surat Jalan', true],
-                                        ['stamp_receipt_enabled', 'stamp-receipt', 'Kwitansi', false],
-                                    ] as [$field, $id, $label, $default])
-                                        <div class="col-md-4">
-                                            <div class="form-check form-switch p-3 bg-light rounded-3 border">
-                                                <input class="form-check-input ms-0 me-2" type="checkbox" name="{{ $field }}" id="{{ $id }}" value="1" {{ old($field, $setting->{$field} ?? $default) ? 'checked' : '' }}>
-                                                <label class="form-check-label fw-semibold" for="{{ $id }}">Cetak stempel pada {{ $label }}</label>
-                                            </div>
-                                        </div>
+                                        ['invoice_prefix', 'Invoice', 'INV', true,  $lastInvoice?->document_number],
+                                        ['po_prefix', 'Purchase Order', 'PO', true, $lastPO?->document_number],
+                                        ['delivery_note_prefix', 'Surat Jalan', 'SJ', false, $lastDeliveryNote?->delivery_note_number],
+                                        ['kwitansi_prefix', 'Kwitansi', 'KWT', false, $lastReceipt?->receipt_number],
+                                    ] as [$field, $label, $fallback, $required, $last])
+                                        <tr>
+                                            <td><label for="{{ $field }}" class="mb-0">{{ $label }} @if($required)<span class="req" aria-hidden="true">*</span>@endif</label></td>
+                                            <td>
+                                                <input type="text" id="{{ $field }}" name="{{ $field }}" class="form-control form-control-sm font-monospace{{ $inv($field) }}" value="{{ old($field, $setting->{$field} ?? $fallback) }}" @if($required) required aria-required="true" @endif placeholder="{{ $fallback }}" data-prefix-input data-fallback="{{ $fallback }}">
+                                                {!! $fb($field) !!}
+                                            </td>
+                                            <td class="font-monospace small">001/<span data-prefix-example="{{ $field }}">{{ old($field, $setting->{$field} ?? $fallback) ?: $fallback }}</span>/{{ $romanMonth }}/{{ $currentYear }}</td>
+                                            <td class="font-monospace small">{{ $last ?? 'Belum ada bulan ini' }}</td>
+                                        </tr>
                                     @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    {{-- 4. PAJAK & KEUANGAN --}}
+                    <section class="tab-pane fade {{ $firstErrorPanel === 'finance' ? 'show active' : '' }}" id="panel-finance" role="tabpanel" aria-labelledby="tab-btn-finance" tabindex="0">
+                        <div class="st-panel-head">
+                            <h2>Pajak dan keuangan</h2>
+                            <p>Berlaku untuk dokumen baru. Invoice dan Kwitansi yang sudah dibuat tetap memakai total yang tersimpan, jadi perubahan tarif tidak mengubah dokumen lama.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-lg-4">
+                                <label for="default_tax_rate" class="form-label">Tarif PPN <span class="req" aria-hidden="true">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" id="default_tax_rate" name="default_tax_rate" class="form-control{{ $inv('default_tax_rate') }}" value="{{ old('default_tax_rate', $setting->default_tax_rate ?? 11) }}" required aria-required="true" min="0" max="100">
+                                    <span class="input-group-text">%</span>
+                                    {!! $fb('default_tax_rate') !!}
+                                </div>
+                                <div class="form-text">Dipakai pada form Invoice dan ekspor Coretax.</div>
+                            </div>
+                            <div class="col-sm-6 col-lg-4">
+                                <label for="term_of_payment" class="form-label">Jatuh tempo (term of payment)</label>
+                                <div class="input-group">
+                                    <input type="number" id="term_of_payment" name="term_of_payment" class="form-control{{ $inv('term_of_payment') }}" value="{{ old('term_of_payment', $setting->term_of_payment ?? 30) }}" min="0">
+                                    <span class="input-group-text">hari</span>
+                                    {!! $fb('term_of_payment') !!}
+                                </div>
+                                <div class="form-text">Tanggal jatuh tempo pada PDF Invoice dihitung dari tanggal invoice.</div>
+                            </div>
+                            <div class="col-sm-6 col-lg-2">
+                                <label for="currency_symbol" class="form-label">Simbol mata uang</label>
+                                <input type="text" id="currency_symbol" name="currency_symbol" class="form-control font-monospace{{ $inv('currency_symbol') }}" value="{{ old('currency_symbol', $setting->currency_symbol ?? 'Rp') }}" placeholder="Rp">
+                                {!! $fb('currency_symbol') !!}
+                            </div>
+                            <div class="col-sm-6 col-lg-2">
+                                <label for="currency_code" class="form-label">Kode</label>
+                                <input type="text" id="currency_code" name="currency_code" class="form-control font-monospace{{ $inv('currency_code') }}" value="{{ old('currency_code', $setting->currency_code ?? 'IDR') }}" placeholder="IDR">
+                                {!! $fb('currency_code') !!}
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch st-switch-row">
+                                    <input class="form-check-input" type="checkbox" role="switch" name="enable_tax" id="enable_tax" value="1" {{ old('enable_tax', $setting->enable_tax ?? true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="enable_tax">
+                                        Hitung PPN otomatis pada dokumen baru
+                                        <span class="d-block form-text mt-0">Bila nonaktif, dokumen baru dihitung tanpa PPN (0%).</span>
+                                    </label>
                                 </div>
                             </div>
-                            <div class="card bg-light border-0 rounded-3 p-4 mt-3">
-                                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> Integrasi Tanda Tangan Otomatis</h6>
-                                <p class="text-muted small mb-0">
-                                    PDF Invoice, Kwitansi, dan Surat Jalan menggunakan nama, jabatan, dan kota tanda tangan yang Anda isi di atas. PO tidak menampilkan stempel perusahaan.
-                                </p>
+                            <div class="col-12">
+                                <label for="company_bank_account" class="form-label">Rekening bank dan petunjuk transfer</label>
+                                <textarea id="company_bank_account" name="company_bank_account" class="form-control{{ $inv('company_bank_account') }}" rows="3" placeholder="Bank: [Nama Bank]&#10;No. Rekening: [Nomor Rekening]&#10;Atas nama: [Nama Pemilik Rekening]">{{ old('company_bank_account', $setting->company_bank_account ?? '') }}</textarea>
+                                {!! $fb('company_bank_account') !!}
+                                <div class="form-text">Dicetak pada kotak Catatan Pembayaran di PDF Invoice.</div>
                             </div>
                         </div>
-                    </div>
+                    </section>
+
+                    {{-- 5. PENANDATANGAN --}}
+                    <section class="tab-pane fade {{ $firstErrorPanel === 'signatory' ? 'show active' : '' }}" id="panel-signatory" role="tabpanel" aria-labelledby="tab-btn-signatory" tabindex="0">
+                        <div class="st-panel-head">
+                            <h2>Penandatangan</h2>
+                            <p>Dicetak pada kolom pengesahan Invoice, PO, Surat Jalan, Kwitansi, dan lampiran laporan PDF. Bila kosong, kolom nama dibiarkan untuk diisi manual atau memakai teks bawaan dokumen.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label for="signatory_name" class="form-label">Nama pejabat</label>
+                                <input type="text" id="signatory_name" name="signatory_name" class="form-control{{ $inv('signatory_name') }}" value="{{ old('signatory_name', $setting->signatory_name ?? '') }}" placeholder="Nama lengkap pejabat">
+                                {!! $fb('signatory_name') !!}
+                            </div>
+                            <div class="col-md-4">
+                                <label for="signatory_position" class="form-label">Jabatan</label>
+                                <input type="text" id="signatory_position" name="signatory_position" class="form-control{{ $inv('signatory_position') }}" value="{{ old('signatory_position', $setting->signatory_position ?? '') }}" placeholder="Contoh: Direktur / Manajer Keuangan">
+                                {!! $fb('signatory_position') !!}
+                            </div>
+                            <div class="col-md-3">
+                                <label for="signatory_city" class="form-label">Kota tanda tangan</label>
+                                <input type="text" id="signatory_city" name="signatory_city" class="form-control{{ $inv('signatory_city') }}" value="{{ old('signatory_city', $setting->signatory_city ?? '') }}" placeholder="Contoh: Jakarta">
+                                {!! $fb('signatory_city') !!}
+                            </div>
+                        </div>
+                    </section>
+
+                    {{-- 6. CATATAN --}}
+                    <section class="tab-pane fade {{ $firstErrorPanel === 'notes' ? 'show active' : '' }}" id="panel-notes" role="tabpanel" aria-labelledby="tab-btn-notes" tabindex="0">
+                        <div class="st-panel-head">
+                            <h2>Catatan dokumen</h2>
+                            <p>Teks baku yang menyertai dokumen. Bedanya: catatan Invoice dan Surat Jalan dicetak langsung dari sini, sedangkan keterangan Kwitansi disalin ke Invoice baru saat dibuat.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="invoice_footer_notes" class="form-label">Catatan footer Invoice</label>
+                                <textarea id="invoice_footer_notes" name="invoice_footer_notes" class="form-control{{ $inv('invoice_footer_notes') }}" rows="3" placeholder="Contoh: Barang yang sudah dibeli tidak dapat dikembalikan. Pembayaran dianggap sah jika bukti transfer telah dikonfirmasi.">{{ old('invoice_footer_notes', $setting->invoice_footer_notes ?? '') }}</textarea>
+                                {!! $fb('invoice_footer_notes') !!}
+                                <div class="form-text">Dicetak di PDF Invoice.</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="receipt_footer_notes" class="form-label">Keterangan Kwitansi</label>
+                                <textarea id="receipt_footer_notes" name="receipt_footer_notes" class="form-control{{ $inv('receipt_footer_notes') }}" rows="2" placeholder="Contoh: Pembayaran Pelunasan Tagihan Dokumen Invoice">{{ old('receipt_footer_notes', $setting->receipt_footer_notes ?? '') }}</textarea>
+                                {!! $fb('receipt_footer_notes') !!}
+                                <div class="form-text">Diisi otomatis sebagai catatan pembayaran pada Invoice baru, lalu tampil di Kwitansi.</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="delivery_note_footer_notes" class="form-label">Catatan Surat Jalan</label>
+                                <textarea id="delivery_note_footer_notes" name="delivery_note_footer_notes" class="form-control{{ $inv('delivery_note_footer_notes') }}" rows="2" placeholder="Contoh: Mohon periksa kembali kelengkapan barang sebelum menandatangani bukti penerimaan ini.">{{ old('delivery_note_footer_notes', $setting->delivery_note_footer_notes ?? '') }}</textarea>
+                                {!! $fb('delivery_note_footer_notes') !!}
+                                <div class="form-text">Dicetak di PDF Surat Jalan.</div>
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
 
-                <!-- TAB 5: Syarat Ketentuan & Catatan Standar -->
-                <div class="tab-pane fade" id="tab-notes" role="tabpanel">
-                    <div class="d-flex align-items-center gap-2 mb-4 pb-2 border-bottom">
-                        <div class="bg-secondary bg-opacity-10 text-secondary p-2 rounded-3">
-                            <i class="fa-solid fa-file-lines fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Template Catatan & Syarat Ketentuan Standar</h5>
-                            <small class="text-muted">Teks baku yang otomatis diisi ketika membuat invoice, kwitansi, atau surat jalan baru.</small>
-                        </div>
-                    </div>
-
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <label class="form-label fw-semibold text-dark small">Catatan Default Footer Invoice</label>
-                            <textarea name="invoice_footer_notes" class="form-control" rows="2" placeholder="Contoh: Barang yang sudah dibeli tidak dapat dikembalikan. Pembayaran dianggap sah jika bukti transfer telah dikonfirmasi.">{{ old('invoice_footer_notes', $setting->invoice_footer_notes ?? '') }}</textarea>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold text-dark small">Keterangan Default Kwitansi Pembayaran</label>
-                            <textarea name="receipt_footer_notes" class="form-control" rows="2" placeholder="Contoh: Pembayaran Pelunasan Tagihan Dokumen Invoice">{{ old('receipt_footer_notes', $setting->receipt_footer_notes ?? '') }}</textarea>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold text-dark small">Catatan Default Surat Jalan</label>
-                            <textarea name="delivery_note_footer_notes" class="form-control" rows="2" placeholder="Contoh: Mohon periksa kembali kelengkapan barang sebelum menandatangani bukti penerimaan ini.">{{ old('delivery_note_footer_notes', $setting->delivery_note_footer_notes ?? '') }}</textarea>
-                        </div>
-                    </div>
+                {{-- Bilah simpan: selalu terjangkau; satu tombol menyimpan semua seksi --}}
+                <div class="st-savebar">
+                    <span class="st-savebar-note"><span class="req" aria-hidden="true">*</span> wajib diisi. Satu tombol menyimpan semua seksi.</span>
+                    <button type="submit" class="btn btn-primary" id="settingsSubmit">
+                        <span class="erp-spinner" aria-hidden="true"></span>Simpan pengaturan
+                    </button>
                 </div>
-
-            </div>
-
-            <!-- Sticky/Action Footer -->
-            <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center">
-                <span class="text-muted font-xs">
-                    <i class="fa-solid fa-shield-halved text-success me-1"></i> Seluruh konfigurasi tersimpan aman di basis data ERP
-                </span>
-                <button type="submit" class="btn btn-primary px-4 py-2.5 shadow-sm fw-bold">
-                    <i class="fa-solid fa-floppy-disk me-1.5"></i> Simpan Semua Konfigurasi
-                </button>
             </div>
         </div>
-    </div>
-</form>
+    </form>
+</div>
 @endsection
 
-@push('scripts')
+@push('styles')
 <style>
-    .settings-nav-tabs .nav-link {
-        color: #64748b;
-        border: none;
-        border-bottom: 2px solid transparent;
-        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    /* Token --erp-* dari erp.css. Satu aksen biru; merah hanya untuk galat. */
+    .st-page { color: var(--erp-text); }
+    .st-head { margin-bottom: 1rem; }
+    .st-head h1 { font-size: clamp(1.3rem, 1.1rem + .8vw, 1.65rem); font-weight: 700; letter-spacing: -.03em; margin: 0 0 .2rem; }
+    .st-head p { margin: 0; font-size: .86rem; color: var(--erp-text-3); max-width: 72ch; }
+
+    .st-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+
+    .st-nav { position: sticky; top: 92px; }
+    .st-nav .nav { gap: .15rem; }
+    .st-nav-item { appearance: none; background: transparent; border: 0; text-align: left; font: inherit; font-size: .86rem; font-weight: 600; color: var(--erp-text-2); padding: .55rem .75rem; min-height: 40px; border-radius: var(--erp-radius-sm); display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-left: 3px solid transparent; transition: background-color .15s ease, color .15s ease; }
+    .st-nav-item:hover { background: var(--erp-surface); color: var(--erp-ink); }
+    .st-nav-item.active { background: var(--erp-primary-soft); color: var(--erp-primary-hover); border-left-color: var(--erp-primary); }
+    .st-nav-item:focus-visible { outline: 2px solid var(--erp-primary); outline-offset: 2px; }
+    .st-nav-flag { font-size: .7rem; font-weight: 700; color: var(--erp-danger); background: var(--erp-danger-soft); border-radius: 5px; padding: .05rem .4rem; }
+
+    .st-main { background: var(--erp-surface); border: 1px solid var(--erp-line); border-radius: var(--erp-radius); min-width: 0; overflow: hidden; }
+    .tab-pane { padding: 1.25rem 1.35rem 1.5rem; }
+    .st-panel-head { margin-bottom: 1.1rem; padding-bottom: .8rem; border-bottom: 1px solid var(--erp-line); }
+    .st-panel-head h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 .2rem; }
+    .st-panel-head p, .st-sub p { margin: 0; font-size: .84rem; color: var(--erp-text-3); max-width: 78ch; }
+    .st-sub { margin-top: 1.6rem; margin-bottom: .85rem; padding: 0; border: 0; }
+    .st-sub h3, .st-sub legend { font-size: .92rem; font-weight: 700; color: var(--erp-ink); margin: 0 0 .2rem; float: none; width: auto; }
+
+    .req { color: var(--erp-danger); font-weight: 700; }
+    .st-page .form-label { font-size: .8rem; font-weight: 600; color: var(--erp-text); margin-bottom: .3rem; }
+    .st-page .form-text { margin-top: .3rem; font-size: .76rem; color: var(--erp-text-3); }
+    .st-page .form-text.text-danger { color: var(--erp-danger) !important; }
+
+    .st-asset { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--erp-line); }
+    .st-asset:first-of-type { border-top: 0; padding-top: 0; }
+    .st-asset-preview { display: grid; place-items: center; min-height: 84px; border: 1px dashed var(--erp-line-strong); border-radius: var(--erp-radius-sm); background: var(--erp-surface-2); padding: .5rem; font-size: .78rem; color: var(--erp-text-3); text-align: center; }
+    .st-asset-preview img { max-width: 100%; max-height: 64px; object-fit: contain; }
+
+    .st-toggles { display: flex; flex-wrap: wrap; gap: .6rem 1.75rem; margin-top: .6rem; }
+    .st-toggles .form-check { margin: 0; min-height: 40px; display: flex; align-items: center; gap: .6rem; padding-left: 0; }
+    .st-toggles .form-check-input, .st-switch-row .form-check-input { margin: 0; float: none; flex-shrink: 0; }
+    .st-switch-row { display: flex; align-items: flex-start; gap: .7rem; padding: .75rem .9rem; background: var(--erp-surface-2); border: 1px solid var(--erp-line); border-radius: var(--erp-radius-sm); margin: 0; }
+    .st-switch-row .form-check-input { margin-top: .2rem; }
+    .st-switch-row .form-check-label { font-weight: 600; font-size: .86rem; }
+
+    .st-table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: .85rem; }
+    .st-table thead th { background: var(--erp-surface-2); color: var(--erp-text-3); font-size: .72rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: .6rem .8rem; text-align: left; border-bottom: 1px solid var(--erp-line-strong); white-space: nowrap; }
+    .st-table tbody td { padding: .65rem .8rem; border-bottom: 1px solid var(--erp-line); vertical-align: middle; }
+    .st-table tbody tr:last-child td { border-bottom: 0; }
+    .st-table label { font-weight: 600; color: var(--erp-ink); }
+
+    .st-savebar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; padding: .8rem 1.35rem; background: var(--erp-surface); border-top: 1px solid var(--erp-line-strong); }
+    .st-savebar-note { font-size: .8rem; color: var(--erp-text-3); }
+
+    @media (max-width: 991.98px) {
+        .st-layout { grid-template-columns: minmax(0, 1fr); gap: .9rem; }
+        .st-nav { position: static; margin: 0 -.15rem; }
+        .st-nav .nav { flex-wrap: nowrap; overflow-x: auto; gap: .25rem; padding-bottom: .25rem; scrollbar-width: thin; }
+        .st-nav-item { flex: 0 0 auto; white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent; min-height: 44px; background: var(--erp-surface); border: 1px solid var(--erp-line); }
+        .st-nav-item.active { border-color: var(--erp-primary); }
     }
-    .settings-nav-tabs .nav-link:hover {
-        color: #1e40af;
-        background-color: #f8fafc;
-    }
-    .settings-nav-tabs .nav-link.active {
-        color: #1e40af !important;
-        border-bottom: 2px solid #1e40af !important;
-        background-color: transparent !important;
-    }
-    .font-xs {
-        font-size: 0.775rem;
+    @media (max-width: 575.98px) {
+        .tab-pane { padding: 1rem .95rem 1.25rem; }
+        .st-asset { grid-template-columns: minmax(0, 1fr); }
+        .st-savebar { padding: .75rem .95rem; }
+        .st-savebar .btn { width: 100%; }
+        .st-toggles { flex-direction: column; gap: .25rem; }
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    (function () {
+        // Pratinjau contoh nomor mengikuti prefix yang sedang diketik.
+        document.querySelectorAll('[data-prefix-input]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                var target = document.querySelector('[data-prefix-example="' + input.name + '"]');
+                if (target) target.textContent = input.value.trim() || input.dataset.fallback;
+            });
+        });
+
+        // Ingat seksi aktif lewat hash, kecuali ada galat (seksi galat sudah dibuka server).
+        var hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+        if (!hasErrors && location.hash.indexOf('#panel-') === 0) {
+            var btn = document.querySelector('[data-bs-target="' + location.hash + '"]');
+            if (btn && window.bootstrap) bootstrap.Tab.getOrCreateInstance(btn).show();
+        }
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function (btn) {
+            btn.addEventListener('shown.bs.tab', function (e) {
+                history.replaceState(null, '', e.target.getAttribute('data-bs-target'));
+            });
+        });
+
+        // Validasi klien ringan: seksi yang berisi field wajib kosong dibuka dan difokuskan.
+        document.getElementById('settingsForm').addEventListener('submit', function (e) {
+            var invalid = this.querySelector('[required]:invalid');
+            if (!invalid) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            var pane = invalid.closest('.tab-pane');
+            var btn = pane && document.querySelector('[data-bs-target="#' + pane.id + '"]');
+            if (btn && window.bootstrap) bootstrap.Tab.getOrCreateInstance(btn).show();
+            invalid.classList.add('is-invalid');
+            setTimeout(function () { invalid.focus(); invalid.reportValidity(); }, 150);
+        }, true);
+    })();
+</script>
 @endpush

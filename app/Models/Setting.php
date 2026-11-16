@@ -89,6 +89,33 @@ class Setting extends Model
     }
 
     /**
+     * Path absolut file logo untuk dokumen cetak, atau null bila belum diunggah / file hilang.
+     * Satu sumber untuk seluruh PDF supaya dokumen tidak pecah saat logo belum ada.
+     */
+    public function logoPath(): ?string
+    {
+        return $this->existingPublicFile($this->company_logo);
+    }
+
+    /**
+     * Path absolut file stempel untuk dokumen cetak, atau null.
+     */
+    public function stampPath(): ?string
+    {
+        return $this->existingPublicFile($this->company_stamp);
+    }
+
+    private function existingPublicFile(?string $relative): ?string
+    {
+        if (blank($relative)) {
+            return null;
+        }
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        return $disk->exists($relative) ? $disk->path($relative) : null;
+    }
+
+    /**
      * Helper dinamis untuk mengambil nilai konfigurasi berdasarkan key alias atau atribut.
      */
     public static function get(string $key, $default = null)

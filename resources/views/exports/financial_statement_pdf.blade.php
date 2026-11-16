@@ -168,9 +168,12 @@
     <table class="header-table">
         <tr>
             <td style="width: 60%; vertical-align: top;">
+                @if($setting && $setting->logoPath())
+                    <img src="{{ $setting->logoPath() }}" alt="Logo perusahaan" style="max-height: 42px; max-width: 150px; margin-bottom: 4px;"><br>
+                @endif
                 <div class="company-name">{{ $setting->company_name ?? 'Nama Perusahaan' }}</div>
                 <div class="company-info">
-                    {{ $setting->company_address ?? 'Jakarta, Indonesia' }}<br>
+                    {{ $setting->company_address ?: '-' }}<br>
                     NPWP 16 Digit: <strong>{{ $setting->company_npwp16 ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}
                 </div>
             </td>
@@ -365,9 +368,9 @@
             </td>
             <td>
                 Disetujui Oleh,<br>
-                <span style="color: #64748b;">Direktur Utama / Pimpinan</span>
+                <span style="color: #64748b;">{{ $setting->signatory_position ?: 'Direktur Utama / Pimpinan' }}</span>
                 <br><br><br><br>
-                ( <strong>{{ $setting->company_director ?? $setting->company_name ?? 'Direktur' }}</strong> )
+                @if(filled($setting->signatory_name))( <strong>{{ $setting->signatory_name }}</strong> )@else( .................................................. )@endif
             </td>
         </tr>
     </table>

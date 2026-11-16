@@ -229,8 +229,8 @@
     <!-- Header / Kop Surat Dinamis -->
     <div class="header-container clearfix">
         <div class="company-info">
-            @if($setting && $setting->company_logo && file_exists(public_path('storage/' . $setting->company_logo)))
-                <img src="{{ public_path('storage/' . $setting->company_logo) }}" class="company-logo">
+            @if($setting && $setting->logoPath())
+                <img src="{{ $setting->logoPath() }}" class="company-logo" alt="Logo perusahaan">
             @else
                 <div class="company-name">{{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}</div>
             @endif
@@ -339,12 +339,13 @@
             <td>
                 <div class="sig-title">{{ $setting->signatory_city ?? $setting->company_city ?? 'Kota' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Hormat Kami,</div>
                 <div class="stamp-space">
-                    @if($setting->stamp_delivery_note_enabled && $setting->company_stamp && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->company_stamp))
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->path($setting->company_stamp) }}" class="company-stamp" alt="Stempel perusahaan">
+                    @if($setting->stamp_delivery_note_enabled && $setting->stampPath())
+                        <img src="{{ $setting->stampPath() }}" class="company-stamp" alt="Stempel perusahaan">
                     @endif
                 </div>
                 <br>
-                <div class="sig-name">{{ strtoupper($setting->signatory_name ?? 'ADMIN / LOGISTIK') }}</div>
+                <div class="sig-name">{{ strtoupper($setting->signatory_name ?: 'ADMIN / LOGISTIK') }}</div>
+                @if(filled($setting->signatory_position))<div class="sig-caption">{{ $setting->signatory_position }}</div>@endif
                 <div class="sig-caption">{{ $setting->company_name ?? 'Nama Perusahaan' }}</div>
             </td>
         </tr>

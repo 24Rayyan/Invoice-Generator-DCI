@@ -2,104 +2,97 @@
 
 @section('content')
 @php
-    $moduleIcons = [
-        'Autentikasi'          => 'fa-key',
-        'User Management'      => 'fa-user-gear',
-        'Invoicing & PO'       => 'fa-file-invoice-dollar',
-        'Buku Kas & Transaksi' => 'fa-money-bill-transfer',
-        'Pengaturan Sistem'    => 'fa-sliders',
-    ];
+    $activeTab = $source === 'active';
+    $tagClass = function ($action) {
+        return match (true) {
+            in_array($action, ['CREATE', 'LOGIN'], true) => 'ok',
+            in_array($action, ['UPDATE', 'ATTACH', 'EXPORT', 'DOWNLOAD'], true) => 'info',
+            in_array($action, ['DELETE', 'LOGIN_FAILED', 'DETACH'], true) => 'bad',
+            default => '',
+        };
+    };
+    $hasFilter = request()->filled('search') || request()->filled('action') || request()->filled('module')
+        || request()->filled('user_id') || request()->filled('date_from') || request()->filled('date_to');
+    $resetParams = $source === 'archive' ? ['source' => 'archive', 'period' => $period] : [];
 @endphp
 
 <div class="al-page">
 
-    <!-- Header -->
-    <div class="al-head">
+    {{-- Header --}}
+    <header class="al-head">
         <div>
-            <h1 class="al-title">Log Aktivitas Pengguna</h1>
-            <p class="al-subtitle">Pantau aktivitas yang dilakukan pengguna di sistem.</p>
+            <h1>Log Aktivitas Pengguna</h1>
+            <p>Jejak audit tindakan pengguna di sistem: siapa, di modul mana, dan kapan.</p>
         </div>
-        <a href="{{ url()->full() }}" class="al-reload">
-            <i class="fa-solid fa-rotate-right"></i> Muat ulang
+        <a href="{{ url()->full() }}" class="btn btn-sm btn-outline-secondary">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Muat ulang
         </a>
-    </div>
+    </header>
 
-    <div class="d-flex flex-wrap gap-2 mb-3">
-        <a class="btn btn-sm {{ $source === 'active' ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ route('activity_logs.index') }}">Log Aktif</a>
+    {{-- Sumber data: log aktif atau arsip per periode --}}
+    <nav class="al-tabs" aria-label="Sumber log">
+        <a class="al-tab {{ $activeTab ? 'is-active' : '' }}" href="{{ route('activity_logs.index') }}" @if($activeTab) aria-current="page" @endif>Log aktif</a>
         @foreach($archivePeriods as $archivePeriod)
-            <a class="btn btn-sm {{ $source === 'archive' && $period === $archivePeriod ? 'btn-primary' : 'btn-outline-primary' }}" href="{{ route('activity_logs.index', ['source' => 'archive', 'period' => $archivePeriod]) }}">Arsip {{ $archivePeriod }}</a>
+            @php $isCurrent = $source === 'archive' && $period === $archivePeriod; @endphp
+            <a class="al-tab {{ $isCurrent ? 'is-active' : '' }}" href="{{ route('activity_logs.index', ['source' => 'archive', 'period' => $archivePeriod]) }}" @if($isCurrent) aria-current="page" @endif>Arsip {{ $archivePeriod }}</a>
         @endforeach
-    </div>
+    </nav>
 
-    <!-- Statistik -->
-    <div class="al-stats">
+    {{-- Ringkasan: satu strip, bukan kartu --}}
+    <section class="al-stats" aria-label="Ringkasan aktivitas">
         <div class="al-stat">
-            <div class="al-stat-top">
-                <span class="al-stat-label">Hari Ini</span>
-                <span class="al-stat-icon is-white"><i class="fa-regular fa-clock"></i></span>
-            </div>
-            <div class="al-stat-value">{{ number_format($stats['today'], 0, ',', '.') }}</div>
+            <span class="al-stat-label">Hari ini</span>
+            <span class="al-stat-value">{{ number_format($stats['today'], 0, ',', '.') }}</span>
         </div>
         <div class="al-stat">
-            <div class="al-stat-top">
-                <span class="al-stat-label">Create</span>
-                <span class="al-stat-icon"><i class="fa-solid fa-plus"></i></span>
-            </div>
-            <div class="al-stat-value">{{ number_format($stats['create'], 0, ',', '.') }}</div>
+            <span class="al-stat-label">Create</span>
+            <span class="al-stat-value">{{ number_format($stats['create'], 0, ',', '.') }}</span>
         </div>
         <div class="al-stat">
-            <div class="al-stat-top">
-                <span class="al-stat-label">Update</span>
-                <span class="al-stat-icon"><i class="fa-solid fa-pen-to-square"></i></span>
-            </div>
-            <div class="al-stat-value">{{ number_format($stats['update'], 0, ',', '.') }}</div>
+            <span class="al-stat-label">Update</span>
+            <span class="al-stat-value">{{ number_format($stats['update'], 0, ',', '.') }}</span>
         </div>
-    </div>
+    </section>
 
-    <!-- Filter -->
-    <div class="al-card al-filter">
-        <div class="al-filter-head">
-            <h2 class="al-card-title">Filter aktivitas</h2>
-            <a href="{{ route('activity_logs.index', $source === 'archive' ? ['source' => 'archive', 'period' => $period] : []) }}" class="al-reset">Atur ulang</a>
-        </div>
-
-        <form method="GET" action="{{ route('activity_logs.index') }}" class="al-filter-grid">
+    {{-- Filter --}}
+    <section class="al-filter" aria-label="Filter aktivitas">
+        <form method="GET" action="{{ route('activity_logs.index') }}" class="row g-2 align-items-end">
             <input type="hidden" name="source" value="{{ $source }}">
             @if($source === 'archive')
-                <div class="al-field">
-                    <label for="archive-period">Periode Arsip</label>
-                    <select id="archive-period" name="period" class="al-select">
+                <div class="col-12 col-md-6 col-xl-2">
+                    <label for="archive-period" class="form-label">Periode arsip</label>
+                    <select id="archive-period" name="period" class="form-select form-select-sm">
                         @foreach($archivePeriods as $archivePeriod)
                             <option value="{{ $archivePeriod }}" @selected($period === $archivePeriod)>{{ $archivePeriod }}</option>
                         @endforeach
                     </select>
                 </div>
             @endif
-            <div class="al-field al-field-search">
-                <label for="activity-search">Pencarian</label>
-                <input id="activity-search" type="text" name="search" value="{{ request('search') }}" class="al-input" placeholder=" Cari aktivitas...">
+            <div class="col-12 {{ $source === 'archive' ? 'col-xl-4' : 'col-xl-3' }}">
+                <label for="activity-search" class="form-label">Pencarian</label>
+                <input id="activity-search" type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Cari deskripsi aktivitas">
             </div>
-            <div class="al-field">
-                <label>Aksi</label>
-                <select name="action" class="al-select smooth-dropdown" data-placeholder="Semua Aksi">
+            <div class="col-6 col-md-4 col-xl-2">
+                <label for="al-action" class="form-label">Aksi</label>
+                <select id="al-action" name="action" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Aksi">
                     <option value="">Semua Aksi</option>
                     @foreach($actions as $action)
                         <option value="{{ $action }}" {{ request('action') === $action ? 'selected' : '' }}>{{ $action }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="al-field">
-                <label>Modul</label>
-                <select name="module" class="al-select smooth-dropdown" data-placeholder="Semua Modul">
+            <div class="col-6 col-md-4 col-xl-2">
+                <label for="al-module" class="form-label">Modul</label>
+                <select id="al-module" name="module" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Modul">
                     <option value="">Semua Modul</option>
                     @foreach($modules as $module)
                         <option value="{{ $module }}" {{ request('module') === $module ? 'selected' : '' }}>{{ $module }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="al-field">
-                <label>Pengguna</label>
-                <select name="user_id" class="al-select smooth-dropdown" data-placeholder="Semua Pengguna">
+            <div class="col-12 col-md-4 col-xl-2">
+                <label for="al-user" class="form-label">Pengguna</label>
+                <select id="al-user" name="user_id" class="form-select form-select-sm smooth-dropdown" data-placeholder="Semua Pengguna">
                     <option value="">Semua Pengguna</option>
                     @foreach($users as $user)
                         <option value="{{ $user->id }}" {{ (string) request('user_id') === (string) $user->id ? 'selected' : '' }}>
@@ -108,74 +101,74 @@
                     @endforeach
                 </select>
             </div>
-            <div class="al-field">
-                <label for="date_from">Dari</label>
-                <input id="date_from" type="date" name="date_from" value="{{ request('date_from') }}" class="al-input al-date">
+            <div class="col-6 col-xl-2">
+                <label for="date_from" class="form-label">Dari tanggal</label>
+                <input id="date_from" type="date" name="date_from" value="{{ request('date_from') }}" class="form-control form-control-sm">
             </div>
-            <div class="al-field">
-                <label for="date_to">Sampai</label>
-                <input id="date_to" type="date" name="date_to" value="{{ request('date_to') }}" class="al-input al-date">
+            <div class="col-6 col-xl-2">
+                <label for="date_to" class="form-label">Sampai tanggal</label>
+                <input id="date_to" type="date" name="date_to" value="{{ request('date_to') }}" class="form-control form-control-sm">
             </div>
-            <div class="al-field al-field-submit">
-                <button type="submit" class="al-btn">
-                    <i class="fa-solid fa-filter"></i> Terapkan
-                </button>
+            <div class="col-12 col-xl-auto d-flex gap-2 ms-xl-auto">
+                <button type="submit" class="btn btn-sm btn-primary flex-fill">Terapkan filter</button>
+                <a href="{{ route('activity_logs.index', $resetParams) }}" class="btn btn-sm btn-outline-secondary">Atur ulang</a>
             </div>
         </form>
-    </div>
+    </section>
 
-    <!-- Riwayat -->
-    <div class="al-card al-table-card">
-        <div class="al-table-head">
-            <div class="al-table-title">
-                <h2>Riwayat aktivitas</h2>
-                <span class="al-pill">{{ number_format($logs->total(), 0, ',', '.') }} aktivitas</span>
-            </div>
-            <span class="al-hint">
-                <i class="fa-solid fa-arrow-down-wide-short"></i> Log lama akan ditampilkan otomatis.
-            </span>
+    {{-- Riwayat --}}
+    <section class="al-panel" aria-labelledby="alHistory">
+        <div class="al-panel-head">
+            <h2 id="alHistory">Riwayat aktivitas</h2>
+            <span class="meta">{{ number_format($logs->total(), 0, ',', '.') }} aktivitas{{ $hasFilter ? ' sesuai filter' : '' }} · terbaru di atas · klik baris untuk detail</span>
         </div>
 
-        <div class="al-table-scroll">
+        <div class="table-responsive">
             <table class="al-table">
                 <thead>
                     <tr>
-                        <th>Pengguna</th>
-                        <th>Modul</th>
-                        <th>Deskripsi</th>
-                        <th class="al-th-right">Waktu</th>
+                        <th style="width: 150px;">Waktu</th>
+                        <th style="width: 190px;">Pengguna</th>
+                        <th style="width: 210px;">Modul</th>
+                        <th>Aktivitas</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($logs as $log)
-                        <tr class="al-row" data-id="{{ $log->id }}" data-detail-url="{{ $source === 'archive' ? route('activity_logs.archives.show', [$period, $log->id]) : route('activity_logs.show', $log->id) }}" title="Klik untuk melihat detail">
-                            <td>
-                                <div class="al-user">
-                                    <span class="al-avatar">{{ strtoupper(substr($log->user_name ?? $log->user?->username ?? 'S', 0, 1)) }}</span>
-                                    <span class="al-user-name">{{ $log->user_name ?? $log->user?->username ?? 'Sistem' }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="al-module">
-                                    <i class="fa-solid {{ $moduleIcons[$log->module_name] ?? 'fa-cube' }}"></i>
-                                    <span>{{ $log->module_name }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="al-desc">{{ $log->description }}</span>
-                            </td>
+                        @php $who = $log->user_name ?? $log->user?->username ?? 'Sistem'; @endphp
+                        <tr class="al-row" tabindex="0" role="button"
+                            aria-label="Lihat detail aktivitas: {{ \Illuminate\Support\Str::limit($log->description, 80) }}"
+                            data-id="{{ $log->id }}"
+                            data-detail-url="{{ $source === 'archive' ? route('activity_logs.archives.show', [$period, $log->id]) : route('activity_logs.show', $log->id) }}">
                             <td class="al-time">
-                                {{ optional($log->created_at)->format('d/m/Y') }}
-                                <span class="al-time-sep">•</span>
-                                {{ optional($log->created_at)->format('H:i') }}
+                                <span class="d-block">{{ optional($log->created_at)->format('d/m/Y') }}</span>
+                                <span class="al-time-h">{{ optional($log->created_at)->format('H:i') }}</span>
+                            </td>
+                            <td>
+                                <span class="al-user">
+                                    <span class="al-avatar" aria-hidden="true">{{ strtoupper(substr($who, 0, 1)) }}</span>
+                                    <span class="al-user-name">{{ $who }}</span>
+                                </span>
+                            </td>
+                            <td class="al-module">{{ $log->module_name }}</td>
+                            <td>
+                                @if($log->action)
+                                    <span class="al-tag {{ $tagClass($log->action) }}">{{ $log->action }}</span>
+                                @endif
+                                <span class="al-desc">{{ $log->description }}</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="4">
                                 <div class="al-empty">
-                                    <i class="fa-solid fa-clipboard-list"></i>
-                                    <span>Belum ada aktivitas yang tercatat.</span>
+                                    @if($hasFilter)
+                                        <strong>Tidak ada aktivitas yang cocok</strong>
+                                        Ubah kata kunci, rentang tanggal, atau filter lain.
+                                    @else
+                                        <strong>Belum ada aktivitas tercatat</strong>
+                                        Tindakan pengguna akan muncul di sini setelah terjadi.
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -184,410 +177,124 @@
             </table>
         </div>
 
-        <div class="al-table-foot">
-            Menampilkan {{ number_format($logs->count(), 0, ',', '.') }} aktivitas
+        <div class="al-panel-foot">
+            <span>Menampilkan {{ number_format($logs->count(), 0, ',', '.') }} aktivitas di halaman ini dari total {{ number_format($logs->total(), 0, ',', '.') }}</span>
+            @if($logs->hasPages())
+                <div class="al-pagination">{{ $logs->links('pagination::bootstrap-5') }}</div>
+            @endif
         </div>
-
-        @if($logs->hasPages())
-            <div class="al-pagination">
-                {{ $logs->links('pagination::bootstrap-5') }}
-            </div>
-        @endif
-    </div>
-
-    <!-- Modal Detail Log -->
-    <div class="modal fade" id="logDetailModal" tabindex="-1" aria-labelledby="logDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content border-0 rounded-4 shadow-lg">
-                <div class="modal-header border-bottom p-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary" style="width: 38px; height: 38px;">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
-                        <div>
-                            <h5 class="modal-title h6 fw-bold text-dark m-0" id="logDetailModalLabel">Detail Log Aktivitas</h5>
-                            <p class="small text-muted mb-0" id="log_detail_meta">-</p>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label text-uppercase fw-bold text-secondary small mb-1" style="font-size: 0.68rem;">Deskripsi</label>
-                        <div class="p-3 bg-light rounded-3 small" id="log_detail_description">-</div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label text-uppercase fw-bold text-secondary small mb-1" style="font-size: 0.68rem;">Aksi</label>
-                            <div class="small fw-bold" id="log_detail_action">-</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-uppercase fw-bold text-secondary small mb-1" style="font-size: 0.68rem;">Modul</label>
-                            <div class="small fw-bold" id="log_detail_module">-</div>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-uppercase fw-bold text-secondary small mb-1" style="font-size: 0.68rem;">Waktu</label>
-                            <div class="small fw-bold" id="log_detail_time">-</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="form-label text-uppercase fw-bold text-secondary small mb-1" style="font-size: 0.68rem;">Properties (Perubahan Data)</label>
-                        <pre class="bg-dark text-success rounded-3 p-3 mb-0" style="font-size: 0.75rem; max-height: 320px; overflow: auto;" id="log_detail_properties">-</pre>
-                    </div>
-                </div>
-                <div class="modal-footer border-top p-3">
-                    <button type="button" class="btn btn-light rounded-pill px-4 text-sm font-medium" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
 </div>
 @endsection
 
+@push('modals')
+<div class="modal fade" id="logDetailModal" tabindex="-1" aria-labelledby="logDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="logDetailModalLabel">Detail log aktivitas</h5>
+                    <p class="small text-muted mb-0" id="log_detail_meta">-</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="al-dl">
+                    <div><dt>Aksi</dt><dd id="log_detail_action">-</dd></div>
+                    <div><dt>Modul</dt><dd id="log_detail_module">-</dd></div>
+                    <div><dt>Waktu</dt><dd id="log_detail_time">-</dd></div>
+                </dl>
+                <div class="mb-3">
+                    <div class="al-dl-label">Deskripsi</div>
+                    <div class="al-box" id="log_detail_description">-</div>
+                </div>
+                <div>
+                    <div class="al-dl-label">Properti (perubahan data)</div>
+                    <pre class="al-pre" id="log_detail_properties" tabindex="0">-</pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endpush
+
 @push('styles')
 <style>
-    .al-page {
-        --al-border: #e5e7eb;
-        --al-muted: #64748b;
-        --al-dark: #0f172a;
-        --al-blue: #2563eb;
-        --al-blue-soft: #eff6ff;
-    }
+    /* Token --erp-* dari erp.css. Satu aksen biru; warna status hanya untuk makna aksi. */
+    .al-page { color: var(--erp-text); }
 
-    .al-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-        margin-bottom: 22px;
-    }
+    .al-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: .9rem 1.5rem; margin-bottom: 1rem; }
+    .al-head h1 { font-size: clamp(1.3rem, 1.1rem + .8vw, 1.65rem); font-weight: 700; letter-spacing: -.03em; margin: 0 0 .2rem; }
+    .al-head p { margin: 0; font-size: .86rem; color: var(--erp-text-3); max-width: 62ch; }
 
-    .al-title {
-        font-size: 1.45rem;
-        font-weight: 800;
-        color: var(--al-dark);
-        margin: 0;
-        letter-spacing: -0.4px;
-    }
+    /* Tab sumber: garis bawah, sama dengan .nav-tabs global */
+    .al-tabs { display: flex; flex-wrap: nowrap; gap: .25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--erp-line); overflow-x: auto; scrollbar-width: thin; }
+    .al-tab { flex: 0 0 auto; padding: .6rem .9rem; font-size: .86rem; font-weight: 600; color: var(--erp-text-3); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; transition: color .15s ease, border-color .15s ease; }
+    .al-tab:hover { color: var(--erp-ink); }
+    .al-tab.is-active { color: var(--erp-primary); border-bottom-color: var(--erp-primary); }
 
-    .al-subtitle {
-        color: var(--al-muted);
-        font-size: 0.85rem;
-        margin: 4px 0 0;
-    }
+    .al-stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--erp-surface); border: 1px solid var(--erp-line); border-radius: var(--erp-radius); margin-bottom: 1rem; overflow: hidden; }
+    .al-stat { padding: .85rem 1.15rem; display: flex; flex-direction: column; gap: .25rem; border-left: 1px solid var(--erp-line); min-width: 0; }
+    .al-stat:first-child { border-left: 0; }
+    .al-stat-label { font-size: .76rem; font-weight: 600; color: var(--erp-text-3); }
+    .al-stat-value { font-size: 1.45rem; font-weight: 700; letter-spacing: -.02em; color: var(--erp-ink); font-variant-numeric: tabular-nums; line-height: 1.2; }
+    .al-stat:first-child .al-stat-value { color: var(--erp-primary-hover); }
 
-    .al-reload {
-        color: var(--al-blue);
-        font-weight: 600;
-        font-size: 0.82rem;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        white-space: nowrap;
-        padding-top: 4px;
-    }
+    .al-filter { background: var(--erp-surface); border: 1px solid var(--erp-line); border-radius: var(--erp-radius); padding: .9rem 1rem; margin-bottom: 1rem; }
+    .al-filter .form-label { font-size: .74rem; font-weight: 600; color: var(--erp-text-2); margin-bottom: .25rem; }
 
-    .al-reload:hover { text-decoration: underline; }
+    .al-panel { background: var(--erp-surface); border: 1px solid var(--erp-line); border-radius: var(--erp-radius); overflow: hidden; }
+    .al-panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; padding: .85rem 1.1rem; border-bottom: 1px solid var(--erp-line); }
+    .al-panel-head h2 { font-size: .95rem; font-weight: 700; margin: 0; }
+    .al-panel-head .meta { font-size: .8rem; color: var(--erp-text-3); }
+    .al-panel-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1rem; padding: .65rem 1.1rem; border-top: 1px solid var(--erp-line); background: var(--erp-surface-2); font-size: .82rem; color: var(--erp-text-3); }
+    .al-pagination .pagination { margin: 0; }
+    .al-pagination nav > div:first-child { display: none; }
 
-    .al-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-        margin-bottom: 20px;
-    }
-
-    .al-stat {
-        background: #0D1C42;
-        border: 1px solid var(--al-border);
-        border-radius: 14px;
-        padding: 16px 18px;
-    }
-
-    .al-stat-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-
-    .al-stat-label {
-        color: #ffffff;
-        font-size: 0.82rem;
-        font-weight: 600;
-    }
-
-    .al-stat-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 9px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.82rem;
-        background: #f1f5f9;
-        color: #94a3b8;
-    }
-
-    .al-stat-icon.is-blue {
-        background: var(--al-blue-soft);
-        color: var(--al-blue);
-    }
-
-    .al-stat-value {
-        font-size: 1.9rem;
-        font-weight: 800;
-        color: #ffffff;
-        line-height: 1.1;
-        margin-top: 10px;
-    }
-
-    .al-stat-value.is-blue { color: var(--al-blue); }
-
-    .al-card {
-        background: #fff;
-        border: 1px solid var(--al-border);
-        border-radius: 14px;
-    }
-
-    .al-filter {
-        padding: 18px;
-        margin-bottom: 20px;
-    }
-
-    .al-filter-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-
-    .al-card-title {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--al-dark);
-        margin: 0;
-    }
-
-    .al-reset {
-        color: var(--al-blue);
-        font-size: 0.78rem;
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .al-reset:hover { text-decoration: underline; }
-
-    .al-filter-grid {
-        display: grid;
-        grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr auto;
-        gap: 14px;
-        align-items: end;
-    }
-
-    .al-field label {
-        display: block;
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--al-muted);
-        margin-bottom: 6px;
-    }
-
-    .al-input,
-    .al-select + .ts-wrapper {
-        width: 100%;
-    }
-
-    .al-select + .ts-wrapper .ts-control {
-        font-size: 0.82rem;
-        color: var(--al-dark);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .al-input::placeholder { color: #94a3b8; }
-
-    .al-input:focus,
-    .al-select + .ts-wrapper.focus .ts-control {
-        border-color: var(--al-blue);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    .al-btn {
-        border: 0;
-        background: var(--al-blue);
-        color: #fff;
-        border-radius: 9px;
-        padding: 9px 20px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        white-space: nowrap;
-        transition: background 0.15s ease;
-    }
-
-    .al-btn:hover { background: #1d4ed8; }
-
-    .al-table-card { overflow: hidden; }
-
-    .al-table-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        padding: 16px 18px;
-        border-bottom: 1px solid var(--al-border);
-        flex-wrap: wrap;
-    }
-
-    .al-table-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .al-table-title h2 {
-        font-size: 0.95rem;
-        font-weight: 700;
-        margin: 0;
-        color: var(--al-dark);
-    }
-
-    .al-pill {
-        background: #f1f5f9;
-        color: #475569;
-        font-size: 0.72rem;
-        font-weight: 600;
-        padding: 3px 10px;
-        border-radius: 999px;
-    }
-
-    .al-hint {
-        color: var(--al-muted);
-        font-size: 0.75rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-    }
-
-    .al-table-scroll { overflow-x: auto; }
-
-    .al-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 640px;
-    }
-
-    .al-table thead th {
-        background: #f8fafc;
-        color: var(--al-muted);
-        font-size: 0.72rem;
-        font-weight: 600;
-        padding: 12px 18px;
-        text-align: left;
-        border-bottom: 1px solid var(--al-border);
-        white-space: nowrap;
-    }
-
-    .al-table thead th.al-th-right { text-align: right; }
-
-    .al-table tbody td {
-        padding: 15px 18px;
-        border-bottom: 1px solid #f1f5f9;
-        vertical-align: middle;
-        font-size: 0.84rem;
-        color: var(--al-dark);
-    }
-
-    .al-row { cursor: pointer; transition: background 0.15s ease; }
-    .al-row:hover { background: #f8fafc; }
+    .al-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: .85rem; }
+    .al-table thead th { background: var(--erp-surface-2); color: var(--erp-text-3); font-size: .72rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: .65rem 1rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--erp-line-strong); }
+    .al-table tbody td { padding: .7rem 1rem; border-bottom: 1px solid var(--erp-line); vertical-align: top; }
+    .al-row { cursor: pointer; transition: background-color .12s ease; }
+    .al-row:hover { background: #f6f8fc; }
+    .al-row:active { background: #eef3ff; }
+    .al-row:focus-visible { outline: 2px solid var(--erp-primary); outline-offset: -2px; background: var(--erp-primary-soft); }
     .al-row:last-child td { border-bottom: 0; }
 
-    .al-user {
-        display: flex;
-        align-items: center;
-        gap: 11px;
+    .al-time { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--erp-text-2); }
+    .al-time-h { color: var(--erp-text-3); font-size: .78rem; }
+    .al-user { display: inline-flex; align-items: center; gap: .6rem; max-width: 100%; }
+    .al-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--erp-primary-soft); color: var(--erp-primary-hover); display: grid; place-items: center; font-size: .72rem; font-weight: 700; flex-shrink: 0; }
+    .al-user-name { font-weight: 600; color: var(--erp-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .al-module { color: var(--erp-text-2); }
+    .al-desc { color: var(--erp-text); overflow-wrap: anywhere; }
+
+    .al-tag { display: inline-block; margin-right: .5rem; padding: .08rem .45rem; border-radius: 5px; font-size: .7rem; font-weight: 700; letter-spacing: .02em; background: #eef1f6; color: var(--erp-text-2); vertical-align: 1px; }
+    .al-tag.ok { background: var(--erp-success-soft); color: var(--erp-success); }
+    .al-tag.info { background: var(--erp-primary-soft); color: var(--erp-primary-hover); }
+    .al-tag.bad { background: var(--erp-danger-soft); color: var(--erp-danger); }
+
+    .al-empty { padding: 2.25rem 1rem; text-align: center; color: var(--erp-text-3); font-size: .86rem; }
+    .al-empty strong { display: block; color: var(--erp-ink); font-size: .92rem; margin-bottom: .2rem; }
+
+    .al-dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem 1rem; margin: 0 0 1rem; }
+    .al-dl dt, .al-dl-label { font-size: .74rem; font-weight: 600; color: var(--erp-text-3); margin-bottom: .2rem; }
+    .al-dl dd { margin: 0; font-weight: 600; color: var(--erp-ink); font-size: .88rem; overflow-wrap: anywhere; }
+    .al-box { padding: .7rem .85rem; background: var(--erp-surface-2); border: 1px solid var(--erp-line); border-radius: var(--erp-radius-sm); font-size: .86rem; overflow-wrap: anywhere; }
+    .al-pre { margin: 0; padding: .8rem .9rem; max-height: 320px; overflow: auto; background: var(--erp-surface-2); border: 1px solid var(--erp-line); border-radius: var(--erp-radius-sm); color: var(--erp-ink); font-size: .78rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+    @media (max-width: 767.98px) {
+        .al-head .btn { width: 100%; }
+        .al-panel-head, .al-panel-foot { padding-left: .9rem; padding-right: .9rem; }
+        .al-dl { grid-template-columns: 1fr; }
     }
-
-    .al-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #f1f5f9;
-        color: #475569;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        flex-shrink: 0;
-    }
-
-    .al-user-name {
-        font-weight: 500;
-        color: var(--al-dark);
-    }
-
-    .al-module {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #334155;
-        font-weight: 500;
-    }
-
-    .al-module i {
-        color: #94a3b8;
-        width: 16px;
-        text-align: center;
-    }
-
-    .al-desc { color: #334155; }
-
-    .al-time {
-        text-align: right;
-        color: var(--al-muted);
-        font-size: 0.78rem;
-        white-space: nowrap;
-    }
-
-    .al-time-sep { color: #cbd5e1; margin: 0 2px; }
-
-    .al-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        padding: 48px 0;
-        color: var(--al-muted);
-    }
-
-    .al-empty i { font-size: 1.6rem; color: #cbd5e1; }
-
-    .al-table-foot {
-        padding: 14px 18px;
-        color: var(--al-muted);
-        font-size: 0.76rem;
-        border-top: 1px solid #f1f5f9;
-    }
-
-    .al-pagination { padding: 12px 18px; border-top: 1px solid var(--al-border); }
-    .al-pagination .pagination { margin: 0; }
-
-    @media (max-width: 991.98px) {
-        .al-filter-grid { grid-template-columns: 1fr 1fr; }
-        .al-field-search { grid-column: 1 / -1; }
-        .al-field-submit { grid-column: 1 / -1; }
-        .al-field-submit .al-btn { width: 100%; justify-content: center; }
-    }
-
     @media (max-width: 575.98px) {
         .al-stats { grid-template-columns: 1fr; }
-        .al-filter-grid { grid-template-columns: 1fr; }
+        .al-stat { border-left: 0; border-top: 1px solid var(--erp-line); flex-direction: row; align-items: baseline; justify-content: space-between; }
+        .al-stat:first-child { border-top: 0; }
     }
 </style>
 @endpush
@@ -595,8 +302,8 @@
 @push('scripts')
 <script>
     $(document).ready(function () {
-        $('.al-row').on('click', function () {
-            const detailUrl = $(this).data('detail-url');
+        function openDetail(row) {
+            const detailUrl = $(row).data('detail-url');
 
             $.get(detailUrl)
                 .done(function (data) {
@@ -613,6 +320,14 @@
                 .fail(function () {
                     Swal.fire('Gagal', 'Tidak dapat memuat detail log aktivitas.', 'error');
                 });
+        }
+
+        $('.al-row').on('click', function () { openDetail(this); });
+        $('.al-row').on('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openDetail(this);
+            }
         });
     });
 </script>

@@ -1,0 +1,189 @@
+/* ==========================================================================
+   Mini ERP, modul Laporan Keuangan (presentasi saja)
+   Dimuat hanya oleh tiga halaman laporan. Memakai token dari erp.css
+   (--erp-*), tidak mendefinisikan palet baru dan tidak mengubah komponen global.
+   Alasan desain:
+   - Border di atas bayangan, radius 10px: sama dengan .card global.
+   - Satu aksen (biru primer). Hijau/merah hanya untuk tanda positif/negatif.
+   - Ringkasan berupa satu strip angka, bukan deretan kartu ber-ikon: laporan
+     dibaca berurutan, dan laba bersih harus jadi titik fokus.
+   ========================================================================== */
+
+.rpt { color: var(--erp-text); }
+.rpt .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rpt .mono { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: .92em; }
+.rpt .pos { color: var(--erp-success); }
+.rpt .neg { color: var(--erp-danger); }
+.rpt .dim { color: var(--erp-text-3); }
+
+/* ---------- Page header ---------- */
+.rpt-head {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+    gap: .9rem 1.5rem; margin-bottom: 1.1rem;
+}
+.rpt-head h1 {
+    font-size: clamp(1.3rem, 1.1rem + .8vw, 1.65rem); font-weight: 700;
+    letter-spacing: -.03em; margin: 0 0 .2rem;
+}
+.rpt-head .rpt-desc { margin: 0; max-width: 62ch; font-size: .86rem; color: var(--erp-text-3); }
+.rpt-head-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* Baris konteks: periode + entitas. Menjawab "laporan ini untuk apa dan kapan". */
+.rpt-context {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .35rem 1.25rem;
+    padding: .65rem 0; margin-bottom: 1rem;
+    border-top: 1px solid var(--erp-line); border-bottom: 1px solid var(--erp-line);
+    font-size: .84rem; color: var(--erp-text-2);
+}
+.rpt-context strong { color: var(--erp-ink); font-weight: 600; }
+.rpt-context .rpt-context-end { margin-left: auto; color: var(--erp-text-3); }
+
+/* ---------- Filter bar ---------- */
+.rpt-filter {
+    background: var(--erp-surface); border: 1px solid var(--erp-line);
+    border-radius: var(--erp-radius); padding: .9rem 1rem; margin-bottom: 1rem;
+}
+.rpt-filter .form-label { font-size: .74rem; font-weight: 600; color: var(--erp-text-2); margin-bottom: .25rem; }
+.rpt-filter-foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .4rem;
+    margin-top: .85rem; padding-top: .75rem; border-top: 1px solid var(--erp-line);
+}
+.rpt-filter-foot .lbl { font-size: .76rem; font-weight: 600; color: var(--erp-text-3); margin-right: .25rem; }
+.rpt-chip {
+    appearance: none; background: var(--erp-surface); color: var(--erp-text);
+    border: 1px solid var(--erp-line-strong); border-radius: var(--erp-radius-sm);
+    min-height: 32px; padding: .2rem .7rem; font: inherit; font-size: .8rem; font-weight: 600;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.rpt-chip:hover { background: var(--erp-primary-soft); border-color: var(--erp-primary); color: var(--erp-primary-hover); }
+.rpt-chip:active { background: #dfe8ff; }
+.rpt-chip:disabled { cursor: not-allowed; color: var(--erp-text-3); background: var(--erp-surface-2); }
+.rpt-filter-foot .rpt-reset { margin-left: auto; font-size: .8rem; font-weight: 600; text-decoration: none; }
+.rpt-filter-foot .rpt-reset:hover { text-decoration: underline; }
+
+/* ---------- Summary strip ---------- */
+.rpt-summary {
+    display: grid; grid-template-columns: 1.4fr repeat(3, 1fr);
+    background: var(--erp-surface); border: 1px solid var(--erp-line);
+    border-radius: var(--erp-radius); margin-bottom: 1rem; overflow: hidden;
+}
+.rpt-summary.cols-5 { grid-template-columns: 1.4fr repeat(4, 1fr); }
+.rpt-fig { padding: 1rem 1.15rem; min-width: 0; border-left: 1px solid var(--erp-line); }
+.rpt-fig:first-child { border-left: 0; }
+.rpt-fig-label { font-size: .76rem; font-weight: 600; color: var(--erp-text-3); margin: 0 0 .35rem; }
+.rpt-fig-value {
+    font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; color: var(--erp-ink);
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.2;
+}
+.rpt-fig-note { margin: .35rem 0 0; font-size: .76rem; color: var(--erp-text-3); line-height: 1.45; }
+.rpt-fig.lead { background: var(--erp-primary-soft); }
+.rpt-fig.lead .rpt-fig-label { color: var(--erp-primary-hover); }
+.rpt-fig.lead .rpt-fig-value { font-size: 1.6rem; color: var(--erp-primary-hover); }
+.rpt-fig.lead .rpt-fig-value.neg { color: var(--erp-danger); }
+.rpt-fig-value.pos { color: var(--erp-success); }
+.rpt-fig-value.neg { color: var(--erp-danger); }
+
+/* ---------- Panels & tables ---------- */
+.rpt-panel {
+    background: var(--erp-surface); border: 1px solid var(--erp-line);
+    border-radius: var(--erp-radius); margin-bottom: 1rem; overflow: hidden;
+}
+.rpt-panel-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: .25rem 1rem; padding: .85rem 1.1rem; border-bottom: 1px solid var(--erp-line);
+}
+.rpt-panel-head h2 { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+.rpt-panel-head .meta { font-size: .8rem; color: var(--erp-text-3); }
+.rpt-panel-foot {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem;
+    padding: .7rem 1.1rem; border-top: 1px solid var(--erp-line); background: var(--erp-surface-2);
+    font-size: .82rem; color: var(--erp-text-3);
+}
+
+.rpt-table { width: 100%; margin: 0; font-size: .84rem; border-collapse: collapse; }
+.rpt-table thead th {
+    background: var(--erp-surface-2); color: var(--erp-text-3);
+    font-size: .72rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+    padding: .65rem .9rem; white-space: nowrap; border-bottom: 1px solid var(--erp-line-strong);
+    position: sticky; top: 0;
+}
+.rpt-table tbody td, .rpt-table tfoot td {
+    padding: .65rem .9rem; border-bottom: 1px solid var(--erp-line); vertical-align: middle;
+}
+.rpt-table tbody tr:last-child td { border-bottom: 0; }
+.rpt-table tbody tr:not(.group):not(.subtotal):not(.total):hover > td { background: #f6f8fc; }
+.rpt-table .r { text-align: right; font-variant-numeric: tabular-nums; }
+.rpt-table .c { text-align: center; }
+.rpt-table .nw { white-space: nowrap; }
+.rpt-table .sub { display: block; font-size: .76rem; color: var(--erp-text-3); margin-top: .1rem; }
+
+/* Baris struktural laporan */
+.rpt-table tr.group > td {
+    background: var(--erp-surface-2); color: var(--erp-ink); font-size: .74rem; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase; padding-top: .55rem; padding-bottom: .55rem;
+    border-bottom: 1px solid var(--erp-line);
+}
+.rpt-table td.lv1 { padding-left: 1.6rem; }
+.rpt-table tr.subtotal > td { font-weight: 700; color: var(--erp-ink); border-top: 1px solid var(--erp-line-strong); border-bottom: 1px solid var(--erp-line-strong); background: #fcfdff; }
+.rpt-table tr.total > td { font-weight: 700; color: var(--erp-ink); background: var(--erp-primary-soft); border-top: 2px solid var(--erp-primary); border-bottom: 0; font-size: .92rem; padding-top: .85rem; padding-bottom: .85rem; }
+.rpt-table tr.total > td.neg, .rpt-table tr.subtotal > td.neg { color: var(--erp-danger); }
+
+/* Pembeda kolom pada tabel komparatif komersial vs fiskal */
+.rpt-table .col-fiscal { background: rgba(29, 78, 216, .035); border-left: 1px solid var(--erp-line); }
+.rpt-table thead th.col-fiscal { background: var(--erp-primary-soft); color: var(--erp-primary-hover); }
+.rpt-table tr.total > td.col-fiscal { background: #dfe8ff; }
+
+/* Tag status: teks selalu ada, kotak kecil (bukan kapsul) */
+.rpt-tag {
+    display: inline-block; padding: .08rem .45rem; border-radius: 5px; font-size: .72rem; font-weight: 600;
+    background: #eef1f6; color: var(--erp-text-2); white-space: nowrap; vertical-align: middle;
+}
+.rpt-tag.ok { background: var(--erp-success-soft); color: var(--erp-success); }
+.rpt-tag.warn { background: var(--erp-warning-soft); color: var(--erp-warning); }
+.rpt-tag.info { background: var(--erp-primary-soft); color: var(--erp-primary-hover); }
+.rpt-tag.bad { background: var(--erp-danger-soft); color: var(--erp-danger); }
+
+/* Bar tipis: koleksi dan margin */
+.rpt-meter { display: flex; align-items: center; gap: .6rem; min-width: 120px; }
+.rpt-meter-track { position: relative; flex: 1; height: 6px; border-radius: 3px; background: #e8edf4; overflow: hidden; }
+.rpt-meter-fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; background: var(--erp-primary); }
+.rpt-meter-fill.pos { background: var(--erp-success); }
+.rpt-meter-fill.neg { background: var(--erp-danger); }
+.rpt-meter-val { min-width: 4.4rem; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; font-size: .84rem; }
+
+/* Bar margin dua arah dengan sumbu nol */
+.rpt-diverge { position: relative; flex: 1; height: 8px; min-width: 110px; background: #eef1f6; border-radius: 2px; }
+.rpt-diverge::after { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--erp-line-strong); }
+.rpt-diverge > i { position: absolute; top: 0; bottom: 0; display: block; }
+.rpt-diverge > i.pos { left: 50%; background: var(--erp-success); border-radius: 0 2px 2px 0; }
+.rpt-diverge > i.neg { right: 50%; background: var(--erp-danger); border-radius: 2px 0 0 2px; }
+
+/* ---------- States ---------- */
+.rpt-empty { padding: 2.25rem 1rem; text-align: center; color: var(--erp-text-3); font-size: .86rem; }
+.rpt-empty strong { display: block; color: var(--erp-ink); font-size: .92rem; margin-bottom: .2rem; }
+
+/* ---------- Pagination pada buku kas ---------- */
+.rpt-pager-size { display: flex; align-items: center; gap: .5rem; }
+.rpt-pager-size label { margin: 0; white-space: nowrap; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1199.98px) {
+    .rpt-summary, .rpt-summary.cols-5 { grid-template-columns: repeat(2, 1fr); }
+    .rpt-fig { border-left: 0; border-top: 1px solid var(--erp-line); }
+    .rpt-fig:nth-child(odd):not(.lead) { border-left: 1px solid var(--erp-line); }
+    .rpt-fig.lead { grid-column: 1 / -1; border-left: 0; border-top: 0; }
+}
+@media (max-width: 767.98px) {
+    .rpt-head-actions { width: 100%; }
+    .rpt-head-actions .btn { flex: 1 1 auto; }
+    .rpt-context .rpt-context-end { margin-left: 0; width: 100%; }
+    .rpt-chip { min-height: 40px; }
+    .rpt-filter-foot .rpt-reset { margin-left: 0; width: 100%; }
+}
+@media (max-width: 575.98px) {
+    .rpt-summary, .rpt-summary.cols-5 { grid-template-columns: 1fr; }
+    .rpt-fig, .rpt-fig:nth-child(odd):not(.lead) { border-left: 0; border-top: 1px solid var(--erp-line); }
+    .rpt-fig:first-child, .rpt-fig.lead { border-top: 0; }
+    .rpt-fig.lead .rpt-fig-value { font-size: 1.45rem; }
+    .rpt-panel-head, .rpt-panel-foot { padding-left: .9rem; padding-right: .9rem; }
+}

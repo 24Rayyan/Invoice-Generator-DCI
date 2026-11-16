@@ -291,8 +291,8 @@
     <!-- Header / Kop Surat Dinamis -->
     <div class="header-container clearfix">
         <div class="company-info">
-            @if($setting && $setting->company_logo && file_exists(public_path('storage/' . $setting->company_logo)))
-                <img src="{{ public_path('storage/' . $setting->company_logo) }}" class="company-logo">
+            @if($setting && $setting->logoPath())
+                <img src="{{ $setting->logoPath() }}" class="company-logo" alt="Logo perusahaan">
             @else
                 <div class="company-name">{{ strtoupper($setting->company_name ?? 'NAMA PERUSAHAAN') }}</div>
             @endif
@@ -387,9 +387,11 @@
         $netto = $bruto;
         $dpp = $netto;
         
-        $taxRatePercent = $setting->enable_tax ? ($setting->default_tax_rate ?? 11) : 0;
-        $ppn = round($dpp * ($taxRatePercent / 100), 2);
-        $total_tagihan = round($netto + $ppn - $pembulatan, 2);
+        // Nilai PPN diturunkan dari total yang tersimpan saat dokumen dibuat, sehingga
+        // mengubah tarif di Pengaturan tidak mengubah dokumen lama.
+        $total_tagihan = round((float) $document->total_amount, 2);
+        $ppn = round($total_tagihan + $pembulatan - $netto, 2);
+        $taxRatePercent = $netto > 0 ? round(($ppn / $netto) * 100, 2) : 0;
         $currencySymbol = $setting->currency_symbol ?? 'Rp';
     @endphp
     
@@ -400,11 +402,11 @@
             <td class="col-signature">
                 <div class="signature-title">{{ $setting->signatory_city ?? $setting->company_city ?? 'Kota' }}, {{ date('d M Y', strtotime($document->date)) }}<br>Ditandatangani oleh,</div>
                 <div class="stamp-space">
-                    @if($setting->stamp_invoice_enabled && $setting->company_stamp && \Illuminate\Support\Facades\Storage::disk('public')->exists($setting->company_stamp))
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->path($setting->company_stamp) }}" class="company-stamp" alt="Stempel perusahaan">
+                    @if($setting->stamp_invoice_enabled && $setting->stampPath())
+                        <img src="{{ $setting->stampPath() }}" class="company-stamp" alt="Stempel perusahaan">
                     @endif
                 </div>
-                <div class="signer-name">{{ strtoupper($setting->signatory_name ?? 'ADMIN / FINANCE') }}</div>
+                <div class="signer-name">{{ strtoupper($setting->signatory_name ?: 'ADMIN / FINANCE') }}</div>
                 <div class="signer-title">{{ $setting->signatory_position ?? 'Jabatan' }}</div>
             </td>
 

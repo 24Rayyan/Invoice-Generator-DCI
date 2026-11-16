@@ -99,9 +99,12 @@
     <table class="header-table">
         <tr>
             <td style="width: 60%; vertical-align: top;">
+                @if($setting && $setting->logoPath())
+                    <img src="{{ $setting->logoPath() }}" alt="Logo perusahaan" style="max-height: 42px; max-width: 150px; margin-bottom: 4px;"><br>
+                @endif
                 <div class="company-name">{{ $setting->company_name ?? 'Nama Perusahaan' }}</div>
                 <div class="company-info">
-                    {{ $setting->company_address ?? 'Jakarta, Indonesia' }}<br>
+                    {{ $setting->company_address ?: '-' }}<br>
                     NPWP 16 Digit: <strong>{{ $setting->company_npwp16 ?? '-' }}</strong> | Telepon: {{ $setting->company_phone ?? '-' }}
                 </div>
             </td>
@@ -126,9 +129,9 @@
         <thead>
             <tr>
                 <th style="width: 46%;" class="text-start">Pos Laporan Keuangan</th>
-                <th style="width: 18%;" class="text-end">Komersial (Rp)</th>
-                <th style="width: 18%;" class="text-end">Koreksi Fiskal Positif (Rp)</th>
-                <th style="width: 18%;" class="text-end">Fiskal / SPT (Rp)</th>
+                <th style="width: 18%;" class="text-end">Komersial ({{ $setting->currency_symbol ?? 'Rp' }})</th>
+                <th style="width: 18%;" class="text-end">Koreksi Fiskal Positif ({{ $setting->currency_symbol ?? 'Rp' }})</th>
+                <th style="width: 18%;" class="text-end">Fiskal / SPT ({{ $setting->currency_symbol ?? 'Rp' }})</th>
             </tr>
         </thead>
         <tbody>
@@ -200,9 +203,9 @@
             </td>
             <td>
                 Menyetujui,<br>
-                <strong>Direktur Utama / Pimpinan</strong>
+                <strong>{{ $setting->signatory_position ?: 'Direktur Utama / Pimpinan' }}</strong>
                 <br><br><br><br>
-                ( <strong>{{ $setting->company_director ?? $setting->company_name ?? 'Direktur' }}</strong> )
+                @if(filled($setting->signatory_name))( <strong>{{ $setting->signatory_name }}</strong> )@else( .................................................. )@endif
             </td>
         </tr>
     </table>

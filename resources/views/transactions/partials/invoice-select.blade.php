@@ -7,7 +7,7 @@
                 {{ $invoice->document_number }}
                 — {{ $invoice->customer->name ?? 'Tanpa Customer' }}
                 ({{ $invoice->status }})
-                · Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}
+                · {{ \App\Models\Setting::get('currency_symbol', 'Rp') }} {{ number_format($invoice->total_amount, 0, ',', '.') }}
             </option>
         @endforeach
     </select>
