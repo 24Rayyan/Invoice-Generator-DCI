@@ -265,7 +265,6 @@
                                             </li>
                                         @endif
                                         @if(auth()->user()->hasAccess('categories'))
-                                            <li><hr class="dropdown-divider border-secondary opacity-10 my-1"></li>
                                             <li>
                                                 <a class="dropdown-item py-2 {{ request()->routeIs('categories.*') ? 'active' : '' }}" href="{{ route('categories.index') }}">
                                                     <i class="fa-solid fa-tags me-2 text-warning"></i> Master Akun & COA
