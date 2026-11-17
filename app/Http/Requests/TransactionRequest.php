@@ -10,6 +10,13 @@ use Illuminate\Validation\Validator;
 
 class TransactionRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->isMethod('POST') && $this->query->has('type')) {
+            $this->merge(['type' => $this->query('type')]);
+        }
+    }
+
     public function authorize(): bool
     {
         return $this->user() !== null;
@@ -25,11 +32,11 @@ class TransactionRequest extends FormRequest
             'payment_method'    => ['required', 'string'],
             'description'       => ['nullable', 'string'],
             'invoice_id'        => [
-                $this->user()->hasAccess('invoice_margin') ? 'nullable' : 'prohibited',
+                $this->isMethod('POST') || ! $this->user()->hasAccess('invoice_margin') ? 'prohibited' : 'nullable',
                 Rule::exists('documents', 'id')->where('type', 'INVOICE'),
             ],
             'project_id'        => [
-                $this->user()->hasAccess('projects') ? 'nullable' : 'prohibited',
+                $this->isMethod('POST') || ! $this->user()->hasAccess('projects') ? 'prohibited' : 'nullable',
                 'integer',
                 'exists:projects,id',
             ],
@@ -46,6 +53,18 @@ class TransactionRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            if ($this->isMethod('POST')) {
+                $categoryType = Category::query()
+                    ->whereKey($this->input('category_id'))
+                    ->value('type');
+
+                if ($categoryType && $categoryType !== $this->input('type')) {
+                    $validator->errors()->add('category_id', 'Kategori akun harus sesuai dengan tipe transaksi yang dipilih.');
+                }
+
+                return;
+            }
+
             $categoryType = Category::query()
                 ->whereKey($this->input('category_id'))
                 ->value('type');

@@ -29,7 +29,7 @@
         </div>
         @endif
 
-        <form action="{{ route('transactions.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('transactions.store', ['type' => $defaultType]) }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <!-- Section 1: Informasi Dasar Transaksi -->
@@ -42,22 +42,13 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
-                        <!-- Tipe Transaksi (Income / Expense) -->
+                        <!-- Tipe Transaksi ditentukan oleh tombol yang dipilih -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark font-sm">Tipe Transaksi <span class="text-danger">*</span></label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check form-check-inline p-3 border rounded-3 flex-fill text-center bg-light">
-                                    <input class="form-check-input" type="radio" name="type" id="typeExpense" value="expense" {{ old('type', $defaultType) == 'expense' ? 'checked' : '' }} onchange="onTypeChange()">
-                                    <label class="form-check-label fw-bold text-danger ms-1" for="typeExpense">
-                                        <i class="fa-solid fa-arrow-up-right me-1"></i> Pengeluaran
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline p-3 border rounded-3 flex-fill text-center bg-light">
-                                    <input class="form-check-input" type="radio" name="type" id="typeIncome" value="income" {{ old('type', $defaultType) == 'income' ? 'checked' : '' }} onchange="onTypeChange()">
-                                    <label class="form-check-label fw-bold text-success ms-1" for="typeIncome">
-                                        <i class="fa-solid fa-arrow-down-left me-1"></i> Pemasukan
-                                    </label>
-                                </div>
+                            <input type="hidden" name="type" value="{{ $defaultType }}">
+                            <div class="form-control bg-light fw-bold {{ $defaultType === 'income' ? 'text-success' : 'text-danger' }}">
+                                <i class="fa-solid {{ $defaultType === 'income' ? 'fa-arrow-down-left' : 'fa-arrow-up-right' }} me-1"></i>
+                                {{ $defaultType === 'income' ? 'Pemasukan' : 'Pengeluaran' }}
                             </div>
                         </div>
 
@@ -117,18 +108,6 @@
                             <small class="text-muted font-xs d-block mt-1">Format: JPG, PNG, PDF (Maks. 5 MB)</small>
                         </div>
 
-                        @if(auth()->user()->hasAccess('invoice_margin'))
-                            @include('transactions.partials.invoice-select', [
-                                'invoices' => $invoices,
-                                'selectedInvoiceId' => old('invoice_id'),
-                            ])
-                        @endif
-                        @if(auth()->user()->hasAccess('projects'))
-                            @include('transactions.partials.project-select', [
-                                'projects' => $projects,
-                                'selectedProjectId' => old('project_id'),
-                            ])
-                        @endif
                     </div>
                 </div>
             </div>
@@ -177,8 +156,8 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="text-end mb-5">
-                <a href="{{ route('transactions.index') }}" class="btn btn-secondary px-4 me-2">Batal</a>
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end align-items-center gap-2 form-actions mb-5">
+                <a href="{{ route('transactions.index') }}" class="btn btn-secondary px-4">Batal</a>
                 <button type="submit" class="btn btn-primary px-5 shadow-sm">
                     <i class="fa-solid fa-save me-1.5"></i> Simpan Transaksi Keuangan
                 </button>
@@ -190,27 +169,6 @@
 
 @push('scripts')
 <script>
-    function onTypeChange() {
-        var selectedType = $('input[name="type"]:checked').val();
-
-        // Reset category if not matching
-        var currentSelected = $('#categorySelect').find(':selected');
-        if (currentSelected.val() && currentSelected.data('type') !== selectedType) {
-            if ($('#categorySelect')[0].tomselect) {
-                $('#categorySelect')[0].tomselect.clear(true);
-            } else {
-                $('#categorySelect').val('');
-            }
-            $('#categoryBadgeInfo').html('');
-            $('#entertainmentSection').hide();
-        }
-
-        var categorySelect = $('#categorySelect')[0].tomselect;
-        if (categorySelect) {
-            categorySelect.refreshOptions(false);
-        }
-    }
-
     function onCategoryChange() {
         var selectedOpt = $('#categorySelect').find(':selected');
         var code = selectedOpt.data('code');
@@ -242,7 +200,6 @@
     }
 
     $(document).ready(function() {
-        onTypeChange();
         onCategoryChange();
     });
 </script>

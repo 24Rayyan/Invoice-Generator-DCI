@@ -107,6 +107,13 @@
     padding: .65rem .9rem; white-space: nowrap; border-bottom: 1px solid var(--erp-line-strong);
     position: sticky; top: 0;
 }
+.rpt-ledger-sort {
+    display: inline-flex; align-items: center; gap: .4rem; padding: 0; border: 0;
+    background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit;
+}
+.rpt-ledger-sort:hover, .rpt-ledger-sort:active { color: var(--erp-ink); }
+.rpt-ledger-sort:focus-visible { outline: 2px solid var(--erp-primary); outline-offset: 3px; }
+.rpt-ledger-sort i { color: var(--erp-primary); }
 .rpt-table tbody td, .rpt-table tfoot td {
     padding: .65rem .9rem; border-bottom: 1px solid var(--erp-line); vertical-align: middle;
 }

@@ -14,7 +14,8 @@
         'type' => $type,
     ];
     $inv = $reportData['invoicing_summary'];
-    $ledgerCount = count($reportData['ledger_entries']);
+    $ledgerEntries = collect($reportData['ledger_entries'])->reverse()->values();
+    $ledgerCount = $ledgerEntries->count();
     $netPositive = $reportData['net_profit'] >= 0;
 @endphp
 
@@ -179,7 +180,16 @@
             <table id="ledgerTable" class="rpt-table" style="min-width: 900px;">
                 <thead>
                     <tr>
-                        <th style="width: 104px;">Tanggal</th>
+                        <th id="ledgerDateHeader" style="width: 104px;" @if($ledgerCount > 0) aria-sort="descending" @endif>
+                            @if($ledgerCount > 0)
+                                <button type="button" id="ledgerDateSort" class="rpt-ledger-sort" aria-label="Urutkan tanggal, terlama ke terbaru">
+                                    <span>Tanggal</span>
+                                    <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                                </button>
+                            @else
+                                Tanggal
+                            @endif
+                        </th>
                         <th style="width: 150px;">No. referensi</th>
                         <th style="width: 190px;">Kategori / akun</th>
                         <th>Keterangan</th>
@@ -190,8 +200,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($reportData['ledger_entries'] as $item)
-                    <tr data-ledger-row>
+                    @forelse($ledgerEntries as $item)
+                    <tr data-ledger-row data-ledger-date="{{ $item['date']->format('Y-m-d') }}" data-ledger-id="{{ $item['id'] }}">
                         <td class="nw num">{{ $item['formatted_date'] }}</td>
                         <td class="mono nw" style="font-weight: 600;">{{ $item['reference_number'] }}</td>
                         <td>
@@ -312,6 +322,8 @@
         var pageSizeSelect = document.getElementById('ledgerPerPage');
         var pagination = document.getElementById('ledgerPagination');
         var pageSummary = document.getElementById('ledgerPageSummary');
+        var dateHeader = document.getElementById('ledgerDateHeader');
+        var dateSortButton = document.getElementById('ledgerDateSort');
 
         if (!ledgerTable || !pageSizeSelect || !pagination || !pageSummary) {
             return;
@@ -319,6 +331,7 @@
 
         var rows = Array.from(ledgerTable.querySelectorAll('[data-ledger-row]'));
         var currentPage = 1;
+        var dateSortDirection = 'desc';
 
         function renderPagination() {
             var pageSize = Number(pageSizeSelect.value);
@@ -366,6 +379,31 @@
         }
 
         pageSizeSelect.addEventListener('change', function () {
+            currentPage = 1;
+            renderPagination();
+        });
+
+        dateSortButton.addEventListener('click', function () {
+            dateSortDirection = dateSortDirection === 'desc' ? 'asc' : 'desc';
+            rows.sort(function (left, right) {
+                var comparison = left.dataset.ledgerDate.localeCompare(right.dataset.ledgerDate);
+                if (comparison === 0) {
+                    comparison = Number(left.dataset.ledgerId) - Number(right.dataset.ledgerId);
+                }
+
+                return dateSortDirection === 'desc' ? -comparison : comparison;
+            });
+
+            rows.forEach(function (row) {
+                ledgerTable.tBodies[0].appendChild(row);
+            });
+
+            dateHeader.setAttribute('aria-sort', dateSortDirection === 'desc' ? 'descending' : 'ascending');
+            dateSortButton.setAttribute(
+                'aria-label',
+                dateSortDirection === 'desc' ? 'Urutkan tanggal, terlama ke terbaru' : 'Urutkan tanggal, terbaru ke terlama'
+            );
+            dateSortButton.querySelector('i').className = 'fa-solid ' + (dateSortDirection === 'desc' ? 'fa-arrow-down' : 'fa-arrow-up');
             currentPage = 1;
             renderPagination();
         });

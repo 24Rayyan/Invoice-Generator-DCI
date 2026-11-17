@@ -140,7 +140,7 @@ class ProjectGroupingTest extends TestCase
         ]);
     }
 
-    public function test_cash_form_creates_and_updates_optional_project_assignment(): void
+    public function test_cash_creation_form_hides_project_assignment_while_existing_transactions_can_be_updated(): void
     {
         $project = $this->makeProject();
         $category = Category::where('type', 'expense')->firstOrFail();
@@ -148,12 +148,38 @@ class ProjectGroupingTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('transactions.create', ['type' => 'expense']))
             ->assertOk()
-            ->assertSee('Relasikan ke Project')
-            ->assertSee('ERP Rollout');
+            ->assertDontSee('Relasikan ke Project')
+            ->assertDontSee('Relasikan ke Invoice')
+            ->assertDontSee('ERP Rollout');
 
         $this->actingAs($this->admin)
-            ->post(route('transactions.store'), [
+            ->post(route('transactions.store', ['type' => 'expense']), [
                 'type' => 'expense',
+                'category_id' => $category->id,
+                'project_id' => $project->id,
+                'amount' => 400000,
+                'transaction_date' => now()->toDateString(),
+                'payment_method' => 'Cash',
+                'description' => 'Rejected project assignment',
+            ])
+            ->assertSessionHasErrors('project_id');
+
+        $this->actingAs($this->admin)
+            ->post(route('transactions.store', ['type' => 'expense']), [
+                'type' => 'expense',
+                'category_id' => $category->id,
+                'amount' => 400000,
+                'transaction_date' => now()->toDateString(),
+                'payment_method' => 'Cash',
+                'description' => 'Implementation cost',
+            ])
+            ->assertRedirect(route('transactions.index'));
+
+        $transaction = Transaction::where('description', 'Implementation cost')->firstOrFail();
+        $this->assertNull($transaction->project_id);
+
+        $this->actingAs($this->admin)
+            ->put(route('transactions.update', $transaction), [
                 'category_id' => $category->id,
                 'project_id' => $project->id,
                 'amount' => 400000,
@@ -163,8 +189,7 @@ class ProjectGroupingTest extends TestCase
             ])
             ->assertRedirect(route('transactions.index'));
 
-        $transaction = Transaction::where('description', 'Implementation cost')->firstOrFail();
-        $this->assertSame($project->id, $transaction->project_id);
+        $this->assertSame($project->id, $transaction->fresh()->project_id);
 
         $otherProject = $this->makeProject('Another project');
         $this->actingAs($this->admin)

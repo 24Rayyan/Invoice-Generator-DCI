@@ -47,6 +47,19 @@
                 }
             };
 
+            settings.onInitialize = function() {
+                this.wrapper.setAttribute('data-placeholder', placeholder || 'Pilih opsi...');
+            };
+
+            // Dropdown tanpa kebutuhan pencarian (opsi sedikit): klik -> pilih, tanpa type-to-search
+            if (select.classList.contains('pagination-dropdown')) {
+                settings.searchField = [];
+                settings.onInitialize = function() {
+                    this.wrapper.setAttribute('data-placeholder', placeholder || '');
+                    this.control_input.setAttribute('readonly', 'readonly');
+                };
+            }
+
             if (select.classList.contains('status-select')) {
                 let statusIcons = {
                     DRAFT: 'fa-file-pen',
@@ -73,6 +86,7 @@
                     return renderStatus(data, escape, 'status-item');
                 };
                 settings.onInitialize = function() {
+                    this.wrapper.setAttribute('data-placeholder', placeholder || '');
                     this.wrapper.classList.remove('form-select');
                     this.control_input.setAttribute('readonly', 'readonly');
                     this.control_input.setAttribute('aria-readonly', 'true');
@@ -87,9 +101,10 @@
                         let option = Array.from(select.options).find(function(item) {
                             return item.value === data.value;
                         });
-                        let selectedType = select.form
-                            ? select.form.querySelector('input[name="type"]:checked')?.value
+                        let typeInput = select.form
+                            ? select.form.querySelector('input[name="type"]:checked, input[name="type"][type="hidden"]')
                             : null;
+                        let selectedType = typeInput ? typeInput.value : null;
                         let categoryType = option?.dataset.type?.trim().toLowerCase();
 
                         if (

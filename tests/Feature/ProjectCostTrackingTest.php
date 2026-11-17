@@ -128,14 +128,50 @@ class ProjectCostTrackingTest extends TestCase
         $this->assertNull($expense->fresh()->invoice_id);
     }
 
-    public function test_store_transaction_can_link_optional_invoice(): void
+    public function test_new_transaction_form_cannot_link_invoice_but_existing_assignment_is_preserved(): void
     {
         $invoice = $this->makeInvoice();
         $category = Category::where('code', '5-101')->firstOrFail();
 
         $this->actingAs($this->user)
-            ->post(route('transactions.store'), [
+            ->get(route('transactions.create', ['type' => 'expense']))
+            ->assertOk()
+            ->assertDontSee('Relasikan ke Invoice')
+            ->assertDontSee('Relasikan ke Project');
+
+        $this->actingAs($this->user)
+            ->post(route('transactions.store', ['type' => 'expense']), [
                 'type' => 'expense',
+                'category_id' => $category->id,
+                'amount' => 750000,
+                'transaction_date' => '2026-10-06',
+                'payment_method' => 'Cash',
+                'description' => 'Rejected invoice assignment',
+                'invoice_id' => $invoice->id,
+            ])
+            ->assertSessionHasErrors('invoice_id');
+
+        $this->actingAs($this->user)
+            ->post(route('transactions.store', ['type' => 'expense']), [
+                'type' => 'expense',
+                'category_id' => $category->id,
+                'amount' => 750000,
+                'transaction_date' => '2026-10-06',
+                'payment_method' => 'Cash',
+                'description' => 'Transport site',
+            ])
+            ->assertRedirect(route('transactions.index'));
+
+        $this->assertDatabaseHas('transactions', [
+            'description' => 'Transport site',
+            'invoice_id' => null,
+            'project_id' => null,
+            'amount' => 750000,
+        ]);
+
+        $transaction = Transaction::where('description', 'Transport site')->firstOrFail();
+        $this->actingAs($this->user)
+            ->put(route('transactions.update', $transaction), [
                 'category_id' => $category->id,
                 'amount' => 750000,
                 'transaction_date' => '2026-10-06',
@@ -145,11 +181,54 @@ class ProjectCostTrackingTest extends TestCase
             ])
             ->assertRedirect(route('transactions.index'));
 
-        $this->assertDatabaseHas('transactions', [
-            'description' => 'Transport site',
-            'invoice_id' => $invoice->id,
-            'amount' => 750000,
-        ]);
+        $this->assertSame($invoice->id, $transaction->fresh()->invoice_id);
+    }
+
+    public function test_cash_creation_type_is_locked_to_selected_action_and_saved_without_links(): void
+    {
+        foreach (['expense', 'income'] as $type) {
+            $category = Category::where('type', $type)->firstOrFail();
+            $description = 'Cash flow ' . $type;
+
+            $this->actingAs($this->user)
+                ->get(route('transactions.create', ['type' => $type]))
+                ->assertOk()
+                ->assertSee('name="type" value="' . $type . '"', false)
+                ->assertDontSee('typeExpense')
+                ->assertDontSee('typeIncome')
+                ->assertDontSee('Relasikan ke Invoice')
+                ->assertDontSee('Relasikan ke Project');
+
+            $oppositeCategory = Category::where('type', $type === 'income' ? 'expense' : 'income')->firstOrFail();
+            $this->actingAs($this->user)
+                ->post(route('transactions.store', ['type' => $type]), [
+                    'type' => $type,
+                    'category_id' => $oppositeCategory->id,
+                    'amount' => 125000,
+                    'transaction_date' => '2026-10-06',
+                    'payment_method' => 'Cash',
+                    'description' => 'Mismatched category ' . $type,
+                ])
+                ->assertSessionHasErrors('category_id');
+
+            $this->actingAs($this->user)
+                ->post(route('transactions.store', ['type' => $type]), [
+                    'type' => $type === 'income' ? 'expense' : 'income',
+                    'category_id' => $category->id,
+                    'amount' => 125000,
+                    'transaction_date' => '2026-10-06',
+                    'payment_method' => 'Cash',
+                    'description' => $description,
+                ])
+                ->assertRedirect(route('transactions.index'));
+
+            $this->assertDatabaseHas('transactions', [
+                'description' => $description,
+                'type' => $type,
+                'invoice_id' => null,
+                'project_id' => null,
+            ]);
+        }
     }
 
     public function test_transaction_forms_reject_purchase_orders_as_invoice_links(): void
@@ -385,5 +464,27 @@ class ProjectCostTrackingTest extends TestCase
             ->assertSee('Rekapitulasi per Akun Kategori')
             ->assertSee('250.000')
             ->assertSee('financial-statement/pdf?start_date=2026-10-01', false);
+    }
+
+    public function test_financial_ledger_defaults_to_newest_date_first_and_exposes_date_sort_control(): void
+    {
+        $olderExpense = $this->makeExpense(100000);
+        $olderExpense->update(['transaction_date' => '2026-10-05']);
+        $newerExpense = $this->makeExpense(200000);
+        $newerExpense->update(['transaction_date' => '2026-10-12']);
+
+        $response = $this->actingAs($this->user)
+            ->get(route('reports.financial_statement', [
+                'start_date' => '2026-10-01',
+                'end_date' => '2026-10-31',
+            ]));
+
+        $response->assertOk()
+            ->assertSee('aria-sort="descending"', false)
+            ->assertSee('id="ledgerDateSort"', false)
+            ->assertSeeInOrder([
+                $newerExpense->transaction_number,
+                $olderExpense->transaction_number,
+            ]);
     }
 }

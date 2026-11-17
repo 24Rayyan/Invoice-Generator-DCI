@@ -36,7 +36,7 @@
     <style>
         /* Navbar "floating island" — identitas visual aplikasi, dipertahankan. */
         body { display: flex; flex-direction: column; }
-        /* --- FLOATING ISLAND NAVBAR STYLE --- */
+        /* --- FLOATING ISLAND NAVBAR STYLE --- */  
         .floating-navbar-wrapper {
             position: sticky;
             top: 0;

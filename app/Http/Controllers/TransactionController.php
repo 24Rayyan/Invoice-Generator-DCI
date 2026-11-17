@@ -143,17 +143,14 @@ class TransactionController extends Controller
      */
     public function create(Request $request)
     {
-        $defaultType = $request->get('type', 'expense');
+        $validated = $request->validate([
+            'type' => ['nullable', 'in:income,expense'],
+        ]);
+        $defaultType = $validated['type'] ?? 'expense';
         $categories = Category::orderBy('code', 'asc')->get();
         $autoNumber = Transaction::generateTransactionNumber($defaultType, date('Y-m-d'));
-        $invoices = auth()->user()->hasAccess('invoice_margin')
-            ? Document::linkableInvoices()
-            : collect();
-        $projects = auth()->user()->hasAccess('projects')
-            ? Project::activeForSelection()
-            : collect();
 
-        return view('transactions.create', compact('categories', 'defaultType', 'autoNumber', 'invoices', 'projects'));
+        return view('transactions.create', compact('categories', 'defaultType', 'autoNumber'));
     }
 
     /**
@@ -161,8 +158,6 @@ class TransactionController extends Controller
      */
     public function store(TransactionRequest $request)
     {
-        $invoiceId = $request->validated('invoice_id');
-
         $category = Category::findOrFail($request->category_id);
 
         // Jika kategori adalah 5-201 (Jamuan/Entertainment), data nominatif wajib diisi
@@ -185,10 +180,10 @@ class TransactionController extends Controller
         }
 
         $transactionData = [
-            'type'             => $request->type,
+            'type'             => $request->validated('type'),
             'category_id'      => $request->category_id,
-            'invoice_id'       => auth()->user()->hasAccess('invoice_margin') ? $invoiceId : null,
-            'project_id'       => auth()->user()->hasAccess('projects') ? $request->validated('project_id') : null,
+            'invoice_id'       => null,
+            'project_id'       => null,
             'amount'           => $request->amount,
             'transaction_date' => $request->transaction_date,
             'payment_method'   => $request->payment_method,

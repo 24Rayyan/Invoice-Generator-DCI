@@ -306,8 +306,14 @@ textarea.form-control { min-height: 84px; }
 }
 .ts-wrapper.single .ts-control > .item { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ts-wrapper.single.focus .ts-control, .ts-wrapper.single.dropdown-active .ts-control { border-color: var(--erp-primary); box-shadow: 0 0 0 3px var(--erp-primary-ring); }
-.ts-wrapper.single .ts-control input { color: var(--erp-ink); font: inherit; }
-.ts-wrapper.single .ts-control input::placeholder { color: #98a3b5; }
+/* Type-to-search: input pencarian tetap aktif untuk menerima ketikan, tetapi keluar dari alur layout (tanpa caret / field tambahan) */
+.ts-wrapper.single .ts-control > input {
+    position: absolute !important; top: 0; left: 0; width: 1px !important; min-width: 0 !important; height: 100%;
+    margin: 0 !important; padding: 0 !important; border: 0; opacity: 0 !important; caret-color: transparent; pointer-events: none;
+}
+.ts-wrapper.single .ts-control > .item { opacity: 1 !important; visibility: visible !important; }
+.ts-wrapper.single:not(.has-items) .ts-control::before { content: attr(data-placeholder); color: #98a3b5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ts-wrapper.single .ts-control { cursor: pointer; }
 select.is-invalid + .ts-wrapper .ts-control { border-color: #c0392b; }
 select.smooth-dropdown.form-select-sm + .ts-wrapper.single .ts-control { min-height: 34px; padding: .3rem 2rem .3rem .65rem; font-size: .82rem; }
 .ts-wrapper.single .ts-control::after {
@@ -319,13 +325,10 @@ select.smooth-dropdown.form-select-sm + .ts-wrapper.single .ts-control { min-hei
 body > .ts-dropdown {
     position: absolute !important; z-index: 1070; overflow: hidden; margin-top: 6px;
     border: 1px solid var(--erp-line); border-radius: var(--erp-radius); background: #fff;
-    box-shadow: var(--erp-shadow-pop); animation: erp-pop-in .14s ease-out;
+    box-shadow: var(--erp-shadow-pop); animation: erp-pop-in .14s ease-out; max-width: calc(100vw - 16px);
 }
-.ts-dropdown .dropdown-input-wrap { padding: 9px; border-bottom: 1px solid var(--erp-line); background: #fff; }
-.ts-dropdown .dropdown-input { min-height: 36px; border: 1px solid var(--erp-line-strong); border-radius: var(--erp-radius-sm); padding: 7px 10px; box-shadow: none; }
-.ts-dropdown .dropdown-input:focus { border-color: var(--erp-primary); box-shadow: 0 0 0 3px var(--erp-primary-ring); }
 .ts-dropdown-content { max-height: min(280px, 45vh); padding: 5px; overflow-y: auto; overscroll-behavior: contain; }
-.ts-dropdown .option, .ts-dropdown .no-results { margin: 2px 0; border-radius: 6px; padding: 8px 10px; color: var(--erp-text); font-size: .84rem; line-height: 1.4; }
+.ts-dropdown .option, .ts-dropdown .no-results { min-height: 36px; margin: 2px 0; border-radius: 6px; padding: 8px 10px; color: var(--erp-text); font-size: .84rem; line-height: 1.4; }
 .ts-dropdown .active { background: var(--erp-primary-soft); color: var(--erp-primary-hover); }
 .ts-dropdown .selected { color: var(--erp-primary-hover); font-weight: 600; }
 .category-filter-dropdown-menu .option.disabled { display: none; }
