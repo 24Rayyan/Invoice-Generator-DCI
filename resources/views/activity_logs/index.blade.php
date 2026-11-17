@@ -287,6 +287,26 @@
     .al-pre { margin: 0; padding: .8rem .9rem; max-height: 320px; overflow: auto; background: var(--erp-surface-2); border: 1px solid var(--erp-line); border-radius: var(--erp-radius-sm); color: var(--erp-ink); font-size: .78rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 
     @media (max-width: 767.98px) {
+        /* Log menjadi kartu: waktu + pengguna sebaris, modul, lalu aktivitas */
+        .al-panel .table-responsive { background: var(--erp-bg); padding: .6rem; overflow: visible; }
+        .al-table, .al-table tbody { display: block; min-width: 0; width: 100%; }
+        .al-table thead { display: none; }
+        .al-table tbody { display: grid; gap: .75rem; }
+        .al-table tbody tr.al-row {
+            display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem .9rem; align-items: center;
+            padding: .85rem 1rem; background: var(--erp-surface); border: 1px solid var(--erp-line-strong);
+            border-radius: var(--erp-radius); box-shadow: 0 1px 2px rgba(15, 26, 46, .06);
+        }
+        .al-table tbody tr.al-row td { display: block; padding: 0; border: 0; min-width: 0; }
+        .al-table tbody tr.al-row td.al-time { white-space: normal; }
+        .al-table tbody tr.al-row td.al-time .d-block, .al-table tbody tr.al-row td.al-time .al-time-h { display: inline; }
+        .al-table tbody tr.al-row td.al-time .al-time-h::before { content: " · "; }
+        .al-table tbody tr.al-row td:nth-child(2) { grid-column: 1 / -1; order: -1; }
+        .al-table tbody tr.al-row td.al-time { grid-column: 1 / -1; order: 0; font-size: .78rem; }
+        .al-table tbody tr.al-row td.al-module { grid-column: 1 / -1; order: 1; font-size: .78rem; color: var(--erp-text-3); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+        .al-table tbody tr.al-row td:last-child { grid-column: 1 / -1; order: 2; padding-top: .55rem; border-top: 1px solid var(--erp-line); }
+        .al-table tbody tr:not(.al-row) { display: block; background: var(--erp-surface); border-radius: var(--erp-radius); }
+        .al-table tbody tr:not(.al-row) td { display: block; padding: 0; border: 0; }
         .al-head .btn { width: 100%; }
         .al-panel-head, .al-panel-foot { padding-left: .9rem; padding-right: .9rem; }
         .al-dl { grid-template-columns: 1fr; }

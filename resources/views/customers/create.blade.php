@@ -117,7 +117,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2 form-actions">
                         <a href="{{ route('customers.index') }}" class="btn btn-light border px-4">Batal</a>
                         <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
                             <i class="fa-solid fa-floppy-disk me-1.5"></i> Simpan Pelanggan

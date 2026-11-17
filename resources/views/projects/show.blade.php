@@ -57,23 +57,23 @@
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachProjectInvoices"><i class="fa-solid fa-link me-1"></i>Hubungkan Invoice</button>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 m-cards">
             <thead class="bg-light"><tr><th class="ps-4">No. Invoice</th><th>Pelanggan</th><th>Tanggal</th><th>Status</th><th class="text-end">Nilai Invoice</th><th class="text-end pe-4">Aksi</th></tr></thead>
             <tbody>
                 @forelse($project->invoices as $invoice)
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-4 mc-title mc-o1" data-label="No. Invoice">
                             @if(auth()->user()->hasAccess('invoices'))
                                 <a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">{{ $invoice->document_number }}</a>
                             @else
                                 <span class="fw-bold">{{ $invoice->document_number }}</span>
                             @endif
                         </td>
-                        <td>{{ $invoice->customer?->name ?? '-' }}</td>
-                        <td>{{ $invoice->date?->format('d/m/Y') }}</td>
-                        <td><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>
-                        <td class="text-end fw-semibold">{{ $currency }} {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4">
+                        <td class="mc-o2" data-label="Pelanggan">{{ $invoice->customer?->name ?? '-' }}</td>
+                        <td class="mc-half mc-o4" data-label="Tanggal">{{ $invoice->date?->format('d/m/Y') }}</td>
+                        <td class="mc-half mc-o5" data-label="Status"><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>
+                        <td class="text-end fw-semibold mc-amount mc-o3" data-label="Nilai Invoice">{{ $currency }} {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
+                        <td class="text-end pe-4 mc-foot mc-o6" data-label="Aksi">
                             <form method="POST" action="{{ route('projects.detach-invoice', [$project, $invoice]) }}" data-confirm="Invoice tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Invoice dari Proyek?" data-confirm-subject="{{ $invoice->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
                                 <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Lepas</button>
@@ -81,7 +81,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada invoice pada project ini. Hubungkan invoice yang tersedia atau pilih project dari form invoice.</td></tr>
+                    <tr class="mc-empty"><td colspan="6" class="text-center text-muted py-4">Belum ada invoice pada project ini. Hubungkan invoice yang tersedia atau pilih project dari form invoice.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -151,17 +151,17 @@
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachProjectExpenses"><i class="fa-solid fa-link me-1"></i>Hubungkan Kas</button>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 m-cards">
             <thead class="bg-light"><tr><th class="ps-4">No. Transaksi</th><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th class="text-end">Jumlah</th><th class="text-end pe-4">Aksi</th></tr></thead>
             <tbody>
                 @forelse($project->directExpenses as $transaction)
                     <tr>
-                        <td class="ps-4 fw-semibold">{{ $transaction->transaction_number }}</td>
-                        <td>{{ $transaction->transaction_date?->format('d/m/Y') }}</td>
-                        <td>{{ $transaction->category?->name ?? '-' }}</td>
-                        <td>{{ $transaction->description ?? '-' }}</td>
-                        <td class="text-end text-danger fw-semibold">{{ $currency }} {{ number_format($transaction->amount, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4">
+                        <td class="ps-4 fw-semibold mc-title mc-o1" data-label="No. Transaksi">{{ $transaction->transaction_number }}</td>
+                        <td class="mc-half mc-o3" data-label="Tanggal">{{ $transaction->transaction_date?->format('d/m/Y') }}</td>
+                        <td class="mc-half mc-o4" data-label="Kategori">{{ $transaction->category?->name ?? '-' }}</td>
+                        <td class="mc-o5" data-label="Keterangan">{{ $transaction->description ?? '-' }}</td>
+                        <td class="text-end text-danger fw-semibold mc-amount mc-o2" data-label="Jumlah">{{ $currency }} {{ number_format($transaction->amount, 0, ',', '.') }}</td>
+                        <td class="text-end pe-4 mc-foot mc-o6" data-label="Aksi">
                             <form method="POST" action="{{ route('projects.detach-expense', [$project, $transaction]) }}" data-confirm="Transaksi kas tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Transaksi dari Proyek?" data-confirm-subject="{{ $transaction->transaction_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
                                 <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Lepas</button>
@@ -169,7 +169,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada kas keluar yang terhubung ke proyek ini.</td></tr>
+                    <tr class="mc-empty"><td colspan="6" class="text-center text-muted py-4">Belum ada kas keluar yang terhubung ke proyek ini.</td></tr>
                 @endforelse
             </tbody>
         </table>

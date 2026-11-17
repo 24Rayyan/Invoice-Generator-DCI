@@ -25,7 +25,7 @@
     <div class="card-body p-4">
         
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="customerTable">
+            <table class="table table-hover align-middle mb-0 m-cards" id="customerTable">
                 <thead>
                     <tr>
                         <th width="4%" class="text-center">No</th>
@@ -39,8 +39,8 @@
                 <tbody>
                     @foreach($customers as $index => $c)
                     <tr>
-                        <td class="text-center fw-semibold text-muted small">{{ $index + 1 }}</td>
-                        <td>
+                        <td class="text-center fw-semibold text-muted small mc-hide" data-label="No">{{ $index + 1 }}</td>
+                        <td class="mc-title mc-o1" data-label="Pelanggan">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle me-3 flex-shrink-0 d-flex align-items-center justify-content-center fw-bold text-primary bg-primary bg-opacity-10 rounded-circle" style="width: 38px; height: 38px; font-size: 0.9rem;">
                                     {{ strtoupper(substr($c->name, 0, 2)) }}
@@ -51,7 +51,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td>
+                        <td class="mc-o2" data-label="Identitas Pajak">
                             @if($c->tax_id_number)
                                 <div class="d-flex flex-column">
                                     <span class="font-monospace fw-semibold text-dark font-xs">
@@ -64,7 +64,7 @@
                                 <span class="badge bg-secondary bg-opacity-10 text-secondary font-xs">Non-NPWP</span>
                             @endif
                         </td>
-                        <td>
+                        <td class="mc-o3" data-label="Kontak & WhatsApp">
                             <div class="d-flex flex-column gap-1">
                                 @if($c->phone)
                                     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $c->phone) }}" target="_blank" class="text-decoration-none text-dark font-xs fw-medium d-inline-flex align-items-center" title="Kirim Pesan WhatsApp">
@@ -81,13 +81,13 @@
                                 @endif
                             </div>
                         </td>
-                        <td>
+                        <td class="mc-o4" data-label="Alamat Penagihan">
                             <span class="text-muted small text-truncate d-block" style="max-width: 220px;" title="{{ $c->address }}">
                                 {{ $c->address ?? '-' }}
                             </span>
                         </td>
-                        <td class="text-center">
-                            <div class="d-flex align-items-center justify-content-center gap-1">
+                        <td class="text-center mc-foot mc-o5" data-label="Aksi">
+                            <div class="d-flex align-items-center justify-content-center gap-1 mc-actions">
                                 <!-- Tombol Edit -->
                                 <a href="{{ route('customers.edit', $c->id) }}" class="btn btn-sm btn-light text-warning p-1.5 rounded-2 border" title="Edit Pelanggan" aria-label="Edit pelanggan {{ $c->name }}">
                                     <i class="fa-solid fa-pen-to-square"></i>

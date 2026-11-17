@@ -125,7 +125,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle mb-0 m-cards">
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">{{ $document->type === 'PO' ? 'Nama Barang' : 'Deskripsi' }}</th>
@@ -144,24 +144,24 @@
                     @forelse($document->items as $item)
                     <tr>
                         @if($document->type === 'PO')
-                            <td class="ps-4 fw-semibold">{{ $item->description }}</td>
-                            <td>{{ $item->notes ?: '-' }}</td>
-                            <td>{{ $item->qty }}</td>
+                            <td class="ps-4 fw-semibold mc-title mc-o1" data-label="Nama Barang">{{ $item->description }}</td>
+                            <td class="mc-o3" data-label="Spesifikasi">{{ $item->notes ?: '-' }}</td>
+                            <td class="mc-half mc-o2" data-label="Kuantitas">{{ $item->qty }}</td>
                         @else
-                            <td class="ps-4">
+                            <td class="ps-4 mc-title mc-o1" data-label="Deskripsi">
                                 <div class="fw-semibold">{{ $item->description }}</div>
                                 @if($item->notes)
                                     <small class="text-muted">{{ $item->notes }}</small>
                                 @endif
                             </td>
-                            <td>{{ $item->qty }}</td>
-                            <td>{{ $item->unit }}</td>
-                            <td class="text-end">{{ $currency }} {{ number_format($item->price, 0, ',', '.') }}</td>
-                            <td class="text-end pe-4 fw-bold">{{ $currency }} {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                            <td class="mc-half mc-o2" data-label="Kuantitas">{{ $item->qty }}</td>
+                            <td class="mc-half mc-o3" data-label="Satuan">{{ $item->unit }}</td>
+                            <td class="text-end mc-half mc-o4" data-label="Harga">{{ $currency }} {{ number_format($item->price, 0, ',', '.') }}</td>
+                            <td class="text-end pe-4 fw-bold mc-half mc-o5" data-label="Subtotal">{{ $currency }} {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                         @endif
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="mc-empty">
                         <td colspan="{{ $document->type === 'PO' ? 3 : 5 }}" class="text-center text-muted py-4">Belum ada item.</td>
                     </tr>
                     @endforelse
@@ -184,7 +184,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle mb-0 m-cards">
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">No. Transaksi</th>
@@ -198,14 +198,14 @@
                 <tbody>
                     @forelse($document->directExpenses as $trx)
                     <tr>
-                        <td class="ps-4 font-mono fw-semibold">{{ $trx->transaction_number }}</td>
-                        <td>{{ $trx->transaction_date?->format('d/m/Y') }}</td>
-                        <td>
+                        <td class="ps-4 font-mono fw-semibold mc-title mc-o1" data-label="No. Transaksi">{{ $trx->transaction_number }}</td>
+                        <td class="mc-half mc-o3" data-label="Tanggal">{{ $trx->transaction_date?->format('d/m/Y') }}</td>
+                        <td class="mc-half mc-o4" data-label="Kategori">
                             <span class="fw-semibold font-sm">[{{ $trx->category?->code }}] {{ $trx->category?->name }}</span>
                         </td>
-                        <td class="font-sm">{{ $trx->description ?? '-' }}</td>
-                        <td class="text-end fw-bold text-danger">- {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4">
+                        <td class="font-sm mc-o5" data-label="Keterangan">{{ $trx->description ?? '-' }}</td>
+                        <td class="text-end fw-bold text-danger mc-amount mc-o2" data-label="Jumlah">- {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}</td>
+                        <td class="text-end pe-4 mc-foot mc-o6" data-label="Aksi">
                             <form action="{{ route('documents.detach-transaction', [$document, $trx]) }}" method="POST" class="d-inline" data-confirm="Transaksi tidak dihapus, hanya dilepas dari invoice ini." data-confirm-impact="Transaksi menjadi biaya operasional umum dan tidak lagi dihitung dalam margin invoice ini." data-confirm-title="Lepas Transaksi dari Invoice?" data-confirm-subject="{{ $document->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-outline-warning">
@@ -215,7 +215,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="mc-empty">
                         <td colspan="6" class="text-center text-muted py-5">
                             Belum ada kas keluar yang dihubungkan ke invoice ini.
                         </td>

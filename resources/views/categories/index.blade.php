@@ -98,62 +98,6 @@
         overflow-y: auto;
     }
 
-    @media (max-width: 767.98px) {
-        .coa-page .coa-table thead {
-            display: none;
-        }
-
-        .coa-page .coa-table,
-        .coa-page .coa-table tbody {
-            display: block;
-        }
-
-        .coa-page .coa-table tbody {
-            display: grid;
-            gap: 0.75rem;
-            padding: 0.75rem;
-        }
-
-        .coa-page .coa-table .coa-mobile-card {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            border: 1px solid var(--coa-line);
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .coa-page .coa-table .coa-mobile-card td {
-            display: grid;
-            grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.4fr);
-            align-items: start;
-            gap: 0.75rem;
-            padding: 0.7rem 0.85rem;
-            text-align: left !important;
-            overflow-wrap: anywhere;
-        }
-
-        .coa-page .coa-table .coa-mobile-card td::before {
-            content: attr(data-label);
-            grid-column: 1;
-            color: #526071;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .coa-page .coa-table .coa-mobile-card td > * {
-            grid-column: 2;
-        }
-
-        .coa-page .coa-table .coa-mobile-card td:last-child {
-            border-bottom: 0;
-        }
-
-        .coa-page .coa-table .coa-mobile-empty td {
-            display: block;
-        }
-    }
-
     @media (max-width: 575.98px) {
         .coa-page .coa-kpi {
             min-height: 106px;
@@ -295,7 +239,7 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 coa-table">
+            <table class="table table-hover align-middle mb-0 coa-table m-cards">
                 <thead>
                     <tr>
                         <th class="ps-4" style="width: 120px;">Kode Akun</th>
@@ -310,18 +254,18 @@
                 <tbody>
                     @forelse($categories as $category)
                     <tr class="coa-mobile-card">
-                        <td class="ps-4" data-label="Kode Akun">
+                        <td class="ps-4 mc-half mc-o2" data-label="Kode Akun">
                             <span class="badge bg-dark bg-opacity-75 font-mono px-2.5 py-1.5 fw-bold">
                                 {{ $category->code }}
                             </span>
                         </td>
-                        <td data-label="Nama Akun">
+                        <td class="mc-title mc-o1" data-label="Nama Akun">
                             <span class="fw-bold text-dark">{{ $category->name }}</span>
                             @if($category->code === '5-201')
                                 <span class="badge bg-primary ms-1" style="font-size: 0.675rem;">Wajib Nominatif</span>
                             @endif
                         </td>
-                        <td data-label="Tipe Akun">
+                        <td class="mc-half mc-o3" data-label="Tipe Akun">
                             @if($category->type === 'income')
                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
                                     <i class="fa-solid fa-arrow-down-left me-1"></i> Pendapatan
@@ -332,7 +276,7 @@
                                 </span>
                             @endif
                         </td>
-                        <td data-label="Status Fiskal">
+                        <td class="mc-o4" data-label="Status Fiskal">
                             @if($category->type === 'income')
                                 <span class="text-muted font-xs">
                                     <i class="fa-solid fa-check text-success me-1"></i> Penghasilan Bruto
@@ -347,15 +291,15 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="text-muted font-xs" data-label="Keterangan">
+                        <td class="text-muted font-xs mc-o5" data-label="Keterangan">
                             {{ $category->description ?? '-' }}
                         </td>
-                        <td class="text-center" data-label="Jumlah Transaksi">
+                        <td class="text-center mc-half mc-foot mc-o6" data-label="Jumlah Transaksi">
                             <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
                                 {{ $category->transactions_count }}
                             </span>
                         </td>
-                        <td class="text-center" data-label="Aksi">
+                        <td class="text-center mc-half mc-foot mc-o7" data-label="Aksi">
                             <div class="coa-action-stack">
                                 <button type="button" class="btn btn-light text-primary border coa-action-button btn-edit-category"
                                     data-id="{{ $category->id }}"
@@ -380,7 +324,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr class="coa-mobile-empty">
+                    <tr class="coa-mobile-empty mc-empty">
                         <td colspan="7" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-folder-open fs-2 mb-2 d-block text-secondary"></i>
                             Belum ada akun kategori yang dibuat.

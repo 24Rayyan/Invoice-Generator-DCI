@@ -101,7 +101,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 m-cards">
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">No. Invoice</th>
@@ -117,7 +117,7 @@
                     @forelse($rows as $row)
                     @php $invoice = $row['invoice']; @endphp
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-4 mc-title mc-o1" data-label="No. Invoice">
                             @if(auth()->user()->hasAccess('invoices'))
                                 <a href="{{ route('documents.show', $invoice) }}" class="fw-bold text-decoration-none">
                                     {{ $invoice->document_number }}
@@ -127,23 +127,23 @@
                             @endif
                             <div class="text-muted font-xs">{{ $invoice->date?->format('d/m/Y') }}</div>
                         </td>
-                        <td>{{ $invoice->customer->name ?? '-' }}</td>
-                        <td>
+                        <td class="mc-o2" data-label="Pelanggan">{{ $invoice->customer->name ?? '-' }}</td>
+                        <td class="mc-half mc-o3" data-label="Status">
                             <span class="badge bg-{{ $invoice->status === 'PAID' ? 'success' : ($invoice->status === 'SENT' ? 'info' : 'warning') }}-subtle text-{{ $invoice->status === 'PAID' ? 'success' : ($invoice->status === 'SENT' ? 'info' : 'dark') }} border">
                                 {{ $invoice->status }}
                             </span>
                         </td>
-                        <td class="text-end">{{ $currency }} {{ number_format($row['revenue'], 0, ',', '.') }}</td>
-                        <td class="text-end text-danger">{{ $currency }} {{ number_format($row['direct_expense'], 0, ',', '.') }}</td>
-                        <td class="text-end fw-bold {{ $row['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
+                        <td class="text-end mc-half mc-o4" data-label="Pendapatan Bruto">{{ $currency }} {{ number_format($row['revenue'], 0, ',', '.') }}</td>
+                        <td class="text-end text-danger mc-half mc-o5" data-label="Biaya Terhubung">{{ $currency }} {{ number_format($row['direct_expense'], 0, ',', '.') }}</td>
+                        <td class="text-end fw-bold mc-half mc-o6 {{ $row['net_profit'] >= 0 ? 'text-success' : 'text-danger' }}" data-label="Laba Bersih">
                             {{ $currency }} {{ number_format($row['net_profit'], 0, ',', '.') }}
                         </td>
-                        <td class="text-end pe-4 fw-bold">
+                        <td class="text-end pe-4 fw-bold mc-half mc-o7" data-label="Margin %">
                             {{ number_format($row['net_margin'], 2, ',', '.') }}%
                         </td>
                     </tr>
                     @empty
-                    <tr>
+                    <tr class="mc-empty">
                         <td colspan="7" class="text-center text-muted py-5">Belum ada invoice untuk ditampilkan.</td>
                     </tr>
                     @endforelse

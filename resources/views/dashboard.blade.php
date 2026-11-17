@@ -122,62 +122,6 @@
         color: #526071 !important;
     }
 
-    @media (max-width: 767.98px) {
-        .finance-dashboard .dashboard-table thead {
-            display: none;
-        }
-
-        .finance-dashboard .dashboard-table,
-        .finance-dashboard .dashboard-table tbody {
-            display: block;
-        }
-
-        .finance-dashboard .dashboard-table tbody {
-            display: grid;
-            gap: 0.75rem;
-            padding: 0.75rem;
-        }
-
-        .finance-dashboard .dashboard-table .dashboard-mobile-card {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            border: 1px solid var(--dashboard-line);
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .finance-dashboard .dashboard-table .dashboard-mobile-card td {
-            display: grid;
-            grid-template-columns: minmax(6.25rem, 0.75fr) minmax(0, 1.5fr);
-            align-items: start;
-            gap: 0.75rem;
-            padding: 0.7rem 0.85rem;
-            text-align: left !important;
-            overflow-wrap: anywhere;
-        }
-
-        .finance-dashboard .dashboard-table .dashboard-mobile-card td::before {
-            content: attr(data-label);
-            grid-column: 1;
-            color: #526071;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .finance-dashboard .dashboard-table .dashboard-mobile-card td > * {
-            grid-column: 2;
-        }
-
-        .finance-dashboard .dashboard-table .dashboard-mobile-card td:last-child {
-            border-bottom: 0;
-        }
-
-        .finance-dashboard .dashboard-table .dashboard-mobile-empty td {
-            display: block;
-        }
-    }
-
     @media (max-width: 575.98px) {
         .finance-dashboard .dashboard-kpi {
             min-height: 112px;
@@ -287,7 +231,7 @@
             </a>
         </div>
         <div class="table-responsive">
-            <table class="dashboard-table table align-middle mb-0">
+            <table class="dashboard-table table align-middle mb-0 m-cards">
                 <thead>
                     <tr>
                         <th class="ps-4">No. Dokumen</th>
@@ -299,7 +243,7 @@
                 <tbody>
                     @forelse($recentDocuments as $doc)
                     <tr class="dashboard-mobile-card">
-                        <td class="ps-4" data-label="No. Dokumen">
+                        <td class="ps-4 mc-title mc-o1" data-label="No. Dokumen">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="dashboard-row-icon rounded d-inline-flex align-items-center justify-content-center">
                                     <i class="fa-regular fa-file-lines"></i>
@@ -307,9 +251,9 @@
                                 <span class="font-monospace text-dark">{{ $doc->document_number }}</span>
                             </div>
                         </td>
-                        <td data-label="Pelanggan">{{ $doc->customer?->name ?? '-' }}</td>
-                        <td class="text-end fw-semibold" data-label="Tagihan">{{ $currency }} {{ number_format($doc->total_amount, 0, ',', '.') }}</td>
-                        <td class="text-center pe-4" data-label="Status">
+                        <td class="mc-o2" data-label="Pelanggan">{{ $doc->customer?->name ?? '-' }}</td>
+                        <td class="text-end fw-semibold mc-half mc-amount mc-o3" data-label="Tagihan">{{ $currency }} {{ number_format($doc->total_amount, 0, ',', '.') }}</td>
+                        <td class="text-center pe-4 mc-half mc-o4" data-label="Status">
                             <span class="dashboard-status badge rounded-pill {{ $statusClasses[$doc->status] ?? 'bg-secondary-subtle text-secondary' }}">
                                 <i class="fa-solid {{ $doc->status === 'PAID' ? 'fa-check' : ($doc->status === 'SENT' ? 'fa-paper-plane' : 'fa-file-lines') }} me-1"></i>
                                 {{ $doc->status }}
@@ -317,7 +261,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr class="dashboard-mobile-empty">
+                    <tr class="dashboard-mobile-empty mc-empty">
                         <td colspan="4" class="text-center text-muted py-4">Belum ada invoice untuk ditampilkan.</td>
                     </tr>
                     @endforelse
@@ -340,7 +284,7 @@
             </a>
         </div>
         <div class="table-responsive">
-            <table class="dashboard-table table align-middle mb-0">
+            <table class="dashboard-table table align-middle mb-0 m-cards">
                 <thead>
                     <tr>
                         <th class="ps-4">No. Transaksi</th>
@@ -352,7 +296,7 @@
                 <tbody>
                     @forelse($recentTransactions as $trx)
                     <tr class="dashboard-mobile-card">
-                        <td class="ps-4" data-label="No. Transaksi">
+                        <td class="ps-4 mc-title mc-o1" data-label="No. Transaksi">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="dashboard-expense-icon rounded-circle d-inline-flex align-items-center justify-content-center">
                                     <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: .62rem;"></i>
@@ -360,15 +304,15 @@
                                 <span class="font-monospace text-dark">{{ $trx->transaction_number }}</span>
                             </div>
                         </td>
-                        <td data-label="Kategori">
+                        <td class="mc-o2" data-label="Kategori">
                             <div class="text-truncate" style="max-width: 360px;" title="{{ $trx->category?->name }}">
                                 [{{ $trx->category?->code ?? '-' }}] {{ $trx->category?->name ?? 'Tanpa kategori' }}
                             </div>
                         </td>
-                        <td class="text-end fw-semibold text-danger" data-label="Nominal">
+                        <td class="text-end fw-semibold text-danger mc-half mc-amount mc-o3" data-label="Nominal">
                             - {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}
                         </td>
-                        <td class="text-center pe-4" data-label="Fiskal">
+                        <td class="text-center pe-4 mc-half mc-o4" data-label="Fiskal">
                             @if($trx->category?->is_tax_deductible)
                                 <span class="dashboard-status badge rounded-pill bg-light text-secondary">Dapat dikurangkan</span>
                             @else
@@ -377,7 +321,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr class="dashboard-mobile-empty">
+                    <tr class="dashboard-mobile-empty mc-empty">
                         <td colspan="4" class="text-center text-muted py-4">Belum ada pengeluaran kas tercatat.</td>
                     </tr>
                     @endforelse

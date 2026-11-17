@@ -429,6 +429,16 @@
         .st-nav-item { flex: 0 0 auto; white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent; min-height: 44px; background: var(--erp-surface); border: 1px solid var(--erp-line); }
         .st-nav-item.active { border-color: var(--erp-primary); }
     }
+    @media (max-width: 767.98px) {
+        /* Tabel penomoran: tiap dokumen menjadi blok bertumpuk, prefix tetap dekat labelnya */
+        .st-table, .st-table tbody { display: block; min-width: 0; }
+        .st-table thead { display: none; }
+        .st-table tbody tr { display: grid; gap: .45rem; padding: .9rem 0; border-bottom: 1px solid var(--erp-line); }
+        .st-table tbody tr:last-child { border-bottom: 0; }
+        .st-table tbody td { display: block; padding: 0; border: 0; overflow-wrap: anywhere; }
+        .st-table tbody td:nth-child(3)::before { content: "Contoh nomor"; display: block; font: 600 .7rem/1.4 var(--bs-body-font-family); color: var(--erp-text-3); text-transform: uppercase; letter-spacing: .04em; }
+        .st-table tbody td:nth-child(4)::before { content: "Terakhir bulan ini"; display: block; font: 600 .7rem/1.4 var(--bs-body-font-family); color: var(--erp-text-3); text-transform: uppercase; letter-spacing: .04em; }
+    }
     @media (max-width: 575.98px) {
         .tab-pane { padding: 1rem .95rem 1.25rem; }
         .st-asset { grid-template-columns: minmax(0, 1fr); }

@@ -500,3 +500,186 @@ table.dataTable { border-collapse: collapse !important; }
 
 /* Tanpa sidebar: konten mengikuti lebar container navbar island */
 main.app-content.container-fluid { max-width: none; margin: 0; padding-top: 1.5rem; padding-bottom: 2rem; flex: 1; }
+
+/* ---------- 15. Mobile record cards (tabel → kartu, reusable) ----------
+   Pakai: <table class="table m-cards"> dan beri peran pada <td>:
+     .mc-title  judul kartu (tanpa label)      .mc-half  setengah lebar (2 kolom)
+     .mc-foot   area aksi/footer berbatas atas .mc-hide  sembunyikan di mobile
+     .mc-o1…o8  urutan tampil di mobile (default: urutan DOM)
+     .mc-amount angka/total ditonjolkan
+   Desktop & tablet (≥768px) tidak tersentuh. Label diambil dari data-label. */
+@media (max-width: 767.98px) {
+    /* Nampan abu-abu agar kartu putih terpisah jelas dari card induk */
+    .table-responsive:has(> table.m-cards) {
+        background: var(--erp-bg); border-radius: var(--erp-radius-sm);
+        padding: .6rem; overflow: visible;
+    }
+    .card-body:has(> .table-responsive > table.m-cards) { padding: .75rem !important; }
+    .card-body.p-0:has(> .table-responsive > table.m-cards) { padding: 0 !important; }
+    .card > .table-responsive:has(> table.m-cards) { border-radius: 0; border-top: 1px solid var(--erp-line); }
+
+    .app-content .table.m-cards,
+    .app-content .table.m-cards > tbody { display: block; width: 100%; }
+    .app-content .table.m-cards > thead { display: none; }
+    .app-content .table.m-cards > tbody { display: grid; gap: .75rem; }
+
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty):not([class*="mobile-empty"]) {
+        position: relative; display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        column-gap: .85rem; row-gap: .7rem; align-items: start;
+        padding: .95rem 1rem;
+        background: var(--erp-surface);
+        border: 1px solid var(--erp-line-strong);
+        border-radius: var(--erp-radius);
+        box-shadow: 0 1px 2px rgba(15, 26, 46, .06);
+    }
+    .app-content .table.m-cards > tbody > tr.mc-empty,
+    .app-content .table.m-cards > tbody > tr[class*="mobile-empty"] {
+        display: block; background: var(--erp-surface); border: 1px dashed var(--erp-line-strong); border-radius: var(--erp-radius);
+    }
+    .app-content .table.m-cards > tbody > tr.mc-empty > td,
+    .app-content .table.m-cards > tbody > tr[class*="mobile-empty"] > td { display: block; padding: 1.5rem 1rem !important; text-align: center !important; }
+
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty) > td {
+        display: block; grid-column: 1 / -1; order: 10; min-width: 0;
+        padding: 0 !important; border: 0 !important; box-shadow: none !important;
+        background: transparent !important; text-align: left !important;
+        font-size: .875rem; line-height: 1.45; overflow-wrap: anywhere;
+    }
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty) > td[data-label]::before {
+        content: attr(data-label); display: block; margin-bottom: .2rem;
+        font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+        color: var(--erp-text-3);
+    }
+    .app-content .table.m-cards > tbody > tr > td.mc-half { grid-column: auto; }
+    .app-content .table.m-cards > tbody > tr > td.mc-hide { display: none !important; }
+
+    /* Judul kartu: nomor dokumen boleh membungkus, tidak diperkecil */
+    .app-content .table.m-cards > tbody > tr > td.mc-title { font-size: 1rem; font-weight: 700; color: var(--erp-ink); line-height: 1.35; }
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty) > td.mc-title[data-label]::before,
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty) > td.mc-check[data-label]::before { display: none; }
+    .app-content .table.m-cards > tbody > tr > td.mc-title .font-monospace { font-size: .95rem; min-width: 0; overflow-wrap: anywhere; line-height: 1.4; letter-spacing: 0; }
+    .app-content .table.m-cards > tbody > tr:has(> td.mc-check) > td.mc-title { padding-right: 2.5rem !important; }
+    .app-content .table.m-cards > tbody > tr > td.mc-amount { font-size: 1rem; font-weight: 700; white-space: nowrap; }
+    .app-content .table.m-cards > tbody > tr > td.mc-title .d-flex > :is(.badge, [class*="badge-"], .rounded-circle, .rounded, [class*="-icon"], .avatar-circle) { flex-shrink: 0; }
+
+    /* Checkbox pilih: pojok kanan atas kartu, area sentuh 44px */
+    .app-content .table.m-cards > tbody > tr > td.mc-check {
+        position: absolute; top: .3rem; right: .35rem; width: 44px; height: 44px;
+        display: grid; place-items: center; z-index: 1; order: 0;
+    }
+
+    /* Footer aksi */
+    .app-content .table.m-cards > tbody > tr > td.mc-foot { padding-top: .75rem !important; border-top: 1px solid var(--erp-line) !important; }
+    .app-content .table.m-cards .action-btn-group,
+    .app-content .table.m-cards .mc-actions {
+        display: flex; flex-wrap: wrap; align-items: center; gap: .4rem;
+        justify-content: flex-start !important; background: transparent; border: 0; padding: 0;
+    }
+    .app-content .table.m-cards .action-icon-btn,
+    .app-content .table.m-cards .btn:has(> i:only-child) {
+        width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0;
+        border: 1px solid var(--erp-line); background: var(--erp-surface-2); border-radius: var(--erp-radius-sm);
+    }
+    .app-content .table.m-cards .action-icon-btn:hover { box-shadow: none; transform: none; }
+    .app-content .table.m-cards form.d-inline { display: inline-flex !important; }
+    .app-content .table.m-cards .badge { max-width: 100%; }
+    .app-content .table.m-cards .text-truncate { white-space: normal; max-width: none !important; }
+
+    .mc-o1 { order: 1 !important; } .mc-o2 { order: 2 !important; } .mc-o3 { order: 3 !important; } .mc-o4 { order: 4 !important; }
+    .mc-o5 { order: 5 !important; } .mc-o6 { order: 6 !important; } .mc-o7 { order: 7 !important; } .mc-o8 { order: 8 !important; }
+
+    /* Kontrol DataTables: satu kolom, lebar penuh, rata tengah */
+    .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_length { text-align: left; margin-bottom: .75rem; }
+    .dataTables_wrapper .dataTables_filter label { display: flex; align-items: center; gap: .5rem; width: 100%; margin: 0; }
+    .dataTables_wrapper .dataTables_filter input { flex: 1; min-width: 0; margin-left: 0 !important; }
+    .dataTables_wrapper .dataTables_info { text-align: center; padding-top: .75rem; }
+    .dataTables_wrapper .dataTables_paginate { margin-top: .5rem; }
+    .dataTables_wrapper .dataTables_paginate .pagination { justify-content: center; flex-wrap: wrap; }
+    .pagination { justify-content: center; flex-wrap: wrap; }
+    .pagination .page-link { min-width: 40px; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Header halaman & toolbar: tombol aksi memenuhi lebar, tidak berdesakan */
+    .page-actions { display: flex; flex-wrap: wrap; gap: .5rem; width: 100%; }
+    .page-actions > .btn, .page-actions > a.btn { flex: 1 1 auto; justify-content: center; }
+}
+@media (min-width: 576px) and (max-width: 767.98px) {
+    /* Layar besar (phablet): tray lebih lega */
+    .table-responsive:has(> table.m-cards) { padding: .85rem; }
+}
+@media (max-width: 767.98px) {
+    .app-content .table.m-cards > tbody > tr > td.dataTables_empty { text-align: center !important; padding: 1.5rem 1rem !important; color: var(--erp-text-3); }
+}
+
+/* ---------- 16. Mobile: form, modal, navigasi, sentuhan (reusable) ---------- */
+@media (max-width: 767.98px) {
+    /* Kartu item pada form: nomor item sebagai judul, tombol hapus di pojok, input berbingkai jelas */
+    .mc-o0 { order: 0 !important; }
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty) > td.mc-num[data-label]::before,
+    .app-content .table.m-cards > tbody > tr:not(.mc-empty) > td.mc-num::before {
+        content: "Item "; display: inline; margin: 0; font-size: inherit; letter-spacing: 0; text-transform: none; color: inherit;
+    }
+    .app-content .table.m-cards > tbody > tr > td.mc-num { font-size: .95rem; font-weight: 700; color: var(--erp-ink) !important; padding-right: 2.75rem !important; }
+    .app-content .table.m-cards > tbody > tr > td.mc-remove { position: absolute; top: .3rem; right: .35rem; width: 44px; height: 44px; display: grid; place-items: center; order: 0; }
+    .app-content .table.m-cards > tbody > tr > td.mc-remove .btn { width: 44px; height: 44px; padding: 0 !important; display: grid; place-items: center; }
+    .app-content .table.m-cards-form > tbody > tr > td .form-control,
+    .app-content .table.m-cards-form > tbody > tr > td .form-select,
+    .app-content .table.m-cards-form > tbody > tr > td .input-group-text {
+        border: 1px solid var(--erp-line-strong) !important; background-color: #fff !important; min-height: 44px;
+    }
+    .document-items-table-container { border: 0 !important; }
+
+    /* Aksi bawah form: tombol utama di atas, lebar penuh, tidak berhimpitan */
+    .form-actions { flex-direction: column-reverse; align-items: stretch !important; gap: .6rem !important; }
+    .form-actions > .btn, .form-actions > a.btn, .form-actions > button { width: 100%; padding-left: 1rem !important; padding-right: 1rem !important; }
+
+    /* Modal: hampir layar penuh, isi bisa di-scroll, footer menumpuk rapi */
+    .modal-dialog, .modal-dialog.modal-lg, .modal-dialog.modal-xl { max-width: none; width: auto; margin: .5rem; min-height: 0; }
+    .modal-dialog-centered { min-height: calc(100% - 1rem); }
+    .modal-content { max-height: calc(100dvh - 1rem); }
+    .modal-content > form { display: flex; flex-direction: column; min-height: 0; max-height: inherit; }
+    .modal-body { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 1rem; }
+    .modal-header { padding: .85rem 1rem; align-items: flex-start; gap: .5rem; }
+    .modal-header .btn-close { width: 44px; height: 44px; margin: -.5rem -.5rem -.5rem auto; flex-shrink: 0; background-size: .9rem; }
+    .modal-footer { padding: .75rem 1rem; gap: .5rem; flex-direction: column-reverse; align-items: stretch; }
+    .modal-footer > .btn, .modal-footer > form, .modal-footer > a { width: 100%; margin: 0; }
+    .modal-footer > form .btn { width: 100%; }
+    .modal-title { overflow-wrap: anywhere; }
+
+    /* Kartu & tab */
+    .card-header { padding: .85rem 1rem; }
+    .card-header.d-flex { flex-wrap: wrap; gap: .5rem; }
+    .nav-tabs, .nav-pills { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .nav-tabs .nav-link, .nav-pills .nav-link { white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
+    .alert { padding: .75rem .9rem; overflow-wrap: anywhere; }
+    .alert-dismissible .btn-close { padding: 1.05rem .9rem; }
+    .btn-group > .btn { min-height: 44px; }
+    .dropdown-item { min-height: 44px; display: flex; align-items: center; }
+
+    /* Tabel yang tetap boleh scroll: beri petunjuk tepi agar tidak tersembunyi */
+    .table-responsive:not(:has(> table.m-cards)) { box-shadow: inset -14px 0 10px -12px rgba(15, 26, 46, .18); }
+
+    /* Judul halaman tidak terpotong; breadcrumb membungkus */
+    .app-content h1, .app-content .h3 { overflow-wrap: anywhere; }
+    .app-content .breadcrumb { flex-wrap: wrap; }
+}
+
+/* Navbar island pada layar kecil: menu yang dibuka tidak melebihi layar dan bisa di-scroll */
+@media (max-width: 991.98px) {
+    .navbar-floating .navbar-collapse { max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; }
+    .navbar-floating .navbar-toggler { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; }
+    .navbar-floating .navbar-nav { align-items: stretch !important; width: 100%; }
+    .navbar-floating .nav-link-custom { width: 100%; justify-content: flex-start; }
+    .navbar-floating .dropdown-menu-custom { position: static !important; transform: none !important; min-width: 0 !important; width: 100%; margin-top: 4px !important; box-shadow: none !important; background: #f8fafc !important; }
+    .navbar-floating .dropdown-menu-custom .dropdown-item { white-space: normal; }
+    .navbar-floating .navbar-brand > span { max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .floating-navbar-wrapper { padding: 10px 10px 6px !important; }
+}
+@media (max-width: 575.98px) {
+    .app-content.container-fluid { padding-left: .75rem !important; padding-right: .75rem !important; }
+}
+/* Landscape ponsel: header tidak memakan tinggi layar */
+@media (max-height: 480px) and (orientation: landscape) {
+    .navbar-floating .navbar-collapse { max-height: calc(100dvh - 90px); }
+    .modal-dialog { margin: .25rem auto; }
+}

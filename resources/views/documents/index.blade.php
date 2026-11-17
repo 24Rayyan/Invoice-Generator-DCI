@@ -12,7 +12,7 @@
         </nav>
         <h1 class="h3 fw-bold text-dark mb-0 tracking-tight">Kelola {{ $documentType === 'PO' ? 'PO' : 'Invoice' }}</h1>
     </div>
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2 page-actions">
         @if(auth()->user()->hasAccess('projects'))
             <a href="{{ route('projects.index') }}" class="btn btn-outline-primary px-3 py-2 rounded-3 fw-semibold">
                 <i class="fa-solid fa-diagram-project"></i>
@@ -101,7 +101,7 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 custom-saas-table" id="myTable">
+            <table class="table table-hover align-middle mb-0 custom-saas-table m-cards" id="myTable">
                 <thead>
                     <tr>
                         @if($documentType === 'INVOICE')
@@ -134,7 +134,7 @@
                     <tr class="document-mobile-card">
                         <!-- Checkbox Bulk Export (Invoice Only) -->
                         @if($documentType === 'INVOICE')
-                        <td class="text-center" data-label="Pilih">
+                        <td class="text-center mc-check" data-label="Pilih">
                             @if($doc->type == 'INVOICE')
                                 <input type="checkbox" class="form-check-input doc-checkbox" 
                                        value="{{ $doc->id }}" 
@@ -153,8 +153,8 @@
                         @endif
 
                         <!-- No. Dokumen + Badge Tipe -->
-                        <td data-label="No. Dokumen" @if($documentType === 'PO') data-order="{{ $doc->created_at->format('Y-m-d H:i:s') }}-{{ str_pad((string) $doc->id, 20, '0', STR_PAD_LEFT) }}" @endif>
-                            <div class="d-flex align-items-center gap-2">
+                        <td class="mc-title mc-o1" data-label="No. Dokumen" @if($documentType === 'PO') data-order="{{ $doc->created_at->format('Y-m-d H:i:s') }}-{{ str_pad((string) $doc->id, 20, '0', STR_PAD_LEFT) }}" @endif>
+                            <div class="d-flex align-items-start gap-2">
                                 @if($doc->type == 'PO')
                                     <span class="badge-type badge-po">PO</span>
                                 @else
@@ -165,7 +165,7 @@
                         </td>
 
                         <!-- Customer -->
-                        <td data-label="Pelanggan">
+                        <td class="mc-o2" data-label="Pelanggan">
                             <div class="d-flex flex-column">
                                 <span class="fw-semibold text-dark">{{ $doc->customer->name ?? 'Tanpa Nama' }}</span>
                                 @if(!empty($doc->customer->tax_id_number))
@@ -175,7 +175,7 @@
                         </td>
 
                         <!-- PO Keterangan / Invoice Total -->
-                        <td data-label="{{ $documentType === 'PO' ? 'Keterangan' : 'Total Tagihan' }}">
+                        <td class="mc-half mc-o3 {{ $documentType === 'PO' ? '' : 'mc-amount' }}" data-label="{{ $documentType === 'PO' ? 'Keterangan' : 'Total Tagihan' }}">
                             @if($documentType === 'PO')
                                 <span class="text-dark" title="{{ $doc->description ?: 'Tidak ada keterangan' }}">
                                     {{ $doc->description ? \Illuminate\Support\Str::limit($doc->description, 40) : '-' }}
@@ -186,7 +186,7 @@
                         </td>
                         
                         <!-- QUICK CHANGE STATUS VIA AJAX -->
-                        <td data-label="Status">
+                        <td class="mc-half mc-o4" data-label="Status">
                             <select class="form-select status-select fw-semibold" data-id="{{ $doc->id }}" data-docnum="{{ $doc->document_number }}" data-type="{{ $doc->type }}" data-current="{{ $doc->status }}" aria-label="Status {{ $doc->document_number }}">
                                 <option value="DRAFT" {{ $doc->status == 'DRAFT' ? 'selected' : '' }}>DRAFT</option>
                                 <option value="SENT" {{ $doc->status == 'SENT' ? 'selected' : '' }}>SENT</option>
@@ -195,7 +195,7 @@
                         </td>
                         
                         <!-- PDF EXPORT (Modern Button Group) -->
-                        <td class="text-center" data-label="PDF">
+                        <td class="text-center mc-foot mc-o5" data-label="PDF">
                             <div class="action-btn-group justify-content-center">
                                 @if($doc->type === 'PO')
                                     @if($doc->generatedInvoice)
@@ -228,7 +228,7 @@
                         </td>
                         
                         <!-- ACTIONS (Clean Neutral Design) -->
-                        <td class="text-center" data-label="Aksi">
+                        <td class="text-center mc-foot mc-o6" data-label="Aksi">
                             <div class="action-btn-group justify-content-center">
                                 <a href="{{ route('documents.show', $doc->id) }}" class="action-icon-btn text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail & Margin Proyek" aria-label="Lihat detail {{ $doc->document_number }}">
                                     <i class="fa-solid fa-eye"></i>
@@ -704,68 +704,13 @@
     }
 
     @media (max-width: 767.98px) {
-        .custom-saas-table {
-            display: block;
-            width: 100%;
-        }
-
-        .custom-saas-table thead {
-            display: none;
-        }
-
-        .custom-saas-table tbody {
-            display: grid;
-            gap: 0.75rem;
-            padding: 0.75rem;
-        }
-
-        .custom-saas-table .document-mobile-card {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .custom-saas-table .document-mobile-card td {
-            display: grid;
-            grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.5fr);
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.65rem 0.85rem;
-            text-align: left !important;
-            overflow-wrap: anywhere;
-        }
-
-        .custom-saas-table .document-mobile-card td::before {
-            content: attr(data-label);
-            color: #526071;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .custom-saas-table .document-mobile-card td[data-label="PDF"],
-        .custom-saas-table .document-mobile-card td[data-label="Aksi"] {
-            grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.5fr);
-        }
-
-        .custom-saas-table .document-mobile-card .action-btn-group {
-            flex-wrap: wrap;
-            justify-content: flex-start !important;
-        }
-
-        .custom-saas-table .document-mobile-card td:last-child {
-            border-bottom: 0;
-        }
-
-        .custom-saas-table tbody tr:not(.document-mobile-card) {
-            display: block;
-        }
-
-        .custom-saas-table tbody tr:not(.document-mobile-card) td {
-            display: block;
-        }
+        .document-period-filter { width: 100%; flex: 1 1 100%; }
+        #filterForm { width: 100%; }
+        #filterForm > .d-flex.bg-white { width: 100%; }
+        #filterForm .status-filter-chip { flex: 1 1 0; min-height: 40px; padding-left: .4rem; padding-right: .4rem; }
+        .ts-wrapper.status-select { width: 100%; max-width: 160px; }
+        #bulkActionBar .btn { flex: 1 1 auto; white-space: normal; }
+        #bulkActionBar .card-body > div:last-child { width: 100%; flex-wrap: wrap; }
     }
 
     @media (prefers-reduced-motion: reduce) {

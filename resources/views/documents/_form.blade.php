@@ -249,7 +249,7 @@
 
             <!-- Section 2: Input Barang (Item) -->
             <div class="mb-4 mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-info bg-opacity-10 text-info p-2 rounded-2"><i class="fa-solid fa-list-check"></i></span>
                         <h2 class="h6 fw-bold text-dark mb-0">Rincian Barang & Jasa</h2>
@@ -260,7 +260,7 @@
                 </div>
 
                 <div class="table-responsive document-items-table-container rounded-3 border">
-                    <table class="table table-hover align-middle mb-0" id="item-table">
+                    <table class="table table-hover align-middle mb-0 m-cards m-cards-form" id="item-table">
                         <thead class="table-dark">
                             <tr class="small text-uppercase font-xs">
                                 <th width="4%" class="text-center py-2.5">#</th>
@@ -347,7 +347,7 @@
                 </div>
             </div>
 
-            <div class="mt-5 pt-3 border-top d-flex justify-content-end align-items-center gap-2">
+            <div class="mt-5 pt-3 border-top d-flex justify-content-end align-items-center gap-2 form-actions">
                 <a href="{{ route($indexRoute) }}" class="btn btn-light border px-4" id="cancel-form">Batal</a>
                 <button type="submit" class="btn btn-primary px-5 shadow-sm fw-bold">
                     <i class="fa-solid fa-floppy-disk me-1.5"></i> {{ $submitLabel }}
@@ -459,6 +459,9 @@
             $('.item-specification-heading').text(isPurchaseOrder ? 'Spesifikasi' : 'Keterangan');
             $('.item-quantity-heading').text(isPurchaseOrder ? 'Kuantitas' : 'QTY');
             $('.item-specification-input').attr('placeholder', isPurchaseOrder ? 'Spesifikasi barang...' : 'Catatan opsional...');
+            $('.item-desc-cell').attr('data-label', isPurchaseOrder ? 'Nama Barang' : 'Nama Barang / Jasa');
+            $('.item-spec-cell').attr('data-label', isPurchaseOrder ? 'Spesifikasi' : 'Keterangan');
+            $('.item-qty-cell').attr('data-label', isPurchaseOrder ? 'Kuantitas' : 'QTY');
             $('.invoice-only').toggleClass('d-none', isPurchaseOrder);
             $('.invoice-only input, .invoice-only select, .invoice-only textarea').prop('disabled', isPurchaseOrder);
             $('.po-only').toggleClass('d-none', !isPurchaseOrder);

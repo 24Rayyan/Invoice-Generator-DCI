@@ -104,62 +104,6 @@
         transform: translateY(1px);
     }
 
-    @media (max-width: 767.98px) {
-        .cashflow-page .cashflow-table thead {
-            display: none;
-        }
-
-        .cashflow-page .cashflow-table,
-        .cashflow-page .cashflow-table tbody {
-            display: block;
-        }
-
-        .cashflow-page .cashflow-table tbody {
-            display: grid;
-            gap: 0.75rem;
-            padding: 0.75rem;
-        }
-
-        .cashflow-page .cashflow-table .cashflow-mobile-card {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            border: 1px solid var(--cashflow-line);
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fff;
-        }
-
-        .cashflow-page .cashflow-table .cashflow-mobile-card td {
-            display: grid;
-            grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.5fr);
-            align-items: start;
-            gap: 0.75rem;
-            padding: 0.7rem 0.85rem;
-            text-align: left !important;
-            overflow-wrap: anywhere;
-        }
-
-        .cashflow-page .cashflow-table .cashflow-mobile-card td::before {
-            content: attr(data-label);
-            grid-column: 1;
-            color: #526071;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .cashflow-page .cashflow-table .cashflow-mobile-card td > * {
-            grid-column: 2;
-        }
-
-        .cashflow-page .cashflow-table .cashflow-mobile-card td:last-child {
-            border-bottom: 0;
-        }
-
-        .cashflow-page .cashflow-table .cashflow-mobile-empty td {
-            display: block;
-        }
-    }
-
     @media (max-width: 575.98px) {
         .cashflow-page .cashflow-kpi {
             min-height: 112px;
@@ -353,7 +297,7 @@
         </div>
 
         <div class="table-responsive">
-            <table class="cashflow-table table align-middle mb-0">
+            <table class="cashflow-table table align-middle mb-0 m-cards">
                 <thead>
                     <tr>
                         <th class="ps-4">No. Transaksi / Tanggal</th>
@@ -367,7 +311,7 @@
                 <tbody>
                     @forelse($transactions as $trx)
                     <tr class="cashflow-mobile-card">
-                        <td class="ps-4" data-label="Transaksi">
+                        <td class="ps-4 mc-title mc-o1" data-label="Transaksi">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="cashflow-transaction-icon rounded-circle {{ $trx->type === 'income' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} d-inline-flex align-items-center justify-content-center">
                                     <i class="fa-solid {{ $trx->type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up' }}" style="font-size: .65rem;"></i>
@@ -378,7 +322,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td data-label="Kategori">
+                        <td class="mc-o4" data-label="Kategori">
                             <div class="text-truncate fw-medium" style="max-width: 240px;" title="{{ $trx->category?->name }}">
                                 [{{ $trx->category?->code ?? '-' }}] {{ $trx->category?->name ?? 'Tanpa kategori' }}
                             </div>
@@ -390,7 +334,7 @@
                                 <span class="cashflow-note small">Koreksi fiskal</span>
                             @endif
                         </td>
-                        <td data-label="Keterangan">
+                        <td class="mc-o5" data-label="Keterangan">
                             <div class="text-truncate" style="max-width: 270px;" title="{{ $trx->description }}">
                                 {{ $trx->description ?? '-' }}
                             </div>
@@ -417,11 +361,11 @@
                                 <div class="cashflow-note small">Tidak terhubung ke invoice</div>
                             @endif
                         </td>
-                        <td class="text-nowrap" data-label="Metode">{{ $trx->payment_method ?: '-' }}</td>
-                        <td class="text-end fw-semibold {{ $trx->type === 'income' ? 'text-success' : 'text-danger' }} text-nowrap" data-label="Jumlah">
+                        <td class="text-nowrap mc-half mc-o3" data-label="Metode">{{ $trx->payment_method ?: '-' }}</td>
+                        <td class="text-end fw-semibold {{ $trx->type === 'income' ? 'text-success' : 'text-danger' }} text-nowrap mc-half mc-amount mc-o2" data-label="Jumlah">
                             {{ $trx->type === 'income' ? '+' : '−' }} {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}
                         </td>
-                        <td class="text-end pe-4 text-nowrap" data-label="Aksi">
+                        <td class="text-end pe-4 text-nowrap mc-foot mc-o6" data-label="Aksi">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 @if($trx->receipt_file_path)
                                     <a href="{{ route('transactions.receipt', $trx) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Lihat bukti nota" aria-label="Lihat bukti nota {{ $trx->transaction_number }}">
@@ -448,7 +392,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr class="cashflow-mobile-empty">
+                    <tr class="cashflow-mobile-empty mc-empty">
                         <td colspan="6" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-receipt fs-2 mb-2 d-block text-secondary"></i>
                             Tidak ada transaksi kas yang cocok dengan filter yang dipilih.

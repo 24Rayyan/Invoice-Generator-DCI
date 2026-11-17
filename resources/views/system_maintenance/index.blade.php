@@ -140,15 +140,15 @@
 <section class="card border-0 shadow-sm mb-4" aria-labelledby="backup-history-title">
     <div class="card-header bg-white py-3"><h2 class="h5 mb-0" id="backup-history-title">Riwayat Backup dan Pemulihan</h2></div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 m-cards">
             <thead><tr><th>Berkas</th><th>Dibuat</th><th>Ukuran</th><th class="text-end">Aksi</th></tr></thead>
             <tbody>
                 @forelse($backupFiles as $backup)
                     <tr>
-                        <td>{{ $backup['name'] }} @if($backup['safety'])<span class="badge text-bg-warning">Backup keselamatan</span>@endif</td>
-                        <td>{{ $backup['created_at']->format('d/m/Y H:i:s') }}</td>
-                        <td>{{ number_format($backup['size'] / 1048576, 2, ',', '.') }} MB</td>
-                        <td class="text-end">
+                        <td class="mc-title" data-label="Berkas">{{ $backup['name'] }} @if($backup['safety'])<span class="badge text-bg-warning">Backup keselamatan</span>@endif</td>
+                        <td class="mc-half" data-label="Dibuat">{{ $backup['created_at']->format('d/m/Y H:i:s') }}</td>
+                        <td class="mc-half" data-label="Ukuran">{{ number_format($backup['size'] / 1048576, 2, ',', '.') }} MB</td>
+                        <td class="text-end mc-foot mc-actions" data-label="Aksi">
                             <a class="btn btn-sm btn-outline-secondary" href="{{ route('system-maintenance.backups.download', $backup['name']) }}">Unduh</a>
                             <form action="{{ route('system-maintenance.backups.restore', $backup['name']) }}" method="POST" class="d-inline" data-confirm="Restore akan mengganti database aktif. Database sekarang disalin terlebih dahulu, lalu aplikasi dihentikan sementara untuk pergantian. Lanjutkan?" data-confirm-title="Pulihkan Database?" data-confirm-button="Ya, Pulihkan" data-confirm-variant="danger">
                                 @csrf
@@ -158,7 +158,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="text-center text-muted py-4">Belum ada backup database.</td></tr>
+                    <tr class="mc-empty"><td colspan="4" class="text-center text-muted py-4">Belum ada backup database.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -212,13 +212,13 @@
 <section class="card border-0 shadow-sm" aria-labelledby="operations-title">
     <div class="card-header bg-white py-3"><h2 class="h5 mb-0" id="operations-title">Status Operasi Terakhir</h2></div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 m-cards">
             <thead><tr><th>Waktu</th><th>Operasi</th><th>Status</th><th>Berkas / pesan</th></tr></thead>
             <tbody>
                 @forelse($operations as $operation)
-                    <tr><td>{{ $operation->created_at->format('d/m/Y H:i:s') }}</td><td>{{ $operation->operation }}</td><td>{{ $operation->status }}</td><td>{{ $operation->file_name ?: $operation->message }}</td></tr>
+                    <tr><td class="mc-title" data-label="Waktu">{{ $operation->created_at->format('d/m/Y H:i:s') }}</td><td class="mc-half" data-label="Operasi">{{ $operation->operation }}</td><td class="mc-half" data-label="Status">{{ $operation->status }}</td><td data-label="Berkas / pesan">{{ $operation->file_name ?: $operation->message }}</td></tr>
                 @empty
-                    <tr><td colspan="4" class="text-center text-muted py-4">Belum ada operasi pemeliharaan.</td></tr>
+                    <tr class="mc-empty"><td colspan="4" class="text-center text-muted py-4">Belum ada operasi pemeliharaan.</td></tr>
                 @endforelse
             </tbody>
         </table>

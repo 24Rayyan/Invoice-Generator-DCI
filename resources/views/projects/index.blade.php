@@ -63,7 +63,7 @@
         <span class="badge bg-light text-dark border">{{ $projects->total() }} proyek</span>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 m-cards">
             <thead class="bg-light">
                 <tr>
                     <th class="ps-4">Proyek</th>
@@ -78,18 +78,18 @@
             <tbody>
                 @forelse($projects as $project)
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-4 mc-title mc-o1" data-label="Proyek">
                             <a class="fw-bold text-decoration-none" href="{{ route('projects.show', $project) }}">{{ $project->project_name }}</a>
                         </td>
-                        <td>{{ $project->client?->name ?? '-' }}</td>
-                        <td>
+                        <td class="mc-o2" data-label="Pelanggan">{{ $project->client?->name ?? '-' }}</td>
+                        <td class="mc-half mc-o3" data-label="Status">
                             @php($statusLabel = ['active' => 'Aktif', 'on_hold' => 'Ditunda', 'completed' => 'Selesai'][$project->status] ?? $project->status)
                             <span class="badge bg-{{ $project->status === 'active' ? 'success' : ($project->status === 'completed' ? 'secondary' : 'warning') }}-subtle text-dark border">{{ $statusLabel }}</span>
                         </td>
-                        <td class="text-end">{{ $project->invoices_count }}</td>
-                        <td class="text-end text-success fw-semibold">{{ number_format($project->invoices_sum_total_amount ?? 0, 0, ',', '.') }}</td>
-                        <td class="text-end text-danger fw-semibold">{{ number_format($project->direct_expenses_sum_amount ?? 0, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4 text-nowrap">
+                        <td class="text-end mc-half mc-o4" data-label="Invoice">{{ $project->invoices_count }}</td>
+                        <td class="text-end text-success fw-semibold mc-half mc-o5" data-label="Pendapatan">{{ number_format($project->invoices_sum_total_amount ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-end text-danger fw-semibold mc-half mc-o6" data-label="Biaya Kas">{{ number_format($project->direct_expenses_sum_amount ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-end pe-4 text-nowrap mc-foot mc-o7 mc-actions" data-label="Aksi">
                             <a href="{{ route('projects.show', $project) }}#project-settings" class="btn btn-sm btn-outline-primary" title="Edit proyek {{ $project->project_name }}">
                                 <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                             </a>
@@ -103,7 +103,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center text-muted py-5">Belum ada proyek. Buat proyek pertama untuk mulai mengelompokkan Invoice dan kas.</td></tr>
+                    <tr class="mc-empty"><td colspan="7" class="text-center text-muted py-5">Belum ada proyek. Buat proyek pertama untuk mulai mengelompokkan Invoice dan kas.</td></tr>
                 @endforelse
             </tbody>
         </table>
