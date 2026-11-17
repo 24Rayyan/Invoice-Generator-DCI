@@ -8,7 +8,7 @@
 
     $sections = [
         'company'   => 'Profil perusahaan',
-        'branding'  => 'Logo dan stempel',
+        'branding'  => 'Logo dan tampilan aplikasi',
         'numbering' => 'Penomoran dokumen',
         'finance'   => 'Pajak dan keuangan',
         'signatory' => 'Penandatangan',
@@ -18,7 +18,7 @@
     $fieldPanel = [
         'company_name' => 'company', 'company_npwp16' => 'company', 'company_nitku' => 'company', 'company_email' => 'company',
         'company_phone' => 'company', 'company_city' => 'company', 'company_address' => 'company',
-        'company_logo' => 'branding', 'company_stamp' => 'branding',
+        'company_logo' => 'branding', 'company_stamp' => 'branding', 'app_title' => 'branding', 'app_favicon' => 'branding',
         'invoice_prefix' => 'numbering', 'po_prefix' => 'numbering', 'delivery_note_prefix' => 'numbering', 'kwitansi_prefix' => 'numbering',
         'default_tax_rate' => 'finance', 'term_of_payment' => 'finance', 'currency_symbol' => 'finance', 'currency_code' => 'finance', 'company_bank_account' => 'finance',
         'signatory_name' => 'signatory', 'signatory_position' => 'signatory', 'signatory_city' => 'signatory',
@@ -29,6 +29,7 @@
 
     $logoMissing  = $setting->company_logo && ! $setting->logoPath();
     $stampMissing = $setting->company_stamp && ! $setting->stampPath();
+    $faviconMissing = $setting->app_favicon && ! $setting->faviconUrl();
 @endphp
 
 <div class="st-page">
@@ -139,7 +140,7 @@
                     {{-- 2. LOGO & STEMPEL --}}
                     <section class="tab-pane fade {{ $firstErrorPanel === 'branding' ? 'show active' : '' }}" id="panel-branding" role="tabpanel" aria-labelledby="tab-btn-branding" tabindex="0">
                         <div class="st-panel-head">
-                            <h2>Logo dan stempel</h2>
+                            <h2>Logo dan tampilan aplikasi</h2>
                             <p>Gambar PNG, JPG, atau WEBP, maksimal 2 MB. PNG transparan memberi hasil cetak terbaik. Tanpa file, dokumen tetap tercetak normal dengan nama perusahaan.</p>
                         </div>
 
@@ -208,6 +209,43 @@
                                 @endforeach
                             </div>
                         </fieldset>
+
+                        <div class="st-sub">
+                            <h3>Identitas tab browser</h3>
+                            <p>Judul dan ikon yang tampil pada tab browser aplikasi dan halaman login.</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-7">
+                                <label for="app_title" class="form-label">Judul aplikasi</label>
+                                <input type="text" id="app_title" name="app_title" class="form-control{{ $inv('app_title') }}" value="{{ old('app_title', $setting->app_title ?? '') }}" maxlength="100" placeholder="Mini ERP">
+                                {!! $fb('app_title') !!}
+                                <div class="form-text">Jika dikosongkan, judul tab memakai Mini ERP.</div>
+                            </div>
+                        </div>
+                        <div class="st-asset mt-3">
+                            <div class="st-asset-preview">
+                                @if($setting->faviconUrl())
+                                    <img src="{{ $setting->faviconUrl() }}" alt="Favicon aplikasi saat ini" width="48" height="48">
+                                @else
+                                    <span>Ikon bawaan Mini ERP</span>
+                                @endif
+                            </div>
+                            <div class="st-asset-body">
+                                <label for="app_favicon" class="form-label">Favicon aplikasi</label>
+                                <input type="file" id="app_favicon" name="app_favicon" class="form-control{{ $inv('app_favicon') }}" accept=".png,.ico">
+                                {!! $fb('app_favicon') !!}
+                                <div class="form-text">Unggah file PNG atau ICO, maksimal 1 MB. Jika tidak ada file, ikon bawaan Mini ERP digunakan.</div>
+                                @if($faviconMissing)
+                                    <div class="form-text text-danger">File favicon yang tercatat tidak ditemukan di penyimpanan. Unggah ulang untuk menggantinya.</div>
+                                @endif
+                                @if($setting->app_favicon)
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" name="remove_app_favicon" id="remove_app_favicon" value="1">
+                                        <label class="form-check-label" for="remove_app_favicon">Gunakan kembali favicon bawaan</label>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </section>
 
                     {{-- 3. PENOMORAN --}}

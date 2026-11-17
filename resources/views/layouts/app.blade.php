@@ -9,7 +9,8 @@
         $globalSetting = \App\Models\Setting::getSetting();
     @endphp
 
-    <title>{{ $title ?? 'Mini ERP' }}</title>
+    <title>{{ $title ?? ($globalSetting->app_title ?: 'Mini ERP') }}</title>
+    <link rel="icon" href="{{ $globalSetting->faviconUrl() ?? asset('favicon.ico') }}">
     
     <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

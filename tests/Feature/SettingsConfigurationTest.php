@@ -92,6 +92,56 @@ class SettingsConfigurationTest extends TestCase
         Storage::disk('public')->assertExists($setting->company_stamp);
     }
 
+    public function test_settings_update_saves_application_title_and_favicon(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin)
+            ->post(route('settings.update'), [
+                'company_name' => 'PT DCI',
+                'app_title' => 'DCI ERP',
+                'invoice_prefix' => 'INV',
+                'po_prefix' => 'PO',
+                'default_tax_rate' => 11,
+                'app_favicon' => UploadedFile::fake()->image('favicon.png'),
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $setting = Setting::firstOrFail();
+        $this->assertSame('DCI ERP', $setting->app_title);
+        Storage::disk('public')->assertExists($setting->app_favicon);
+
+        $this->actingAs($this->admin)
+            ->get(route('settings.index'))
+            ->assertOk()
+            ->assertSee('<title>DCI ERP</title>', false)
+            ->assertSee('href="'.Storage::disk('public')->url($setting->app_favicon).'"', false);
+    }
+
+    public function test_settings_update_can_restore_the_default_favicon(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('settings/favicon.png', 'favicon');
+
+        $setting = Setting::getSetting();
+        $setting->update(['app_favicon' => 'settings/favicon.png']);
+
+        $this->actingAs($this->admin)
+            ->post(route('settings.update'), [
+                'company_name' => 'PT DCI',
+                'invoice_prefix' => 'INV',
+                'po_prefix' => 'PO',
+                'default_tax_rate' => 11,
+                'remove_app_favicon' => '1',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertNull($setting->fresh()->app_favicon);
+        Storage::disk('public')->assertMissing('settings/favicon.png');
+    }
+
     public function test_invoice_creation_generates_delivery_note_and_receipt_numbers_and_uses_receipt_note_default(): void
     {
         $setting = Setting::getSetting();

@@ -9,6 +9,8 @@ class Setting extends Model
     protected $fillable = [
         // Identitas & Legalitas Usaha
         'company_name',
+        'app_title',
+        'app_favicon',
         'company_npwp',
         'company_npwp16',
         'company_nitku',
@@ -103,6 +105,17 @@ class Setting extends Model
     public function stampPath(): ?string
     {
         return $this->existingPublicFile($this->company_stamp);
+    }
+
+    public function faviconUrl(): ?string
+    {
+        if (blank($this->app_favicon)) {
+            return null;
+        }
+
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        return $disk->exists($this->app_favicon) ? $disk->url($this->app_favicon) : null;
     }
 
     private function existingPublicFile(?string $relative): ?string

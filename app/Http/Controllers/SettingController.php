@@ -88,10 +88,13 @@ class SettingController extends Controller
             'company_nitku'            => 'nullable|string|max:25',
             'company_logo'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'company_stamp'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'app_title'                => 'nullable|string|max:100',
+            'app_favicon'              => 'nullable|file|mimes:png,ico|max:1024',
             'company_email'            => 'nullable|email|max:255',
             'company_phone'            => ['nullable', 'string', 'max:50', 'regex:/^[0-9+()\-.\s\/]{5,}$/'],
             'remove_company_logo'      => 'nullable|boolean',
             'remove_company_stamp'     => 'nullable|boolean',
+            'remove_app_favicon'       => 'nullable|boolean',
             'company_address'          => 'nullable|string',
             'company_city'             => 'nullable|string|max:100',
             'company_bank_account'     => 'nullable|string',
@@ -120,6 +123,9 @@ class SettingController extends Controller
             'company_stamp.image'      => 'File stempel harus berupa gambar.',
             'company_stamp.mimes'      => 'Stempel harus berformat JPEG, PNG, JPG, atau WEBP.',
             'company_stamp.max'        => 'Ukuran file stempel maksimal 2MB.',
+            'app_title.max'            => 'Judul aplikasi maksimal 100 karakter.',
+            'app_favicon.mimes'        => 'Favicon harus berformat PNG atau ICO.',
+            'app_favicon.max'          => 'Ukuran file favicon maksimal 1MB.',
             'company_email.email'      => 'Format email perusahaan tidak valid.',
             'company_phone.regex'      => 'Nomor telepon hanya boleh berisi angka, spasi, dan tanda + ( ) - . /',
             'company_npwp16.digits'    => 'NPWP 16 digit harus terdiri dari tepat 16 angka.',
@@ -134,7 +140,14 @@ class SettingController extends Controller
         $setting = Setting::getSetting();
 
         // 3. Ambil seluruh data teks selain file dan token CSRF
-        $data = collect($validated)->except(['company_logo', 'company_stamp', 'remove_company_logo', 'remove_company_stamp'])->all();
+        $data = collect($validated)->except([
+            'company_logo',
+            'company_stamp',
+            'app_favicon',
+            'remove_company_logo',
+            'remove_company_stamp',
+            'remove_app_favicon',
+        ])->all();
 
         // Kolom NOT NULL yang boleh dikosongkan di form: pakai nilai bawaan agar tidak gagal simpan.
         foreach (['delivery_note_prefix' => 'SJ', 'kwitansi_prefix' => 'KWT', 'currency_symbol' => 'Rp', 'currency_code' => 'IDR', 'term_of_payment' => 0] as $column => $default) {
@@ -183,8 +196,24 @@ class SettingController extends Controller
             $data['company_stamp'] = $stampPath;
         }
 
-        // 5b. Hapus logo / stempel bila diminta dan tidak sedang diganti file baru
-        foreach (['company_logo' => 'remove_company_logo', 'company_stamp' => 'remove_company_stamp'] as $column => $flag) {
+        // 5a. Handle Upload Favicon Aplikasi
+        if ($request->hasFile('app_favicon')) {
+            $faviconPath = $request->file('app_favicon')->store('settings', 'public');
+            if (!$faviconPath) {
+                throw new RuntimeException('Gagal menyimpan favicon aplikasi.');
+            }
+            if ($setting->app_favicon && Storage::disk('public')->exists($setting->app_favicon)) {
+                Storage::disk('public')->delete($setting->app_favicon);
+            }
+            $data['app_favicon'] = $faviconPath;
+        }
+
+        // 5b. Hapus file identitas bila diminta dan tidak sedang diganti file baru
+        foreach ([
+            'company_logo' => 'remove_company_logo',
+            'company_stamp' => 'remove_company_stamp',
+            'app_favicon' => 'remove_app_favicon',
+        ] as $column => $flag) {
             if ($request->boolean($flag) && ! $request->hasFile($column)) {
                 if ($setting->{$column} && Storage::disk('public')->exists($setting->{$column})) {
                     Storage::disk('public')->delete($setting->{$column});
