@@ -26,6 +26,7 @@ class InvoiceCostController extends Controller
                 ->where('type', 'expense')
                 ->whereNull('invoice_id')
                 ->whereNull('project_id')
+                ->whereDoesntHave('projects')
                 ->lockForUpdate()
                 ->get();
 
@@ -38,6 +39,7 @@ class InvoiceCostController extends Controller
                 ->where('type', 'expense')
                 ->whereNull('invoice_id')
                 ->whereNull('project_id')
+                ->whereDoesntHave('projects')
                 ->pluck('id');
 
             Transaction::query()->whereIn('id', $ids)->update(['invoice_id' => $document->id]);

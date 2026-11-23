@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 class Transaction extends Model
@@ -56,14 +57,23 @@ class Transaction extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_transaction_allocations')
+            ->withPivot('allocated_amount')
+            ->withTimestamps();
+    }
+
     public function scopeUnallocated($query)
     {
-        return $query->whereNull('invoice_id')->whereNull('project_id');
+        return $query->whereNull('invoice_id')
+            ->whereNull('project_id')
+            ->whereDoesntHave('projects');
     }
 
     public function scopeUnallocatedToProject($query)
     {
-        return $query->whereNull('invoice_id')->whereNull('project_id');
+        return $query->unallocated();
     }
 
     /**

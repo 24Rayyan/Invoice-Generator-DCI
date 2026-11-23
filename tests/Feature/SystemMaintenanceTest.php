@@ -355,12 +355,15 @@ class SystemMaintenanceTest extends TestCase
             'total_amount' => 100,
         ]);
 
-        $this->post(route('projects.attach-expenses', $project), ['transaction_ids' => [$transaction->id]])
+        $this->post(route('projects.attach-expenses', $project), [
+            'transaction_ids' => [$transaction->id],
+            'allocations' => [$transaction->id => 100],
+        ])
             ->assertSessionHas('success');
         $this->post(route('projects.attach-invoices', $project), ['invoice_ids' => [$invoice->id]])
             ->assertSessionHas('success');
 
-        $this->assertSame($project->id, $transaction->fresh()->project_id);
+        $this->assertTrue($transaction->fresh()->projects()->whereKey($project->id)->exists());
         $this->assertSame($project->id, $invoice->fresh()->project_id);
         $this->assertSame(2, ActivityLog::query()
             ->where('subject_type', Project::class)

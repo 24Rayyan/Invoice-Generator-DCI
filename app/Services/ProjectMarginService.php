@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\Project;
+use App\Models\Transaction;
 use Illuminate\Support\Collection;
 
 class ProjectMarginService
@@ -14,7 +15,10 @@ class ProjectMarginService
             ->with('client')
             ->withCount('invoices')
             ->withSum('invoices', 'total_amount')
-            ->withSum('directExpenses', 'amount');
+            ->withSum([
+                'directExpenses as direct_expenses_sum_amount' => fn ($query) => $query->whereNull('transactions.invoice_id'),
+            ], 'project_transaction_allocations.allocated_amount')
+            ->withSum('invoiceExpenses as invoice_expenses_sum_amount', 'amount');
 
         if ($status) {
             $query->where('status', $status);
@@ -31,7 +35,8 @@ class ProjectMarginService
 
         $rows = $query->get()->map(function (Project $project) {
             $revenue = (float) ($project->invoices_sum_total_amount ?? 0);
-            $directExpense = (float) ($project->direct_expenses_sum_amount ?? 0);
+            $directExpense = (float) ($project->direct_expenses_sum_amount ?? 0)
+                + (float) ($project->invoice_expenses_sum_amount ?? 0);
             $netProfit = $revenue - $directExpense;
 
             return [
@@ -96,6 +101,29 @@ class ProjectMarginService
         };
     }
 
+    public function unallocatedProjectExpenses(): Collection
+    {
+        return Transaction::with('category')
+            ->withSum('projects as allocated_project_amount', 'project_transaction_allocations.allocated_amount')
+            ->expense()
+            ->whereNull('invoice_id')
+            ->whereNull('project_id')
+            ->whereRaw(
+                'transactions.amount > COALESCE((SELECT SUM(project_transaction_allocations.allocated_amount) FROM project_transaction_allocations WHERE project_transaction_allocations.transaction_id = transactions.id), 0)'
+            )
+            ->orderByDesc('transaction_date')
+            ->orderByDesc('id')
+            ->get()
+            ->map(function (Transaction $transaction) {
+                $transaction->remaining_project_amount = round(
+                    ($this->amountInCents($transaction->amount) - $this->amountInCents($transaction->allocated_project_amount ?? 0)) / 100,
+                    2
+                );
+
+                return $transaction;
+            });
+    }
+
     /**
      * Ringkasan margin satu invoice: pendapatan, kas keluar terikat, laba, dan persen margin.
      */
@@ -106,6 +134,20 @@ class ProjectMarginService
             ?? $invoice->directExpenses()->sum('amount'));
 
         return $this->compose($invoice, $revenue, $directExpense);
+    }
+
+    public function forProject(Project $project): array
+    {
+        $revenue = (float) $project->invoices()->sum('total_amount');
+        $directExpense = (float) $project->directExpenses()->sum('project_transaction_allocations.allocated_amount')
+            + (float) $project->invoiceExpenses()->sum('transactions.amount');
+
+        return [
+            'revenue' => $revenue,
+            'direct_expense' => $directExpense,
+            'net_profit' => $revenue - $directExpense,
+            'net_margin' => $revenue > 0 ? round((($revenue - $directExpense) / $revenue) * 100, 2) : 0.0,
+        ];
     }
 
     /**
@@ -168,5 +210,10 @@ class ProjectMarginService
             'date_asc' => $rows->sortBy(fn ($row) => optional($row['invoice']->date)->timestamp ?? 0)->values(),
             default => $rows->sortByDesc(fn ($row) => optional($row['invoice']->date)->timestamp ?? 0)->values(),
         };
+    }
+
+    private function amountInCents($amount): int
+    {
+        return (int) round((float) $amount * 100);
     }
 }

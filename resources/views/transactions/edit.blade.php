@@ -114,12 +114,6 @@
                                 'selectedInvoiceId' => old('invoice_id', $transaction->invoice_id),
                             ])
                         @endif
-                        @if(auth()->user()->hasAccess('projects'))
-                            @include('transactions.partials.project-select', [
-                                'projects' => $projects,
-                                'selectedProjectId' => old('project_id', $transaction->project_id),
-                            ])
-                        @endif
                     </div>
                 </div>
             </div>

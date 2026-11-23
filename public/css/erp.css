@@ -231,6 +231,40 @@ a { text-underline-offset: 2px; }
 .border { border-color: var(--erp-line) !important; }
 hr { border-color: var(--erp-line); opacity: 1; }
 
+.financial-summary-strip {
+    overflow: hidden;
+    border: 1px solid var(--erp-line);
+    border-radius: .65rem;
+    background: var(--erp-surface);
+}
+.financial-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.financial-summary-item {
+    min-width: 0;
+    padding: 1rem 1.15rem;
+    border-right: 1px solid var(--erp-line);
+    background: var(--erp-surface);
+}
+.financial-summary-item:last-child { border-right: 0; }
+.financial-summary-item--lead { background: var(--erp-primary-soft); }
+.financial-summary-label { color: var(--erp-text-3); font-size: .75rem; font-weight: 600; }
+.financial-summary-value {
+    margin-top: .35rem;
+    color: var(--erp-ink);
+    font-size: clamp(1.05rem, 2vw, 1.4rem);
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+.financial-summary-value--positive { color: var(--erp-success); }
+.financial-summary-value--negative { color: var(--erp-danger); }
+.financial-summary-note { display: block; margin-top: .25rem; color: var(--erp-text-3); font-size: .75rem; line-height: 1.35; }
+@media (max-width: 767.98px) {
+    .financial-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .financial-summary-item { padding: .85rem; }
+    .financial-summary-item:nth-child(2n) { border-right: 0; }
+    .financial-summary-item:nth-child(-n+2) { border-bottom: 1px solid var(--erp-line); }
+}
+
 /* ---------- 5. Buttons ---------- */
 .btn {
     --bs-btn-font-weight: 600; --bs-btn-font-size: .86rem; --bs-btn-border-radius: var(--erp-radius-sm);
@@ -354,6 +388,34 @@ body > .ts-dropdown {
 .text-end, td.text-end, th.text-end { font-variant-numeric: tabular-nums; }
 .table-responsive { -webkit-overflow-scrolling: touch; }
 table.dataTable { border-collapse: collapse !important; }
+
+.pm-action-cell { width: 112px; white-space: nowrap; }
+.pm-detach-btn {
+    min-width: 82px;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    padding: .45rem .65rem;
+    border: 1px solid #d9a31a;
+    border-radius: 7px;
+    background: #fffaf0;
+    color: #805600;
+    font-size: .78rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 1px 2px rgba(128, 86, 0, .06);
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+}
+.pm-detach-btn i { font-size: .78rem; }
+.pm-detach-btn:hover {
+    background: #fff3cf;
+    border-color: #c58b00;
+    color: #654400;
+}
+.pm-detach-btn:active { transform: translateY(1px); }
+.pm-detach-btn:focus-visible { outline: 3px solid rgba(197, 139, 0, .22); outline-offset: 2px; }
 .dataTables_wrapper .dataTables_filter input, .dataTables_wrapper .dataTables_length select {
     border: 1px solid var(--erp-line-strong); border-radius: var(--erp-radius-sm); padding: .35rem .65rem;
 }
@@ -493,7 +555,7 @@ table.dataTable { border-collapse: collapse !important; }
 .app-content .table .pe-4 { padding-right: 1rem !important; }
 /* Tombol ikon-saja di sel tabel menjadi persegi ringkas */
 @media (min-width: 768px) {
-    .app-content .table td .btn-sm:has(> i:only-child) { width: 34px; height: 34px; min-height: 34px; padding: 0; }
+    .app-content .table td .btn-sm:has(> i:only-child):not(.btn-with-label) { width: 34px; height: 34px; min-height: 34px; padding: 0; }
 }
 
 /* Pengaman overflow horizontal: konten lebar (tabel) scroll di wadahnya sendiri */
@@ -580,12 +642,19 @@ main.app-content.container-fluid { max-width: none; margin: 0; padding-top: 1.5r
         justify-content: flex-start !important; background: transparent; border: 0; padding: 0;
     }
     .app-content .table.m-cards .action-icon-btn,
-    .app-content .table.m-cards .btn:has(> i:only-child) {
+    .app-content .table.m-cards .btn:has(> i:only-child):not(.btn-with-label) {
         width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0;
         border: 1px solid var(--erp-line); background: var(--erp-surface-2); border-radius: var(--erp-radius-sm);
     }
     .app-content .table.m-cards .action-icon-btn:hover { box-shadow: none; transform: none; }
     .app-content .table.m-cards form.d-inline { display: inline-flex !important; }
+    .app-content .table.m-cards > tbody > tr > td.mc-foot form.d-inline {
+        width: 100%;
+    }
+    .app-content .table.m-cards > tbody > tr > td.mc-foot form.d-inline .btn {
+        width: 100%;
+        min-height: 44px;
+    }
     .app-content .table.m-cards .badge { max-width: 100%; }
     .app-content .table.m-cards .text-truncate { white-space: normal; max-width: none !important; }
 

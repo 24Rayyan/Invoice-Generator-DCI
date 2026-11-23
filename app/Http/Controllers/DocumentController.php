@@ -212,9 +212,13 @@ class DocumentController extends Controller
             $document->load('directExpenses.category');
         }
 
-        $margin = $canViewInvoiceMargin
-            ? app(ProjectMarginService::class)->forInvoice($document)
-            : null;
+        $margin = null;
+        if ($canViewInvoiceMargin) {
+            $marginService = app(ProjectMarginService::class);
+            $margin = $document->project
+                ? $marginService->forProject($document->project)
+                : $marginService->forInvoice($document);
+        }
         $unallocatedExpenses = $canViewInvoiceMargin
             ? Transaction::with('category')
                 ->expense()

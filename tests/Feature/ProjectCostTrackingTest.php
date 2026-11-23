@@ -278,7 +278,7 @@ class ProjectCostTrackingTest extends TestCase
         $freeTwo = $this->makeExpense(200000);
         $alreadyLinked = $this->makeExpense(300000, $invoiceB->id);
         $projectLinked = $this->makeExpense(400000);
-        $projectLinked->update(['project_id' => $project->id]);
+        $projectLinked->projects()->attach($project->id, ['allocated_amount' => 400000]);
 
         $this->actingAs($this->user)
             ->get(route('documents.show', $invoiceA))
@@ -295,7 +295,7 @@ class ProjectCostTrackingTest extends TestCase
         $this->assertEquals($invoiceA->id, $freeTwo->fresh()->invoice_id);
         $this->assertEquals($invoiceB->id, $alreadyLinked->fresh()->invoice_id);
         $this->assertNull($projectLinked->fresh()->invoice_id);
-        $this->assertEquals($project->id, $projectLinked->fresh()->project_id);
+        $this->assertTrue($projectLinked->fresh()->projects()->whereKey($project->id)->exists());
 
         $this->actingAs($this->user)
             ->post(route('documents.detach-transaction', [$invoiceA, $freeOne]))

@@ -71,52 +71,36 @@
 @endif
 
 @if($document->type === 'INVOICE' && $canViewInvoiceMargin)
-<div class="row g-3 mb-4">
-    <div class="col-md-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
-            <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Pendapatan</span>
-                <h4 class="fw-bold text-success mb-0 mt-1">{{ $currency }} {{ number_format($margin['revenue'], 0, ',', '.') }}</h4>
-                <small class="text-muted font-xs">Nilai Invoice (termasuk pajak jika aktif)</small>
-            </div>
+<section class="financial-summary-strip mb-4" aria-label="{{ $document->project ? 'Ringkasan keuangan proyek' : 'Ringkasan margin invoice' }}">
+    <div class="financial-summary-grid">
+        <div class="financial-summary-item financial-summary-item--lead">
+            <div class="financial-summary-label">Laba Bersih</div>
+            <div class="financial-summary-value {{ $margin['net_profit'] >= 0 ? 'financial-summary-value--positive' : 'financial-summary-value--negative' }}">{{ $currency }} {{ number_format($margin['net_profit'], 0, ',', '.') }}</div>
+            <small class="financial-summary-note">{{ $document->project ? 'Pendapatan proyek dikurangi biaya proyek.' : 'Pendapatan dikurangi biaya langsung.' }}</small>
+        </div>
+        <div class="financial-summary-item">
+            <div class="financial-summary-label">Total Pendapatan</div>
+            <div class="financial-summary-value financial-summary-value--positive">{{ $currency }} {{ number_format($margin['revenue'], 0, ',', '.') }}</div>
+            <small class="financial-summary-note">{{ $document->project ? 'Total seluruh invoice dalam proyek.' : 'Nilai invoice, termasuk pajak jika aktif.' }}</small>
+        </div>
+        <div class="financial-summary-item">
+            <div class="financial-summary-label">Total Biaya Langsung</div>
+            <div class="financial-summary-value financial-summary-value--negative">{{ $currency }} {{ number_format($margin['direct_expense'], 0, ',', '.') }}</div>
+            <small class="financial-summary-note">{{ $document->project ? 'Total alokasi kas dan pengeluaran invoice proyek.' : 'Kas keluar yang terhubung ke invoice ini.' }}</small>
+        </div>
+        <div class="financial-summary-item">
+            <div class="financial-summary-label">Margin Bersih</div>
+            <div class="financial-summary-value">{{ number_format($margin['net_margin'], 2, ',', '.') }}%</div>
+            <small class="financial-summary-note">
+                @if($margin['revenue'] <= 0)
+                    Pendapatan 0, margin ditampilkan 0%.
+                @else
+                    Laba bersih dibagi pendapatan.
+                @endif
+            </small>
         </div>
     </div>
-    <div class="col-md-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
-            <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Total Biaya Langsung</span>
-                <h4 class="fw-bold text-danger mb-0 mt-1">{{ $currency }} {{ number_format($margin['direct_expense'], 0, ',', '.') }}</h4>
-                <small class="text-muted font-xs">Kas keluar yang terhubung ke Invoice ini</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
-            <div class="card-body p-3">
-                <span class="text-muted fw-semibold font-xs text-uppercase">Laba Bersih</span>
-                <h4 class="fw-bold {{ $margin['net_profit'] >= 0 ? 'text-success' : 'text-danger' }} mb-0 mt-1">
-                    {{ $currency }} {{ number_format($margin['net_profit'], 0, ',', '.') }}
-                </h4>
-                <small class="text-muted font-xs">Pendapatan dikurangi biaya langsung</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6 col-xl-3">
-        <div class="card border-0 shadow-sm h-100 bg-dark text-white">
-            <div class="card-body p-3">
-                <span class="text-white-50 fw-semibold font-xs text-uppercase">Margin Bersih</span>
-                <h4 class="fw-bold text-white mb-0 mt-1">{{ number_format($margin['net_margin'], 2, ',', '.') }}%</h4>
-                <small class="text-white-50 font-xs">
-                    @if($margin['revenue'] <= 0)
-                        Pendapatan 0, margin ditampilkan 0%
-                    @else
-                        (Laba Bersih / Pendapatan) × 100
-                    @endif
-                </small>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
 @endif
 
 <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -176,7 +160,7 @@
     <div class="card-header bg-white border-0 py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div>
             <h2 class="h6 fw-bold mb-0"><i class="fa-solid fa-link me-2 text-danger"></i> Biaya Langsung Terhubung</h2>
-            <small class="text-muted">Biaya operasional umum yang tidak terhubung ke Invoice tidak masuk perhitungan margin ini.</small>
+            <small class="text-muted">{{ $document->project ? 'Daftar ini memuat kas yang tertaut langsung ke invoice; ringkasan di atas juga mencakup alokasi kas proyek.' : 'Biaya operasional umum yang tidak terhubung ke Invoice tidak masuk perhitungan margin ini.' }}</small>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachKasModal">
             <i class="fa-solid fa-link me-1"></i> Hubungkan Kas
@@ -205,11 +189,11 @@
                         </td>
                         <td class="font-sm mc-o5" data-label="Keterangan">{{ $trx->description ?? '-' }}</td>
                         <td class="text-end fw-bold text-danger mc-amount mc-o2" data-label="Jumlah">- {{ $currency }} {{ number_format($trx->amount, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4 mc-foot mc-o6" data-label="Aksi">
+                        <td class="text-end pe-4 mc-foot pm-action-cell mc-o6" data-label="Aksi">
                             <form action="{{ route('documents.detach-transaction', [$document, $trx]) }}" method="POST" class="d-inline" data-confirm="Transaksi tidak dihapus, hanya dilepas dari invoice ini." data-confirm-impact="Transaksi menjadi biaya operasional umum dan tidak lagi dihitung dalam margin invoice ini." data-confirm-title="Lepas Transaksi dari Invoice?" data-confirm-subject="{{ $document->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
-                                <button type="submit" class="btn btn-sm btn-outline-warning">
-                                    <i class="fa-solid fa-unlink me-1"></i> Lepas
+                                <button type="submit" class="btn btn-sm pm-detach-btn">
+                                    <i class="fa-solid fa-unlink"></i><span>Lepas</span>
                                 </button>
                             </form>
                         </td>

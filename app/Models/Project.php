@@ -6,7 +6,9 @@ use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Project extends Model
 {
@@ -33,9 +35,20 @@ class Project extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function directExpenses(): HasMany
+    public function directExpenses(): BelongsToMany
     {
-        return $this->transactions()->where('type', 'expense');
+        return $this->belongsToMany(Transaction::class, 'project_transaction_allocations')
+            ->withPivot('allocated_amount')
+            ->withTimestamps()
+            ->where('transactions.type', 'expense')
+            ->whereNull('transactions.invoice_id');
+    }
+
+    public function invoiceExpenses(): HasManyThrough
+    {
+        return $this->hasManyThrough(Transaction::class, Document::class, 'project_id', 'invoice_id')
+            ->where('documents.type', 'INVOICE')
+            ->where('transactions.type', 'expense');
     }
 
     public function scopeActive(Builder $query): Builder

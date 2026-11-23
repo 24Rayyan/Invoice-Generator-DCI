@@ -18,6 +18,11 @@
         min-height: 0;
         overflow-y: auto;
     }
+
+    .project-expense-allocation-input {
+        min-width: 130px;
+        width: 140px;
+    }
 </style>
 @endpush
 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4 gap-3">
@@ -44,12 +49,30 @@
 @if(session('error'))<div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
 @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
-<div class="row g-3 mb-4">
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-success"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Total Pendapatan</span><h4 class="fw-bold text-success mt-2 mb-0">{{ $currency }} {{ number_format($revenue, 0, ',', '.') }}</h4><small class="text-muted">Total semua Invoice proyek</small></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-danger"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Total Biaya Langsung</span><h4 class="fw-bold text-danger mt-2 mb-0">{{ $currency }} {{ number_format($directExpense, 0, ',', '.') }}</h4><small class="text-muted">Kas keluar yang terhubung ke proyek</small></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm h-100 border-start border-4 border-info"><div class="card-body"><span class="small text-muted fw-bold text-uppercase">Laba Bersih</span><h4 class="fw-bold {{ $netProfit >= 0 ? 'text-success' : 'text-danger' }} mt-2 mb-0">{{ $currency }} {{ number_format($netProfit, 0, ',', '.') }}</h4><small class="text-muted">Pendapatan dikurangi biaya langsung</small></div></div></div>
-    <div class="col-md-6 col-xl-3"><div class="card border-0 shadow-sm bg-dark text-white h-100"><div class="card-body"><span class="small text-white-50 fw-bold text-uppercase">Margin Bersih</span><h4 class="fw-bold mt-2 mb-0">{{ number_format($netMargin, 2, ',', '.') }}%</h4><small class="text-white-50">{{ $revenue > 0 ? 'Laba bersih / pendapatan' : 'Pendapatan 0, margin ditampilkan 0%' }}</small></div></div></div>
-</div>
+<section class="financial-summary-strip mb-4" aria-label="Ringkasan keuangan proyek">
+    <div class="financial-summary-grid">
+        <div class="financial-summary-item financial-summary-item--lead">
+            <div class="financial-summary-label">Laba Bersih</div>
+            <div class="financial-summary-value {{ $netProfit >= 0 ? 'financial-summary-value--positive' : 'financial-summary-value--negative' }}">{{ $currency }} {{ number_format($netProfit, 0, ',', '.') }}</div>
+            <small class="financial-summary-note">Pendapatan dikurangi biaya langsung.</small>
+        </div>
+        <div class="financial-summary-item">
+            <div class="financial-summary-label">Total Pendapatan</div>
+            <div class="financial-summary-value">{{ $currency }} {{ number_format($revenue, 0, ',', '.') }}</div>
+            <small class="financial-summary-note">Total semua invoice proyek.</small>
+        </div>
+        <div class="financial-summary-item">
+            <div class="financial-summary-label">Total Biaya Kas</div>
+            <div class="financial-summary-value">{{ $currency }} {{ number_format($directExpense, 2, ',', '.') }}</div>
+            <small class="financial-summary-note">Alokasi kas dan pengeluaran invoice.</small>
+        </div>
+        <div class="financial-summary-item">
+            <div class="financial-summary-label">Margin Bersih</div>
+            <div class="financial-summary-value">{{ number_format($netMargin, 2, ',', '.') }}%</div>
+            <small class="financial-summary-note">{{ $revenue > 0 ? 'Laba bersih dibagi pendapatan.' : 'Pendapatan 0, margin ditampilkan 0%.' }}</small>
+        </div>
+    </div>
+</section>
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
@@ -73,10 +96,10 @@
                         <td class="mc-half mc-o4" data-label="Tanggal">{{ $invoice->date?->format('d/m/Y') }}</td>
                         <td class="mc-half mc-o5" data-label="Status"><span class="badge bg-light text-dark border">{{ $invoice->status }}</span></td>
                         <td class="text-end fw-semibold mc-amount mc-o3" data-label="Nilai Invoice">{{ $currency }} {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4 mc-foot mc-o6" data-label="Aksi">
-                            <form method="POST" action="{{ route('projects.detach-invoice', [$project, $invoice]) }}" data-confirm="Invoice tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Invoice dari Proyek?" data-confirm-subject="{{ $invoice->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
+                        <td class="text-end pe-4 mc-foot pm-action-cell mc-o6" data-label="Aksi">
+                            <form method="POST" action="{{ route('projects.detach-invoice', [$project, $invoice]) }}" class="d-inline" data-confirm="Invoice tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Invoice dari Proyek?" data-confirm-subject="{{ $invoice->document_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
                                 @csrf
-                                <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Lepas</button>
+                                <button class="btn btn-sm pm-detach-btn" type="submit"><i class="fa-solid fa-unlink"></i><span>Lepas</span></button>
                             </form>
                         </td>
                     </tr>
@@ -147,25 +170,41 @@
 
 <div class="card border-0 shadow-sm mb-5">
     <div class="card-header bg-white py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-        <div><h2 class="h6 fw-bold mb-1"><i class="fa-solid fa-money-bill-transfer me-2 text-danger"></i>Kas Keluar Proyek</h2><small class="text-muted">Biaya operasional yang tidak terhubung ke proyek tidak dihitung.</small></div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachProjectExpenses"><i class="fa-solid fa-link me-1"></i>Hubungkan Kas</button>
+        <div><h2 class="h6 fw-bold mb-1"><i class="fa-solid fa-money-bill-transfer me-2 text-danger"></i>Alokasi Kas Keluar</h2><small class="text-muted">Kas invoice dihitung otomatis, sedangkan kas umum mengikuti nominal alokasi.</small></div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#attachProjectExpenses"><i class="fa-solid fa-link me-1"></i>Alokasikan Kas</button>
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 m-cards">
-            <thead class="bg-light"><tr><th class="ps-4">No. Transaksi</th><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th class="text-end">Jumlah</th><th class="text-end pe-4">Aksi</th></tr></thead>
+            <thead class="bg-light"><tr><th class="ps-4">No. Transaksi</th><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th class="text-end">Biaya Proyek</th><th class="text-end pe-4">Aksi</th></tr></thead>
             <tbody>
-                @forelse($project->directExpenses as $transaction)
+                @forelse($projectExpenses as $expense)
+                    @php($transaction = $expense['transaction'])
                     <tr>
                         <td class="ps-4 fw-semibold mc-title mc-o1" data-label="No. Transaksi">{{ $transaction->transaction_number }}</td>
                         <td class="mc-half mc-o3" data-label="Tanggal">{{ $transaction->transaction_date?->format('d/m/Y') }}</td>
                         <td class="mc-half mc-o4" data-label="Kategori">{{ $transaction->category?->name ?? '-' }}</td>
                         <td class="mc-o5" data-label="Keterangan">{{ $transaction->description ?? '-' }}</td>
-                        <td class="text-end text-danger fw-semibold mc-amount mc-o2" data-label="Jumlah">{{ $currency }} {{ number_format($transaction->amount, 0, ',', '.') }}</td>
-                        <td class="text-end pe-4 mc-foot mc-o6" data-label="Aksi">
-                            <form method="POST" action="{{ route('projects.detach-expense', [$project, $transaction]) }}" data-confirm="Transaksi kas tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Transaksi dari Proyek?" data-confirm-subject="{{ $transaction->transaction_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
-                                @csrf
-                                <button class="btn btn-sm btn-outline-warning" type="submit"><i class="fa-solid fa-unlink me-1"></i>Lepas</button>
-                            </form>
+                        <td class="text-end text-danger fw-semibold mc-amount mc-o2" data-label="Biaya Proyek">
+                            {{ $currency }} {{ number_format($expense['amount'], 2, ',', '.') }}
+                            @if($expense['invoice'])
+                                <span class="d-block text-muted font-xs fw-normal">Invoice: {{ $expense['invoice']->document_number }}</span>
+                            @else
+                                <span class="d-block text-muted font-xs fw-normal">dari {{ $currency }} {{ number_format($transaction->amount, 2, ',', '.') }}</span>
+                            @endif
+                        </td>
+                        <td class="text-end pe-4 mc-foot pm-action-cell mc-o6" data-label="Aksi">
+                            @if($expense['invoice'])
+                                @if(auth()->user()->hasAccess('invoices'))
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('documents.show', $expense['invoice']) }}">Lihat Invoice</a>
+                                @else
+                                    <span class="text-muted">Kas invoice</span>
+                                @endif
+                            @else
+                                <form method="POST" action="{{ route('projects.detach-expense', [$project, $transaction]) }}" class="d-inline" data-confirm="Transaksi kas tidak dihapus, hanya dilepas dari proyek ini." data-confirm-title="Lepas Transaksi dari Proyek?" data-confirm-subject="{{ $transaction->transaction_number }}" data-confirm-button="Ya, Lepas" data-confirm-variant="warning">
+                                    @csrf
+                                    <button class="btn btn-sm pm-detach-btn" type="submit"><i class="fa-solid fa-unlink"></i><span>Lepas</span></button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty
@@ -177,14 +216,14 @@
 </div>
 
 <div class="modal fade" id="attachProjectExpenses" tabindex="-1" aria-labelledby="attachProjectExpensesLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content project-attach-modal-content border-0 rounded-4 shadow">
             <form class="project-attach-modal-form" method="POST" action="{{ route('projects.attach-expenses', $project) }}">
                 @csrf
-                <div class="modal-header"><div><h5 class="modal-title fw-bold" id="attachProjectExpensesLabel">Hubungkan Kas ke Proyek</h5><small class="text-muted">Hanya kas keluar yang belum terhubung ke Invoice maupun proyek.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+                <div class="modal-header"><div><h5 class="modal-title fw-bold" id="attachProjectExpensesLabel">Alokasikan Kas ke Proyek</h5><small class="text-muted">Pilih transaksi. Nominal yang dikosongkan akan memakai seluruh sisa yang tersedia.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
                 <div class="modal-body">
                     @if($unallocatedExpenses->isEmpty())
-                        <p class="text-center text-muted py-4 mb-0">Tidak ada transaksi kas keluar yang belum terhubung ke invoice maupun project.</p>
+                        <p class="text-center text-muted py-4 mb-0">Tidak ada transaksi kas keluar dengan sisa yang bisa dialokasikan.</p>
                     @else
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
@@ -201,29 +240,33 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="small text-muted"><span id="projectExpenseVisibleCount">{{ $unallocatedExpenses->count() }}</span> transaksi tersedia</span>
+                            <span class="small text-muted"><span id="projectExpenseVisibleCount">{{ $unallocatedExpenses->count() }}</span> transaksi dengan sisa tersedia</span>
                             <button type="button" id="resetProjectExpenseFilters" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i>Atur ulang filter</button>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle">
-                                <thead class="bg-light"><tr><th><input class="form-check-input" type="checkbox" id="selectAllProjectExpenses" aria-label="Pilih transaksi yang tampil"></th><th>No. Transaksi</th><th>Tanggal</th><th>Keterangan</th><th class="text-end">Jumlah</th></tr></thead>
+                                <thead class="bg-light"><tr><th><input class="form-check-input" type="checkbox" id="selectAllProjectExpenses" aria-label="Pilih transaksi yang tampil"></th><th>No. Transaksi</th><th>Tanggal</th><th>Keterangan</th><th class="text-end">Nilai transaksi</th><th class="text-end">Sudah dialokasikan</th><th class="text-end">Sisa</th><th class="text-end">Alokasi proyek ini</th></tr></thead>
                                 <tbody>
                                     @foreach($unallocatedExpenses as $transaction)
+                                        @php($expenseSelected = in_array($transaction->id, (array) old('transaction_ids', [])))
                                         <tr data-project-expense-search="{{ \Illuminate\Support\Str::lower($transaction->transaction_number . ' ' . ($transaction->description ?? '') . ' ' . $transaction->transaction_date?->format('d/m/Y') . ' ' . $transaction->amount . ' ' . number_format($transaction->amount, 0, ',', '.') . ' ' . $currency) }}" data-project-expense-date="{{ $transaction->transaction_date?->format('Y-m-d') }}">
-                                            <td><input class="form-check-input project-expense-checkbox" type="checkbox" name="transaction_ids[]" value="{{ $transaction->id }}"></td>
+                                            <td><input class="form-check-input project-expense-checkbox" type="checkbox" name="transaction_ids[]" value="{{ $transaction->id }}" aria-label="Pilih {{ $transaction->transaction_number }}" {{ $expenseSelected ? 'checked' : '' }}></td>
                                             <td>{{ $transaction->transaction_number }}</td>
                                             <td>{{ $transaction->transaction_date?->format('d/m/Y') }}</td>
                                             <td>{{ \Illuminate\Support\Str::limit($transaction->description, 50) }}</td>
-                                            <td class="text-end">{{ $currency }} {{ number_format($transaction->amount, 0, ',', '.') }}</td>
+                                            <td class="text-end text-nowrap">{{ $currency }} {{ number_format($transaction->amount, 2, ',', '.') }}</td>
+                                            <td class="text-end text-nowrap">{{ $currency }} {{ number_format($transaction->allocated_project_amount ?? 0, 2, ',', '.') }}</td>
+                                            <td class="text-end text-nowrap fw-semibold text-success">{{ $currency }} {{ number_format($transaction->remaining_project_amount, 2, ',', '.') }}</td>
+                                            <td><input class="form-control form-control-sm text-end project-expense-allocation-input" type="number" name="allocations[{{ $transaction->id }}]" value="{{ old('allocations.'.$transaction->id) }}" min="0.01" max="{{ number_format($transaction->remaining_project_amount, 2, '.', '') }}" step="0.01" placeholder="Seluruh sisa" aria-label="Nominal alokasi untuk {{ $transaction->transaction_number }}. Kosongkan untuk memakai seluruh sisa." {{ $expenseSelected ? '' : 'disabled' }}></td>
                                         </tr>
                                     @endforeach
-                                    <tr id="noProjectExpenseMatches" class="d-none"><td colspan="5" class="text-center text-muted py-4">Tidak ada transaksi yang sesuai dengan pencarian atau rentang tanggal.</td></tr>
+                                    <tr id="noProjectExpenseMatches" class="d-none"><td colspan="8" class="text-center text-muted py-4">Tidak ada transaksi yang sesuai dengan pencarian atau rentang tanggal.</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     @endif
                 </div>
-                <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" type="submit" {{ $unallocatedExpenses->isEmpty() ? 'disabled' : '' }}>Hubungkan yang Dipilih</button></div>
+                <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary" type="submit" {{ $unallocatedExpenses->isEmpty() ? 'disabled' : '' }}>Simpan Alokasi</button></div>
             </form>
         </div>
     </div>
@@ -269,7 +312,11 @@
                 const matchesEnd = !endDate || date <= endDate;
                 const matches = matchesTerm && matchesStart && matchesEnd;
                 row.classList.toggle('d-none', !matches);
-                if (!matches) row.querySelector('input[type="checkbox"]').checked = false;
+                if (!matches) {
+                    const checkbox = row.querySelector('input[type="checkbox"]');
+                    checkbox.checked = false;
+                    checkbox.dispatchEvent(new Event('change'));
+                }
                 if (matches) visible++;
             });
 
@@ -279,10 +326,23 @@
         }
 
         [search, from, to].forEach((input) => input.addEventListener('input', applyFilters));
+        rows.forEach((row) => {
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            const allocationInput = row.querySelector('.project-expense-allocation-input');
+
+            if (checkbox && allocationInput) {
+                checkbox.addEventListener('change', function () {
+                    allocationInput.disabled = !this.checked;
+                    if (!this.checked) allocationInput.value = '';
+                });
+            }
+        });
         if (selectAll) {
             selectAll.addEventListener('change', function () {
                 rows.filter((row) => !row.classList.contains('d-none')).forEach((row) => {
-                    row.querySelector('input[type="checkbox"]').checked = this.checked;
+                    const checkbox = row.querySelector('input[type="checkbox"]');
+                    checkbox.checked = this.checked;
+                    checkbox.dispatchEvent(new Event('change'));
                 });
             });
         }

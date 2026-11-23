@@ -18,6 +18,7 @@ class LocalSqliteDatabase
         'projects',
         'categories',
         'transactions',
+        'project_transaction_allocations',
         'settings',
         'activity_logs',
         'activity_logs_fts',

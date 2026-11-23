@@ -35,11 +35,7 @@ class TransactionRequest extends FormRequest
                 $this->isMethod('POST') || ! $this->user()->hasAccess('invoice_margin') ? 'prohibited' : 'nullable',
                 Rule::exists('documents', 'id')->where('type', 'INVOICE'),
             ],
-            'project_id'        => [
-                $this->isMethod('POST') || ! $this->user()->hasAccess('projects') ? 'prohibited' : 'nullable',
-                'integer',
-                'exists:projects,id',
-            ],
+            'project_id'        => ['prohibited'],
             'receipt_file'      => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf,webp', 'max:5120'],
             'event_date'        => ['nullable', 'date'],
             'location'          => ['nullable', 'string', 'max:255'],
@@ -75,16 +71,6 @@ class TransactionRequest extends FormRequest
             }
 
             $invoiceId = $this->input('invoice_id') ?: null;
-            $projectId = $this->input('project_id') ?: null;
-
-            if ($invoiceId && $projectId) {
-                $message = 'Kas keluar hanya dapat dihubungkan ke satu invoice atau project.';
-                $validator->errors()->add('invoice_id', $message);
-                $validator->errors()->add('project_id', $message);
-
-                return;
-            }
-
             $transaction = $this->route('transaction');
 
             if (! $transaction instanceof Transaction) {
@@ -93,14 +79,30 @@ class TransactionRequest extends FormRequest
 
             $hasChangedInvoice = $invoiceId
                 && (int) $invoiceId !== (int) $transaction->invoice_id;
-            $hasChangedProject = $projectId
-                && (int) $projectId !== (int) $transaction->project_id;
+            $categoryType = Category::query()->whereKey($this->input('category_id'))->value('type');
+            $hasProjectAllocations = $transaction->projects()->exists();
+            $allocatedAmountCents = (int) round(
+                (float) $transaction->projects()->sum('project_transaction_allocations.allocated_amount') * 100
+            );
 
-            if (($transaction->invoice_id || $transaction->project_id)
-                && ($hasChangedInvoice || $hasChangedProject)) {
+            if ($hasProjectAllocations
+                && ($categoryType !== 'expense'
+                    || (int) round((float) $this->input('amount', $transaction->amount) * 100)
+                        < $allocatedAmountCents)) {
+                $validator->errors()->add(
+                    'amount',
+                    'Nominal transaksi tidak boleh lebih kecil dari total alokasi ke proyek.'
+                );
+            }
+
+            if ($hasProjectAllocations && $invoiceId) {
+                $validator->errors()->add('invoice_id', 'Lepas seluruh alokasi proyek sebelum menghubungkan transaksi ke invoice.');
+            }
+
+            if ($transaction->invoice_id && $hasChangedInvoice) {
                 $validator->errors()->add(
                     'invoice_id',
-                    'Lepas hubungan kas saat ini terlebih dahulu sebelum menghubungkannya ke invoice atau project lain.'
+                    'Lepas hubungan kas saat ini terlebih dahulu sebelum menghubungkannya ke invoice lain.'
                 );
             }
         });

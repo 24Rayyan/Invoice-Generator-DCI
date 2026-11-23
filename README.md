@@ -66,6 +66,45 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 3. Isi harga satuan dan lengkapi data Invoice, lalu simpan.
 4. Satu PO hanya dapat ditautkan ke satu Invoice. Setelah dibuat, aksi pada PO membuka Invoice tersebut.
 
+## Mengalokasikan Pengeluaran ke Beberapa Proyek
+
+Satu transaksi pengeluaran dapat dibagi ke beberapa proyek tanpa membuat transaksi kas baru.
+Setiap proyek hanya menghitung nominal yang dialokasikan kepadanya pada margin proyek.
+
+### Langkah penggunaan
+
+1. Jika ini pembaruan aplikasi, terapkan migrasi secara aditif:
+
+   ```bash
+   php artisan migrate
+   ```
+
+   Jangan gunakan `migrate:fresh` pada database aplikasi.
+2. Dari **Laporan Keuangan > Margin Proyek / Invoice**, pilih **Jadikan Proyek** pada baris invoice untuk membuka form proyek dengan invoice dan pelanggannya sudah dipilih. Pendapatan dan kas yang sudah tertaut ke invoice akan langsung dihitung, tanpa menghubungkan kas itu lagi. Proyek juga dapat dibuat dari **Invoice & PO > Manajemen Proyek** dengan memilih invoice pada bagian **Invoice yang langsung dihubungkan**.
+3. Jika proyek sudah dibuat, buka detailnya dan pilih **Hubungkan Invoice** untuk menghubungkan invoice yang belum masuk ke proyek.
+4. Untuk kas keluar yang belum tertaut ke invoice, pilih proyek lalu buka bagian **Alokasi Kas Keluar**. Alokasi juga dapat dimulai dari **Laporan Keuangan > Margin Proyek / Invoice** dengan memilih **Alokasikan Kas** pada baris proyek.
+5. Pilih transaksi pengeluaran. Tabel menampilkan nilai transaksi, jumlah yang sudah dialokasikan, dan sisanya. Centang transaksi, lalu pilih **Simpan Alokasi** untuk memakai seluruh sisa yang tersedia. Isi nominal hanya jika ingin mengalokasikan sebagian.
+6. Untuk membagikan sisa transaksi ke proyek lain, buka proyek tersebut dan ulangi langkah yang sama. Sisa yang tampil sudah memperhitungkan alokasi sebelumnya.
+7. Periksa margin proyek. Biaya, laba bersih, dan margin menggunakan nominal alokasi proyek, sedangkan transaksi asli di buku kas tetap satu transaksi dengan nilai penuh.
+
+### Contoh pembagian
+
+Jika satu transaksi pengeluaran bernilai **Rp10.000.000**:
+
+- Alokasikan **Rp5.000.000** ke Proyek A. Sisa yang dapat dialokasikan menjadi **Rp5.000.000**.
+- Buka Proyek B, lalu alokasikan sisa **Rp5.000.000**.
+- Masing-masing proyek menghitung Rp5.000.000 sebagai biaya. Transaksi kas Rp10.000.000 tidak digandakan.
+
+### Aturan alokasi
+
+- Nominal alokasi harus lebih besar dari nol dan tidak boleh melebihi sisa transaksi.
+- Jika kolom nominal dikosongkan, seluruh sisa transaksi otomatis dialokasikan ke proyek tersebut.
+- Pemeriksaan sisa dilakukan lagi saat penyimpanan. Jika pengguna lain sudah memakai sebagian sisa, nominal yang melampaui sisa terbaru ditolak.
+- Pengeluaran yang sudah terhubung ke invoice tidak tersedia untuk alokasi proyek.
+- Jika invoice dengan pengeluaran yang sudah terhubung dihubungkan ke proyek, pengeluarannya otomatis ikut dihitung dan tampil bersama kas lain di bagian **Alokasi Kas Keluar**. Pengeluaran invoice tidak perlu dialokasikan ulang; untuk melepasnya, ubah hubungan kas pada invoice.
+- Aksi **Lepas** menghapus seluruh alokasi transaksi tersebut dari proyek yang sedang dibuka. Nilai itu kembali tersedia untuk dialokasikan. Untuk mengubah nominal alokasi, lepas alokasi lalu masukkan nominal yang baru.
+- Pengeluaran proyek yang sudah ada sebelum fitur ini akan tetap terhubung dengan nilai alokasi awal sebesar nilai transaksinya.
+
 ## Data Demo Lokal
 
 Untuk mengisi data demonstrasi customer, invoice, kategori akun pemasukan/pengeluaran, dan transaksi kas:

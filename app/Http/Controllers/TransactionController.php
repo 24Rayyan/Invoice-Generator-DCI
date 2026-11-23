@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TransactionRequest;
 use App\Models\Category;
 use App\Models\Document;
-use App\Models\Project;
 use App\Models\Transaction;
 use App\Models\ActivityLog;
 use App\Services\TransactionService;
@@ -37,7 +36,7 @@ class TransactionController extends Controller
             'per_page'       => ['nullable', 'integer', 'in:10,25,50,100'],
         ]);
 
-        $query = Transaction::with(['category', 'document.customer', 'project', 'entertainmentDetail'])
+        $query = Transaction::with(['category', 'document.customer', 'project', 'projects', 'entertainmentDetail'])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc');
 
@@ -89,6 +88,9 @@ class TransactionController extends Controller
                       $documentQuery->where('document_number', 'LIKE', "%{$search}%");
                   })
                   ->orWhereHas('project', function ($projectQuery) use ($search) {
+                      $projectQuery->where('project_name', 'LIKE', "%{$search}%");
+                  })
+                  ->orWhereHas('projects', function ($projectQuery) use ($search) {
                       $projectQuery->where('project_name', 'LIKE', "%{$search}%");
                   });
             });
@@ -204,16 +206,12 @@ class TransactionController extends Controller
      */
     public function edit(Transaction $transaction)
     {
-        $transaction->load(['category', 'entertainmentDetail', 'document', 'project']);
+        $transaction->load(['category', 'entertainmentDetail', 'document']);
         $categories = Category::orderBy('code', 'asc')->get();
         $invoices = auth()->user()->hasAccess('invoice_margin')
             ? Document::linkableInvoices($transaction->invoice_id)
             : collect();
-        $projects = auth()->user()->hasAccess('projects')
-            ? Project::activeForSelection($transaction->project_id)
-            : collect();
-
-        return view('transactions.edit', compact('transaction', 'categories', 'invoices', 'projects'));
+        return view('transactions.edit', compact('transaction', 'categories', 'invoices'));
     }
 
     /**
@@ -247,7 +245,6 @@ class TransactionController extends Controller
             'type'             => $category->type,
             'category_id'      => $request->category_id,
             'invoice_id'       => auth()->user()->hasAccess('invoice_margin') ? $invoiceId : $transaction->invoice_id,
-            'project_id'       => auth()->user()->hasAccess('projects') ? $request->validated('project_id') : $transaction->project_id,
             'amount'           => $request->amount,
             'transaction_date' => $request->transaction_date,
             'payment_method'   => $request->payment_method,

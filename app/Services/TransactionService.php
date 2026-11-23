@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class TransactionService
 {
@@ -62,6 +63,24 @@ class TransactionService
     public function updateTransaction(Transaction $transaction, array $data, ?UploadedFile $receiptFile = null, ?array $entertainmentData = null): Transaction
     {
         return DB::transaction(function () use ($transaction, $data, $receiptFile, $entertainmentData) {
+            $transaction = Transaction::query()->lockForUpdate()->findOrFail($transaction->id);
+            $allocatedAmountCents = (int) round(
+                (float) $transaction->projects()->sum('project_transaction_allocations.allocated_amount') * 100
+            );
+
+            if ($allocatedAmountCents > 0) {
+                $updatedAmountCents = (int) round((float) ($data['amount'] ?? $transaction->amount) * 100);
+                $updatedType = $data['type'] ?? $transaction->type;
+
+                if ($updatedType !== 'expense'
+                    || $updatedAmountCents < $allocatedAmountCents
+                    || ! empty($data['invoice_id'])) {
+                    throw ValidationException::withMessages([
+                        'amount' => 'Transaksi yang dialokasikan tidak boleh diubah menjadi pemasukan, dihubungkan ke invoice, atau dikurangi di bawah total alokasi proyek.',
+                    ]);
+                }
+            }
+
             // 1. Handle pergantian file struk jika diupload baru
             if ($receiptFile) {
                 if ($transaction->receipt_file_path && Storage::disk('public')->exists($transaction->receipt_file_path)) {

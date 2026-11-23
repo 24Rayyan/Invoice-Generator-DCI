@@ -347,7 +347,17 @@
                                     <span class="small"><i class="fa-solid fa-link me-1"></i>{{ $trx->document->document_number }}</span>
                                 @endif
                             @endif
-                            @if($trx->project)
+                            @if($trx->projects->isNotEmpty())
+                                @foreach($trx->projects as $linkedProject)
+                                    @if(auth()->user()->hasAccess('projects'))
+                                        <a href="{{ route('projects.show', $linkedProject) }}" class="small text-decoration-none d-block">
+                                            <i class="fa-solid fa-diagram-project me-1"></i>{{ $linkedProject->project_name }}
+                                        </a>
+                                    @else
+                                        <span class="small d-block"><i class="fa-solid fa-diagram-project me-1"></i>{{ $linkedProject->project_name }}</span>
+                                    @endif
+                                @endforeach
+                            @elseif($trx->project)
                                 @if(auth()->user()->hasAccess('projects'))
                                     <a href="{{ route('projects.show', $trx->project) }}" class="small text-decoration-none d-block">
                                         <i class="fa-solid fa-diagram-project me-1"></i>{{ $trx->project->project_name }}
@@ -357,8 +367,8 @@
                                 @endif
                             @elseif(!$trx->document && $trx->entertainmentDetail)
                                 <div class="cashflow-note small">{{ $trx->entertainmentDetail->attendee_name }} · {{ $trx->entertainmentDetail->attendee_company }}</div>
-                            @elseif(!$trx->document && !$trx->project)
-                                <div class="cashflow-note small">Tidak terhubung ke invoice</div>
+                            @elseif(!$trx->document)
+                                <div class="cashflow-note small">Tidak terhubung ke invoice atau proyek</div>
                             @endif
                         </td>
                         <td class="text-nowrap mc-half mc-o3" data-label="Metode">{{ $trx->payment_method ?: '-' }}</td>

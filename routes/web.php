@@ -139,6 +139,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['module:project_margin'])->group(function () {
             Route::get('/project-margin', [FinancialReportController::class, 'projectMargin'])->name('project_margin');
             Route::get('/projects', [FinancialReportController::class, 'projects'])->name('projects');
+            Route::post('/projects/{project}/attach-expenses', [ProjectController::class, 'attachExpenses'])->name('projects.attach-expenses');
         });
     });
 

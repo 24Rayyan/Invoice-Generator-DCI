@@ -157,6 +157,9 @@
 .rpt-meter-fill.pos { background: var(--erp-success); }
 .rpt-meter-fill.neg { background: var(--erp-danger); }
 .rpt-meter-val { min-width: 4.4rem; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; font-size: .84rem; }
+.rpt-project-actions { white-space: nowrap; }
+.rpt-project-actions .btn { min-height: 36px; }
+.rpt-allocation-table { min-width: 820px; }
 
 /* Bar margin dua arah dengan sumbu nol */
 .rpt-diverge { position: relative; flex: 1; height: 8px; min-width: 110px; background: #eef1f6; border-radius: 2px; }
@@ -186,6 +189,59 @@
     .rpt-context .rpt-context-end { margin-left: 0; width: 100%; }
     .rpt-chip { min-height: 40px; }
     .rpt-filter-foot .rpt-reset { margin-left: 0; width: 100%; }
+    .rpt-filter .col-lg-2,
+    .rpt-filter .col-lg-3 { min-width: 0; }
+    .rpt-filter .col-12.col-lg-3 { display: grid; grid-template-columns: 1fr 1fr; }
+    .rpt-filter .col-12.col-lg-3 .btn { width: 100%; min-height: 44px; }
+    .rpt-panel .table-responsive { overflow: visible; }
+    .rpt-table,
+    .rpt-table > tbody { display: block; width: 100%; }
+    .rpt-table > thead { display: none; }
+    .rpt-table > tbody { display: grid; gap: .75rem; background: var(--erp-bg); padding: .6rem; }
+    .rpt-table > tbody > tr:not(:has(.rpt-empty)) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: .7rem .85rem;
+        padding: .95rem 1rem;
+        background: var(--erp-surface);
+        border: 1px solid var(--erp-line-strong);
+        border-radius: var(--erp-radius);
+        box-shadow: 0 1px 2px rgba(15, 26, 46, .06);
+    }
+    .rpt-table > tbody > tr > td {
+        display: block;
+        grid-column: 1 / -1;
+        min-width: 0;
+        padding: 0 !important;
+        border: 0 !important;
+        text-align: left !important;
+        background: transparent !important;
+        font-size: .875rem;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+    .rpt-table > tbody > tr > td.mc-half { grid-column: auto; }
+    .rpt-table > tbody > tr > td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: .2rem;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: var(--erp-text-3);
+    }
+    .rpt-table > tbody > tr > td.mc-title[data-label]::before { display: none; }
+    .rpt-table > tbody > tr > td.mc-title { font-size: 1rem; color: var(--erp-ink); }
+    .rpt-table > tbody > tr > td.mc-title .sub { margin-top: .25rem; }
+    .rpt-table > tbody > tr > td.mc-foot {
+        padding-top: .75rem !important;
+        border-top: 1px solid var(--erp-line) !important;
+    }
+    .rpt-table .rpt-meter { width: 100%; }
+    .rpt-table .rpt-diverge { min-width: 0; }
+    .rpt-table .rpt-meter-val { flex: 0 0 4.4rem; }
+    .rpt-project-actions .btn { width: 100%; min-height: 44px; }
 }
 @media (max-width: 575.98px) {
     .rpt-summary, .rpt-summary.cols-5 { grid-template-columns: 1fr; }

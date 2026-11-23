@@ -216,6 +216,7 @@ class FinancialReportController extends Controller
         $status = $validated['status'] ?? null;
         $sort = $validated['sort'] ?? 'name_asc';
         $rows = $this->marginService->projectOverview($search, $status, $sort);
+        $unallocatedExpenses = $this->marginService->unallocatedProjectExpenses();
         $setting = Setting::getSetting();
         $totals = [
             'revenue' => $rows->sum('revenue'),
@@ -226,7 +227,7 @@ class FinancialReportController extends Controller
             ? round(($totals['net_profit'] / $totals['revenue']) * 100, 2)
             : 0.0;
 
-        return view('reports.projects', compact('rows', 'setting', 'search', 'status', 'sort', 'totals'));
+        return view('reports.projects', compact('rows', 'setting', 'search', 'status', 'sort', 'totals', 'unallocatedExpenses'));
     }
 
     public function projects(Request $request)
